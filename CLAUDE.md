@@ -62,6 +62,7 @@ Dateien möglichst unter ~400 Zeilen. Unit-Tests liegen neben dem Code als `*.te
 ## Arbeitsweise mit Git
 
 - Jeder Meilenstein auf eigenem Branch (`milestone/<nr>-<name>`), Pull Request nach `main`. **Nie direkt auf `main` pushen**, keine Secrets committen.
+- **Claude mergt die Pull Requests selbst** (Alex merged nie), sobald es angemessen ist: CI grün, `npm run check` und `npm run test:e2e` grün, Meilenstein bzw. Teilschritt abgeschlossen. Merge per `gh pr merge --merge --delete-branch`, danach `main` lokal aktualisieren.
 - Nach jedem Commit den Branch zu GitHub pushen (Sicherung). Der lokale Ordner ist immer der aktuelle Stand.
 - Commit-Autor: GitHub-Noreply-Adresse, nie die private Mail.
 - Am Ende jedes Meilensteins: Build läuft, Tests grün, kurze deutsche Zusammenfassung (was ist neu, wie teste ich es, offene Fragen).

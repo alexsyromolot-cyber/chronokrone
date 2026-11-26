@@ -74,7 +74,7 @@ Du bist Lead-Entwickler und Game-Designer für mein eigenes Incremental-Game mit
 
 ### 6. Meilensteine
 
-Arbeite Meilenstein für Meilenstein auf eigenen Branches mit Pull Request. Am Ende jedes Meilensteins: Build läuft, Tests grün, kurze deutsche Zusammenfassung (was ist neu, wie teste ich es, offene Fragen).
+Arbeite Meilenstein für Meilenstein auf eigenen Branches mit Pull Request. **Du mergst die Pull Requests selbst**, sobald du es für angemessen hältst (mindestens: CI grün, Build läuft, Tests grün, Meilenstein bzw. Teilschritt abgeschlossen). Ich merge nichts selbst. Am Ende jedes Meilensteins: kurze deutsche Zusammenfassung (was ist neu, wie teste ich es, offene Fragen).
 
 1. **Grundgerüst:** Repo-Struktur, Vite + TS, Lint/Format, Vitest, Playwright, GitHub-Action für Pages, `CLAUDE.md`, `docs/design.md` (dieses Konzept).
 2. **Vertical Slice Epoche 1 (~15 Min. Spiel):** erste Schlacht, Burg 4×4, drei Gebäude, zwei Klassen, Speichern, Debug-Panel. Danach Feedback von mir abwarten.
@@ -94,7 +94,7 @@ Arbeite Meilenstein für Meilenstein auf eigenen Branches mit Pull Request. Am E
 - Keine Werbung, kein Tracking, keine externen Laufzeit-Abhängigkeiten außer dem eigenen Hosting.
 - Eigene Inhalte: Vorbilder (Booster Pack Heroes u. a.) nur als Gefühl, keine Namen, Grafiken oder Texte übernehmen.
 - Frag mich vor Designentscheidungen, die den Spielcharakter ändern. Technische Entscheidungen triffst du selbst und erklärst sie kurz.
-- Nie direkt auf `main` pushen, keine Secrets committen.
+- Nie direkt auf `main` pushen, sondern immer über einen Pull Request, den du selbst mergst, wenn die CI grün ist. Keine Secrets committen.
 
 ### 8. Erste Aufgabe
 

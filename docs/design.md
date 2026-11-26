@@ -224,6 +224,20 @@ Alle Kosten, Faktoren, Drop-Raten und Zeiten in `src/data/`. Werkzeuge: Zeitbesc
 8. **Desktop-App (Electron), Run-Karte zum Teilen.**
 9. **Später, nur nach Absprache:** Online-Bestenliste, Steam, DLC.
 
-## 19. Offene Fragen
+## 19. Entscheidungen
 
-Siehe Abschnitt „Offene Punkte“ im Pull Request zu Meilenstein 1; Antworten werden hier eingetragen.
+Geklärt am 27.11.2026:
+
+| Thema                | Entscheidung                                                                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Titel                | **Chronokrone** (Deutsch) / **Chronocrown** (Englisch)                                                                |
+| Epochen-Reihe        | wie in Abschnitt 10: Mittelalter → Dampf & Zahnrad → Elektro-Lehnswesen → Atomare Kreuzzüge → Sternenorden            |
+| Grafikquelle         | Sprites im Code aus Paletten erzeugt; Pipeline bleibt offen für eigene Aseprite-Dateien                               |
+| Erste Schlacht       | absichtlich nicht gewinnbar, Mauer fällt nach ~60 s                                                                   |
+| Spielerrolle         | König; ein gelangweilter Erzähler-Gott kommentiert und bricht die vierte Wand                                         |
+| Offline-Fortschritt  | keiner; stattdessen Rückblick und Ausgeruht-Bonus                                                                     |
+| Repository / Hosting | öffentliches Repo `alexsyromolot-cyber/chronokrone`, GitHub Pages: https://alexsyromolot-cyber.github.io/chronokrone/ |
+
+## 20. Offene Fragen
+
+Keine. Neue Fragen werden hier gesammelt, bis sie geklärt sind.

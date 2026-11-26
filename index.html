@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Chronokrone – ein Incremental-Game: Mittelalter gegen alberne Aliens."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Cpath fill='%23f2b33d' d='M0 2h1v1h1V2h1v1h1V1h1v2h1V2h1v1h1v4H0z'/%3E%3C/svg%3E"
+    />
+    <title>Chronokrone</title>
+  </head>
+  <body>
+    <main id="app">
+      <header class="hud">
+        <h1 data-i18n="app.title">Chronokrone</h1>
+        <p class="tagline" data-i18n="app.tagline"></p>
+        <button id="lang" type="button"></button>
+      </header>
+      <div id="stage" aria-hidden="true"></div>
+      <section class="log" aria-live="polite">
+        <p id="narrator" data-i18n="narrator.boot"></p>
+        <p class="stats"><span id="gold"></span> · <span id="ticks"></span></p>
+        <p class="milestone" data-i18n="app.milestone"></p>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

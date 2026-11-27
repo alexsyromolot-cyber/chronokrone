@@ -46,18 +46,21 @@ src/
 tests/e2e/  Playwright-Smoke-Tests
 ```
 
+Alle Spieleraktionen laufen über `dispatch()` in `src/systems/actions.ts` (UI, Tasten, Bot, später Hofbefehle). Debug-Panel: Strg+Umschalt+D. Test-Hook im Browser: `window.__chronokrone`.
+
 Dateien möglichst unter ~400 Zeilen. Unit-Tests liegen neben dem Code als `*.test.ts`.
 
 ## Befehle
 
-| Befehl                            | Zweck                                      |
-| --------------------------------- | ------------------------------------------ |
-| `npm run dev`                     | Entwicklungsserver (http://localhost:5173) |
-| `npm run build`                   | Typecheck + Produktions-Build nach `dist/` |
-| `npm run lint` / `npm run format` | ESLint / Prettier                          |
-| `npm test`                        | Vitest (Unit)                              |
-| `npm run test:e2e`                | Playwright-Smoke-Test                      |
-| `npm run check`                   | lint + typecheck + test – vor jedem Commit |
+| Befehl                             | Zweck                                                                |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `npm run dev`                      | Entwicklungsserver (http://localhost:5173)                           |
+| `npm run build`                    | Typecheck + Produktions-Build nach `dist/`                           |
+| `npm run lint` / `npm run format`  | ESLint / Prettier                                                    |
+| `npm test`                         | Vitest (Unit)                                                        |
+| `npm run test:e2e`                 | Playwright-Smoke-Test                                                |
+| `npm run check`                    | lint + typecheck + test – vor jedem Commit                           |
+| `npm run simulate -- --minutes 15` | Bot spielt einen Durchlauf, zeigt Progression und Wartezeiten > 60 s |
 
 ## Arbeitsweise mit Git
 

@@ -157,8 +157,8 @@ export const EPOCHS: EpochDef[] = [
   {
     id: 5,
     map: EPOCH5_MAP,
-    enemyHp: 80000,
-    gold: 32000,
+    enemyHp: 20000,
+    gold: 8000,
     palette: {
       // Weltraum, Neon, Kirchenfenster: tiefes Blauschwarz, Magenta und Cyan wie buntes Glas.
       sky: ['#05040c', '#0a0818', '#120c26', '#1a1034', '#241444'],

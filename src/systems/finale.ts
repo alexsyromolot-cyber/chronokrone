@@ -16,13 +16,13 @@ export const isLastEpoch = (state: GameState) => state.epoch >= EPOCHS.length;
 export function finaleBlocker(state: GameState): MessageKey | null {
   if (!isLastEpoch(state)) return 'reason.unknown';
   if (state.timeMachineAt === null) return 'reason.noTimeMachine';
-  return startBattleBlocker(state, state.siegeLevel);
+  return startBattleBlocker(state, FINALE.siege);
 }
 
 export function startFinale(state: GameState): MessageKey | null {
   const blocker = finaleBlocker(state);
   if (blocker) return blocker;
-  startBattle(state, state.siegeLevel);
+  startBattle(state, FINALE.siege);
   state.battle!.final = true;
   state.battle!.phase = 0;
   addLog(state, 'narrator.finaleStart');

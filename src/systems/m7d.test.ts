@@ -109,6 +109,7 @@ describe('Finale', () => {
   it('kein Sprung in der letzten Epoche, stattdessen das Mutterschiff', () => {
     const s = epoch5();
     s.units = [{ id: 1, classId: 'archer', level: 50, xp: 0 }];
+    s.siegeLevel = FINALE.siege;
     expect(dispatch(s, { type: 'startFinale' })).toBe('reason.noTimeMachine');
     s.timeMachineAt = 10;
     expect(jumpBlocker(s)).toBe('reason.lastEpoch');
@@ -119,6 +120,7 @@ describe('Finale', () => {
   it('das Mutterschiff ruft in Phasen Begleiter, sein Tod gewinnt das Finale', () => {
     const s = epoch5();
     s.units = [{ id: 1, classId: 'archer', level: 1, xp: 0 }];
+    s.siegeLevel = FINALE.siege;
     s.timeMachineAt = 10;
     dispatch(s, { type: 'startFinale' });
     const b = s.battle!;

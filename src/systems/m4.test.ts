@@ -77,7 +77,7 @@ describe('Entwicklungssprung', () => {
     dispatch(s, { type: 'startBattle' });
     for (let i = 0; i < 60; i++) tick(s, 0.05);
     const e = s.battle!.enemies[0]!;
-    expect(e.maxHp).toBeGreaterThanOrEqual(4 * 8);
+    expect(e.maxHp).toBeGreaterThanOrEqual(4 * 6);
   });
 });
 

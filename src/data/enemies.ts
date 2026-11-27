@@ -138,7 +138,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   },
   kommandant: {
     id: 'kommandant',
-    hp: 120,
+    hp: 70,
     speed: 12,
     wallDps: 14,
     gold: 500,
@@ -153,9 +153,9 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
 /** Welcher Elitegegner in welcher Belagerungsstufe (ab 0) am Ende der letzten Welle kommt. */
 export const ELITES: { enemy: EnemyId; siege: number }[] = [
   { enemy: 'muttersauger', siege: 2 },
-  { enemy: 'blechkoloss', siege: 4 },
-  { enemy: 'brummkoenigin', siege: 6 },
-  { enemy: 'kommandant', siege: 8 },
+  { enemy: 'blechkoloss', siege: 5 },
+  { enemy: 'brummkoenigin', siege: 8 },
+  { enemy: 'kommandant', siege: 11 },
 ];
 
 /**

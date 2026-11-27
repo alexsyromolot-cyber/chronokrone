@@ -134,6 +134,8 @@ function applyEpoch(): void {
   root.setProperty('--torch', p.accent);
   root.setProperty('--panel', p.panel);
   root.setProperty('--bg', p.background);
+  root.setProperty('--panel-2', p.panel2);
+  root.setProperty('--line', p.line);
   document.body.dataset.epoch = String(state.epoch);
   el('#epoch-label').textContent = t('epoch.title', {
     n: state.epoch,

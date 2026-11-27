@@ -106,7 +106,7 @@ export function gearHtml(state: GameState): string {
         const fx =
           slot === 'weapon'
             ? t(role === 'troop' ? 'gear.weaponTroop' : 'gear.weaponGatherer', {
-                v: pct(role === 'troop' ? GEAR_EFFECTS.weaponDamage : GEAR_EFFECTS.weaponProduction),
+                v: num(role === 'troop' ? GEAR_EFFECTS.weaponDamage : GEAR_EFFECTS.weaponProduction, 2),
               })
             : slot === 'armor'
               ? t('gear.armorFx', { v: GEAR_EFFECTS.armorEndurance })

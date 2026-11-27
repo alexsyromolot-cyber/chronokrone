@@ -86,7 +86,13 @@ if (minutes * 60 - last > 60) gaps.push(`${mmss(last)} → Ende (${Math.round(mi
 console.log('\n--- Minutenstände ---');
 for (const s of snapshots) console.log(s);
 
-const tm = state.timeMachineAt === null ? 'nicht fertig' : mmss(state.timeMachineAt);
+state.epochTimes.forEach((sec, i) =>
+  console.log(`\nEpoche ${i + 1} abgeschlossen nach ${mmss(sec)} (Sprung)`),
+);
+console.log(
+  `Aktuell: Epoche ${state.epoch} seit ${mmss(state.time - state.epochStartedAt)} · Zeitsplitter ${state.shards} (gesamt ${state.totalShards}) · Chronik ${JSON.stringify(state.chronicle)}`,
+);
+const tm = state.timeMachineAt === null ? 'nicht fertig' : mmss(state.timeMachineAt - state.epochStartedAt);
 console.log(
   `\nZeitmaschine: ${tm} · Teile: ${Object.keys(state.timeParts).length}/4 · Orakel: ${state.oracle ? 'ja' : 'nein'}`,
 );

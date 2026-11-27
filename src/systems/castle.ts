@@ -17,7 +17,7 @@ import type { MessageKey } from '../i18n/de';
 import { hasResearch, surveyBounds } from './research';
 import { canAfford, exceedsCap, gain, pay, resourceCap, scaledCost, type Cost } from './resources';
 import { chronicleBonus } from './chronicle';
-import { weaponBonus } from './gear';
+import { weaponMultiplier } from './gear';
 import { globalBonus, skillBonus } from './skills';
 import { addLog, type GameState, type Tile, type Unit } from './state';
 import { addXp, workPower } from './units';
@@ -98,7 +98,7 @@ export interface ProductionBreakdown {
   gear: number;
   /** Chronik-Multiplikator (Produktion, bei Wissen zusätzlich „Stipendium“). */
   chronicle: number;
-  /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern + gear) × chronicle */
+  /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern) × gear × chronicle */
   total: number;
 }
 
@@ -116,7 +116,7 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
   const workers = workersAt(state, tile).reduce((sum, u) => sum + workPower(u), 0);
   const skills = cls ? skillBonus(state, cls, 'productionMult') : 0;
   const tavern = cls ? tavernBonus(state, tile) : 0;
-  const gear = cls ? weaponBonus(state, cls, 'gatherer') : 0;
+  const gear = cls ? weaponMultiplier(state, cls, 'gatherer') : 1;
   const milestone = milestoneMultiplier(tile.level);
 
   const chronicle =
@@ -127,7 +127,8 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     tile.level *
     milestone *
     terrain *
-    (1 + neighbor + workers + skills + tavern + gear) *
+    (1 + neighbor + workers + skills + tavern) *
+    gear *
     chronicle;
   return {
     resource: def.produces.resource,

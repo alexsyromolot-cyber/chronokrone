@@ -1074,6 +1074,8 @@ body {
 
 /* Die Feier nach dem Sprung: Zeitstrudel aus Ringen hinter dem Fenster. */
 .modal-backdrop.celebrate .modal {
+  position: relative;
+  z-index: 1;
   text-align: center;
   border-width: 3px;
 }
@@ -1093,6 +1095,9 @@ body {
   border: 4px dashed var(--torch);
   animation: warp 3s linear infinite;
   opacity: 0.5;
+  /* Reine Deko: darf keine Klicks abfangen und liegt hinter dem Fenster. */
+  pointer-events: none;
+  z-index: 0;
 }
 
 .modal-backdrop.celebrate.animated::after {

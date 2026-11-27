@@ -86,6 +86,8 @@ function productionHtml(state: GameState, tile: Tile): string {
     workers: pct(p.workers),
     skills: pct(p.skills),
     tavern: pct(p.tavern),
+    gear: num(p.gear, 2),
+    chronicle: num(p.chronicle, 2),
     total: num(p.total, 2),
   });
   return `<p class="prod" ${tip(formula)}>${esc(t('castle.produces', { value: num(p.total, 2), res: t(`res.${p.resource}`) }))} ⓘ</p>`;

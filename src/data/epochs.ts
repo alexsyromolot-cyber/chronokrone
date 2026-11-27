@@ -20,6 +20,9 @@ export interface EpochPalette {
   /** Akzentfarbe der Oberfläche (ersetzt das Fackel-Gold). */
   accent: string;
   panel: string;
+  /** Zweite Panel-Ebene (Karten, Knöpfe) und Linien. */
+  panel2: string;
+  line: string;
   background: string;
 }
 
@@ -56,13 +59,15 @@ export const EPOCHS: EpochDef[] = [
       wallDark: '#30334a',
       accent: '#f2b33d',
       panel: '#1b2236',
+      panel2: '#232c45',
+      line: '#2f3a5a',
       background: '#121725',
     },
   },
   {
     id: 2,
     map: EPOCH2_MAP,
-    enemyHp: 8,
+    enemyHp: 6,
     gold: 5,
     palette: {
       // Messing, Kupfer, Nebel: wärmerer Himmel, Dampfschwaden statt Sternenklarheit.
@@ -76,6 +81,8 @@ export const EPOCHS: EpochDef[] = [
       wallDark: '#4a3c2e',
       accent: '#d9a15a',
       panel: '#241e18',
+      panel2: '#33291f',
+      line: '#4e3f2e',
       background: '#17130f',
     },
   },

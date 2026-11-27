@@ -3,10 +3,12 @@
  * Einheiten der Klasse – so bleibt es übersichtlich, auch mit 30 Einheiten.
  *
  * Wirkung je Stufe:
- *   Waffe     Truppen +25 % Schaden    · Sammler +20 % Produktion (bessere Werkzeuge)
+ *   Waffe     Truppen Schaden ×1,2     · Sammler Produktion ×1,15 (bessere Werkzeuge)
+ *             multiplikativ: Nur so hält die Kampfkraft mit den exponentiell wachsenden
+ *             Gegnern Schritt – sonst läuft die Wirtschaft über, während die Truppen stagnieren.
  *   Rüstung   +3 Ausdauer (Truppen: mehr Mauer-LP · Sammler: wird für spätere Systeme genutzt)
  *   Talisman  +15 % Erfahrung
- * Kosten Stufe s (ab 0):  Grundkosten × 2^s
+ * Kosten Stufe s (ab 0):  Grundkosten × 1,7^s, höchstens 30 Stufen
  */
 import type { BuildingId } from './buildings';
 import type { ResourceAmounts } from './resources';
@@ -24,20 +26,32 @@ export interface GearDef {
 }
 
 export const GEAR: Record<GearSlot, GearDef> = {
-  weapon: { slot: 'weapon', baseCost: { steel: 4, iron: 6 }, costGrowth: 2, requires: 'smithy', maxTier: 5 },
-  armor: { slot: 'armor', baseCost: { steel: 6, planks: 6 }, costGrowth: 2, requires: 'smithy', maxTier: 5 },
+  weapon: {
+    slot: 'weapon',
+    baseCost: { steel: 4, iron: 6 },
+    costGrowth: 1.7,
+    requires: 'smithy',
+    maxTier: 30,
+  },
+  armor: {
+    slot: 'armor',
+    baseCost: { steel: 6, planks: 6 },
+    costGrowth: 1.7,
+    requires: 'smithy',
+    maxTier: 30,
+  },
   talisman: {
     slot: 'talisman',
     baseCost: { scrolls: 2, ink: 3 },
-    costGrowth: 2,
+    costGrowth: 1.7,
     requires: 'scriptorium',
-    maxTier: 5,
+    maxTier: 30,
   },
 };
 
 export const GEAR_EFFECTS = {
-  weaponDamage: 0.25,
-  weaponProduction: 0.2,
+  weaponDamage: 1.2,
+  weaponProduction: 1.15,
   armorEndurance: 3,
   talismanXp: 0.15,
 } as const;

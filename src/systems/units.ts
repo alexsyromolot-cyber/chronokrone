@@ -7,7 +7,7 @@ import { CLASSES, TROOP_BUILDINGS, UNIT_FORMULAS as F, type Attributes, type Cla
 import type { MessageKey } from '../i18n/de';
 import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
 import { chronicleBonus } from './chronicle';
-import { armorEndurance, talismanXp, weaponBonus } from './gear';
+import { armorEndurance, talismanXp, weaponMultiplier } from './gear';
 import { skillBonus } from './skills';
 import { addLog, type GameState, type Unit } from './state';
 
@@ -46,12 +46,11 @@ export function trainingLevel(state: GameState, classId: ClassId): number {
   return levelOf(state, building);
 }
 
-/** +Anteil Schaden aus Skills, Ausbildungsgebäude und Waffe. */
+/** +Anteil Schaden aus Skills und Ausbildungsgebäude (die Waffe wirkt multiplikativ, siehe unitDamage). */
 export function damageBonus(state: GameState, unit: Unit): number {
   return (
     skillBonus(state, unit.classId, 'damageMult') +
-    BARRACKS.damageBonusPerLevel * trainingLevel(state, unit.classId) +
-    weaponBonus(state, unit.classId, 'troop')
+    BARRACKS.damageBonusPerLevel * trainingLevel(state, unit.classId)
   );
 }
 
@@ -60,7 +59,7 @@ export function critChance(state: GameState, unit: Unit): number {
   return skillBonus(state, unit.classId, 'critChance');
 }
 
-/** Schaden = baseDamage × (1 + 0,10 × Hauptattribut) × (1 + Skill-Bonus + Gebäude-Bonus) */
+/** Schaden = baseDamage × (1 + 0,10 × Hauptattribut) × (1 + Skill- und Gebäude-Bonus) × Waffe × Chronik */
 export function unitDamage(state: GameState, unit: Unit): number {
   const def = CLASSES[unit.classId];
   const main = attributesOf(unit)[def.mainAttr];
@@ -68,6 +67,7 @@ export function unitDamage(state: GameState, unit: Unit): number {
     def.baseDamage *
     (1 + F.damagePerAttr * main) *
     (1 + damageBonus(state, unit)) *
+    weaponMultiplier(state, unit.classId, 'troop') *
     (1 + chronicleBonus(state, 'damage'))
   );
 }

@@ -101,3 +101,6 @@ console.log(gaps.length ? gaps.join('\n') : 'keine 🎉');
 console.log(
   `\nKäufe gesamt: ${bot.purchases.length} · Schlachten: ${state.stats.battles} (Siege: ${state.stats.wins}) · Belagerungsstufe: ${state.siegeLevel + 1}`,
 );
+console.log(
+  `Sammlungen: Begleiter ${Object.keys(state.companions).length} · Karten ${Object.keys(state.cards).length} · Relikte ${Object.keys(state.relics).length} · Kernschmelzen (diese Epoche) ${state.reactor.meltdowns}`,
+);

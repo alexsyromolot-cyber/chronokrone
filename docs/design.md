@@ -278,8 +278,8 @@ am letzten Elitegegner. Mit multiplikativen Waffen fließt die Wirtschaft wieder
 - Neue Rohstoffe Kupfer und Draht; Gebäude Kupfermine, Drahtzieherei, Kraftwerk, Strommast, Teslaturm. Klassen Leitungsknecht (Sammler, Geschick) und Blitzlanzer (Reichweite 140, großer Flächenschaden).
 - **Stromnetz:** Kraftwerke verbrennen Kohle (0,5/s je Level) und liefern 3 Strom je Level × Meilenstein. Masten leiten weiter, wenn sie an ein Kraftwerk oder verbundenen Mast grenzen. Angrenzende Gebäude hängen am Netz, brauchen 1 Strom je Level und bekommen ×(1 + 100 % × Versorgung) auf Produktion bzw. Rezepte. Masten haben Höchstlevel 1.
 - **Karten:** 10 Karten, 3 Slots, nur zwischen Schlachten wechselbar. Einige Karten haben Nachteile (Glaskanone: +60 % Schaden, −30 % Mauer). 30 % Fundchance je Sieg, Glücksschutz nach 4 Siegen, bleiben bei jedem Sprung; volle Sammlung +10 % Schaden und Beute.
-- Gegner-LP ×160, Beute ×64: gleiches Verhältnis wie Epoche 2 (2,5). Mit ×400 kam der Bot nicht am letzten Elitegegner vorbei.
-- Bot-Ergebnis: Epoche 3 dauert 2:37 h.
+- Gegner-LP ×140, Beute ×56: gleiches Verhältnis wie Epoche 2 (2,5). Mit ×400 kam der Bot nicht am letzten Elitegegner vorbei; ×160 gab in M7c Wartezeiten bis 112 s kurz vor Schluss.
+- Bot-Ergebnis: Epoche 3 dauert 2:31 h.
 
 ### M7c – Epoche 4 „Atomare Kreuzzüge“
 
@@ -287,6 +287,7 @@ am letzten Elitegegner. Mit multiplikativen Waffen fließt die Wirtschaft wieder
 - **Reaktor-Risiko:** Der Spieler wählt die Leistung (aus, halb, voll, Überlast 150 %). Bonus auf ALLE Gebäude = 15 % × Level × Leistung, Verbrauch 0,04 Stäbe/s × Level × Leistung. Hitze/s = 0,004 × Level × Leistung² − 0,006 × Kühlturm-Level. Weil die Hitze quadratisch wächst, der Bonus nur linear, ist Überlast ein Wagnis. Warnung ab 80 %.
 - **Kernschmelze (Katastrophe mit Entscheidung):** Bei 100 % Hitze fährt der Reaktor herunter (Leistung 0, Hitze 40 %). Dann: Evakuieren (Reaktor verliert die Hälfte seiner Level), Eindämmen (25 % des Golds) oder Beten (10 % Wunder, sonst Level 1). Dazu das Ereignis „Strahlender Sandsturm“ ab Epoche 4.
 - **Relikte (Regelbrecher):** 8 Relikte, wirken sofort und für immer: Bleischürze (−35 % Hitze), Gesprungene Sanduhr (Wut 60 s später), Goldene Waage (keine Marktspanne), Glücksisotop (alle Pity-Grenzen halbiert), Zwillingsschlag (Klick trifft auch den nächsten Gegner mit 50 %), Spiegelschild (Gegner an der Mauer verlieren 2 % LP/s), Brennender Kelch (Kernschmelze wird zum Produktionsrausch ×2 für 60 s), Schatzkarte (Drohne doppelt so oft). 25 % Fundchance je Sieg, Glücksschutz nach 5 Siegen; volle Sammlung +15 % Produktion und Schaden.
+- Gegner-LP ×3200, Beute ×1280 (Verhältnis 2,5). Bot-Ergebnis: Epoche 4 dauert 3:44 h; kurz vor dem letzten Elitegegner einzelne Wartezeiten von 64–92 s (Raster voll, alles teuer). Der Bot fährt den Reaktor vorsichtig und erlebt keine Kernschmelze.
 
 ## 20. Offene Fragen
 

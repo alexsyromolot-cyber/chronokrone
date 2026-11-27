@@ -105,8 +105,8 @@ export const EPOCHS: EpochDef[] = [
   {
     id: 3,
     map: EPOCH3_MAP,
-    enemyHp: 160,
-    gold: 64,
+    enemyHp: 140,
+    gold: 56,
     palette: {
       // Warmes Glühbirnenlicht: dunkles Violett, darunter bernsteinfarbenes Leuchten.
       sky: ['#140f1c', '#1e1626', '#2a1d30', '#3a2834', '#4c3634'],
@@ -127,8 +127,8 @@ export const EPOCHS: EpochDef[] = [
   {
     id: 4,
     map: EPOCH4_MAP,
-    enemyHp: 1000,
-    gold: 400,
+    enemyHp: 3200,
+    gold: 1280,
     palette: {
       // Gelbgrünes Glühen über Wüstensand, Bunkerbeton.
       sky: ['#11160c', '#1a2210', '#263014', '#384418', '#4c5a1c'],

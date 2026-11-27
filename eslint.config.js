@@ -4,7 +4,7 @@ import globals from 'globals';
 import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist/', 'node_modules/', 'playwright-report/', 'test-results/', 'coverage/'] },
+  { ignores: ['dist/', 'release/', 'node_modules/', 'playwright-report/', 'test-results/', 'coverage/'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -21,6 +21,11 @@ export default tseslint.config(
     rules: {
       'no-restricted-globals': ['error', 'window', 'document', 'localStorage', 'requestAnimationFrame'],
     },
+  },
+  {
+    // Electron-Hauptprozess und Preload laufen als CommonJS (package.json hat "type": "module").
+    files: ['electron/**/*.cjs'],
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
   },
   prettier,
 );

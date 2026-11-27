@@ -62,6 +62,8 @@ Dateien möglichst unter ~400 Zeilen. Unit-Tests liegen neben dem Code als `*.te
 | `npm run check`                    | lint + typecheck + test – vor jedem Commit                           |
 | `npm run simulate -- --minutes 15` | Bot spielt einen Durchlauf, zeigt Progression und Wartezeiten > 60 s |
 | `npx tsx src/dev/diagnose.ts 45`   | Zeigt nach N Minuten Bot-Spiel, woran Käufe scheitern (Balancing)    |
+| `npm run desktop`                  | Desktop-App (Electron) mit frischem Build starten                    |
+| `npm run desktop:pack`             | Portable Windows-App nach `release/` packen                          |
 
 ## Arbeitsweise mit Git
 

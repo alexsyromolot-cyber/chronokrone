@@ -8,6 +8,33 @@ export interface StorageBackend {
   remove(key: string): void;
 }
 
+/** Brücke aus electron/preload.cjs – nur in der Desktop-App vorhanden. */
+interface DesktopBridge {
+  get(key: string): string | null;
+  set(key: string, value: string): boolean;
+  remove(key: string): boolean;
+}
+
+/** Desktop-App: Spielstände als Dateien im Benutzerordner (siehe electron/main.cjs). */
+export class DesktopFileStorage implements StorageBackend {
+  constructor(private readonly bridge: DesktopBridge) {}
+  get(key: string): string | null {
+    return this.bridge.get(key);
+  }
+  set(key: string, value: string): void {
+    if (!this.bridge.set(key, value)) throw new Error('Speichern fehlgeschlagen');
+  }
+  remove(key: string): void {
+    this.bridge.remove(key);
+  }
+}
+
+/** Passendes Backend: Dateien in der Desktop-App, sonst localStorage. */
+export function defaultStorage(): StorageBackend {
+  const bridge = (globalThis as { chronokroneDesktop?: DesktopBridge }).chronokroneDesktop;
+  return bridge ? new DesktopFileStorage(bridge) : new LocalStorageBackend();
+}
+
 export class MemoryStorage implements StorageBackend {
   readonly data = new Map<string, string>();
   get(key: string): string | null {

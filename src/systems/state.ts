@@ -143,6 +143,8 @@ export interface Stats {
   highestSiege: number;
   maxBuildingLevel: number;
   maxUnitLevel: number;
+  /** Schnellster Entwicklungssprung in Sekunden (0 = noch keiner). */
+  fastestJump: number;
 }
 
 export interface Settings {
@@ -154,6 +156,8 @@ export interface Settings {
   musicVolume: number;
   /** Schriftgröße als Faktor (0,85–1,4). */
   fontScale: number;
+  /** Spitzname für die Run-Karte. */
+  nickname: string;
   locale: 'de' | 'en';
 }
 
@@ -407,6 +411,7 @@ export function createInitialState(seed = Date.now()): GameState {
       highestSiege: 0,
       maxBuildingLevel: 1,
       maxUnitLevel: 1,
+      fastestJump: 0,
     },
     settings: {
       autosaveSeconds: 30,
@@ -415,6 +420,7 @@ export function createInitialState(seed = Date.now()): GameState {
       sfxVolume: 0.6,
       musicVolume: 0.35,
       fontScale: 1,
+      nickname: '',
     },
     fx: [],
   };

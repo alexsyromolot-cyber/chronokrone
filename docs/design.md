@@ -312,6 +312,11 @@ Ebenfalls ohne Rückfrage entschieden (siehe M7d), zum Anpassen gedacht.
 - **Schleifenregeln** (reihum, „jede Schleife ändert die Regeln leicht“): 1 Spiegelwelt (Karten gespiegelt), 2 Flinke Aliens (+25 % Tempo, +20 % Gold), 3 Andere Startaufstellung (Ritter, Bogenschützin, Bauer), 4 Gepanzerte Aliens (+20 % Nahkampf-Panzer), dann von vorn.
 - **Fluch-Siegel:** Vor dem Start einer Schleife frei kombinierbar (bis zu 5): Mürbe Mauern (Mauer 50 %), Zähe Aliens (×2 LP), Lahmer Finger (Klick 25 %), Magere Jahre (Produktion 70 %), Kurze Lunte (Wut 60 s früher). Bestzeiten bis zum Mutterschiff werden je Fluch-Kombination gespeichert.
 
+### M8 – Desktop-App und Run-Karte
+
+- **Desktop-App (Electron):** lädt den Vite-Build mit relativen Pfaden; Spielstände als Dateien im Benutzerordner (`%APPDATA%/chronokrone/saves`), atomar geschrieben (Temp-Datei, dann umbenennen). Renderer ohne Node-Zugriff (contextIsolation, sandbox), nur drei Speicherfunktionen über die Preload-Brücke. `npm run desktop:pack` baut eine portable Windows-.exe (unsigniert). Steam-Anbindung bleibt M9 (nur nach Absprache).
+- **Run-Karte:** Spitzname, höchste Zahl (insgesamt verdientes Gold), schnellster Sprung, Fortschritt, Challenge-Zeiten je Fluch-Kombination. Als PNG (Canvas) oder als Code `CK1.…` (Base64-JSON); fremde Codes lassen sich ansehen und werden beim Einlesen Feld für Feld geprüft.
+
 ## 20. Offene Fragen
 
 Keine. (Die Balancing-Frage aus M3 – zähe Phase vor dem letzten Elitegegner – ist mit den multiplikativen Waffen gelöst.)

@@ -252,7 +252,13 @@ Technische Umsetzungsentscheidungen aus Meilenstein 3 und 4 (vorläufig, Spielde
 | Entwicklungssprung | Splitter = 10 × Epoche + 3 × Belagerungsstufe + 1 je 5 Skill-Stufen; Skills kommen als Umskill-Tokens zurück   |
 | Chronik            | 10 Knoten, zwei davon unbegrenzt (+25 % Produktion / Schaden je Rang)                                          |
 | Epoche 2 (Gerüst)  | eigene Karte und Palette, Gegner-LP ×6, Beute ×5; eigene Mechaniken folgen in M5/M7                            |
-| Kalibrierung (Bot) | Epoche 1 bis zum Sprung ~64 Min., Epoche 2 ~84 Min., keine Wartezeit > 60 s über 3 Stunden                     |
+| Kalibrierung (Bot) | Epoche 1 ~56 Min., Epoche 2 ~2:16 h (mit Ereignissen, Drohnen und Erfolgen)                                    |
+| Hofbefehle         | Stufe 1 ab 2 Zeitmaschinenteilen (2 Regeln), Stufe 2 ab Epoche 2 (6 Regeln, UND/ODER, Reihenfolge)             |
+| Ereignisse         | alle 4–6 Min., 6 Arten, 60 s Bedenkzeit; Stallfeuer kostet ein Level statt eines ganzen Gebäudes               |
+| Jahreszeiten       | wechseln alle 8 Min. mit Produktionseffekten                                                                   |
+| Minispiele         | Alien-Drohne (10 % der letzten Schlachtbeute), faires Würfelspiel in der Taverne (max. 10 % des Golds)         |
+| Erfolge            | 134 (davon 6 geheim), je ×1,01 auf Produktion und Schaden                                                      |
+| Rückblick          | ab 5 Min. Pause; Ausgeruht = 5 Min. doppelte XP je Stunde Abwesenheit (2–15 Min.)                              |
 
 Warum Waffen multiplikativ? Gegner wachsen je Belagerungsstufe ×1,75. Mit nur additiven Boni wuchs die
 Kampfkraft linear, die Wirtschaft lief über (Hunderttausende Holz), und der Bot verlor 24 Schlachten in Folge

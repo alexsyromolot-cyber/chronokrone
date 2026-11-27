@@ -7,6 +7,7 @@
  */
 import Decimal from 'break_eternity.js';
 import type { RngState } from '../core/rng';
+import type { SessionSnapshot } from './recap';
 import type { BuildingId } from '../data/buildings';
 import type { EnemyId } from '../data/enemies';
 import type { ChronicleId } from '../data/chronicle';
@@ -173,6 +174,18 @@ export interface EventsState {
   lastDice: { d1: number; d2: number; bet: DiceBet; stake: number; payout: number } | null;
 }
 
+/** Sitzungen für Rückblick und Ausgeruht-Bonus (siehe systems/recap.ts). */
+export interface SessionState {
+  /** Werte zu Beginn der laufenden Sitzung. */
+  start: SessionSnapshot | null;
+  /** Echtzeit (ms) des letzten Speicherns. */
+  lastSeenAt: number;
+  /** Zusammenfassung der letzten Sitzung, beim Speichern festgehalten. */
+  lastSummary: SessionSnapshot | null;
+  /** Spielzeit, bis zu der der Ausgeruht-Bonus gilt. */
+  restedUntil: number;
+}
+
 export interface GameState {
   /** Spielzeit in Sekunden (nur aktive Zeit, keine Offline-Zeit). */
   time: number;
@@ -214,6 +227,7 @@ export interface GameState {
   timeline: { time: number; key: string; params?: Record<string, string | number> }[];
   /** Sekunden bis zur nächsten Achievement-Prüfung. */
   achievementTimer: number;
+  session: SessionState;
   /** Ereignisse, Drohne, Würfel. */
   events: EventsState;
   /** Hofbefehle (bleiben beim Sprung erhalten). */
@@ -292,6 +306,7 @@ export function createInitialState(seed = Date.now()): GameState {
     research: {},
     orders: emptyOrders(),
     achievements: {},
+    session: { start: null, lastSeenAt: 0, lastSummary: null, restedUntil: 0 },
     timeline: [],
     achievementTimer: 0,
     // Erstes Ereignis nach 3 Minuten, erste Drohne nach 2 Minuten – nicht schon in der ersten Schlacht.

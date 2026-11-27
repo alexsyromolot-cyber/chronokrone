@@ -1271,3 +1271,17 @@ body {
 .timeline {
   max-height: 200px;
 }
+
+/* ---------- Rückblick (M5d) ---------- */
+.recap-table {
+  margin: 8px 0;
+}
+
+.recap-table td {
+  color: var(--torch);
+  font-weight: 700;
+}
+
+.rested {
+  color: var(--good);
+}

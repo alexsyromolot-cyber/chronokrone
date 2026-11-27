@@ -6,6 +6,7 @@
  * - Vor jeder Migration wird der alte Text unverändert als eigenes Backup abgelegt.
  * - Ist der Hauptstand kaputt, wird das neueste lesbare Backup geladen.
  */
+import { noteSave } from '../systems/recap';
 import type { GameState } from '../systems/state';
 import { SAVE_VERSION } from './migrations';
 import { deserialize, serialize } from './serialize';
@@ -29,6 +30,7 @@ export class SaveManager {
   ) {}
 
   save(state: GameState): void {
+    noteSave(state, this.now());
     const text = serialize(state, this.now());
     this.storage.set(MAIN_KEY, text);
 

@@ -27,6 +27,8 @@ import { spellLevel } from './systems/spells';
 import { researchHtml } from './ui/research-panel';
 import { timeMachineHtml } from './ui/timemachine-panel';
 import { installTooltips } from './ui/tooltip';
+import { showRecap } from './ui/recap';
+import { welcomeBack } from './systems/recap';
 import { chronicleHtml } from './ui/chronicle-panel';
 import { eventHtml, seasonHtml } from './ui/events-panel';
 import { achievementsHtml, achievementTitle, statsHtml } from './ui/achievements-panel';
@@ -38,9 +40,17 @@ import { shardsForJump, tokensForJump } from './systems/prestige';
 
 const saves = new SaveManager(new LocalStorageBackend());
 
+/** Rückblick auf die letzte Sitzung, falls man lange genug weg war (wird nach dem Start gezeigt). */
+let pendingRecap: ReturnType<typeof welcomeBack> = null;
+
 function loadOrCreate(): GameState {
   const { state, recovered } = saves.load();
-  if (!state) return newGame();
+  if (!state) {
+    const fresh = newGame();
+    welcomeBack(fresh, Date.now());
+    return fresh;
+  }
+  pendingRecap = welcomeBack(state, Date.now());
   addLog(state, 'narrator.loaded');
   // Noch nie eine Schlacht beendet (z. B. während der ersten neu geladen)? Dann direkt wieder hinein –
   // sonst stünde man ohne Burg und ohne Ziel vor einem leeren Bildschirm.
@@ -404,6 +414,7 @@ async function start(): Promise<void> {
     reset: resetGame,
   };
   document.body.dataset.ready = 'true';
+  if (pendingRecap) showRecap(pendingRecap, reducedMotion());
 }
 
 void start();

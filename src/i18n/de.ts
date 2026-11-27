@@ -665,7 +665,7 @@ export const de = {
   'dice.lost': 'verloren',
 
   // --- Meilenstein 5c ---
-  'narrator.achievement': 'Erfolg freigeschaltet: {name} {tier}. +1 % auf alles. Ich habe es aufgeschrieben.',
+  'narrator.achievement': 'Erfolg freigeschaltet: {name}{tier}. +1 % auf alles. Ich habe es aufgeschrieben.',
   'ach.title': 'Erfolge',
   'ach.count': '{n}/{total} freigeschaltet · ×{mult} auf Produktion und Schaden',
   'ach.secret': '??? (geheim)',
@@ -779,6 +779,24 @@ export const de = {
   'stat.diceJackpots': 'Würfel-Jackpots',
   'achm.fastEpoch': 'Zeitraser',
   'achd.fastEpoch': 'Schließe eine Epoche in unter 45 Minuten ab.',
+
+  // --- Meilenstein 5d ---
+  'recap.title': 'Während du weg warst …',
+  'recap.away': '… ist nichts passiert. Gar nichts. Du warst {time} weg, und die Aliens haben brav gewartet.',
+  'recap.last': 'Deine letzte Sitzung ({time}) im Zeitraffer:',
+  'recap.rested': 'Ausgeruht-Bonus: {min} Minuten doppelte Erfahrung für alle.',
+  'recap.continue': 'Weiter',
+  'recap.kills': 'Aliens besiegt',
+  'recap.wins': 'Schlachten gewonnen',
+  'recap.buildings': 'Gebäude gebaut',
+  'recap.gold': 'Gold erbeutet',
+  'recap.skills': 'Skill-Stufen gelernt',
+  'recap.research': 'Forschung abgeschlossen',
+  'recap.achievements': 'Erfolge',
+  'recap.jumps': 'Zeitsprünge',
+  'hud.rested': 'Ausgeruht: ×2 Erfahrung · noch {time}',
+  'hud.restedTip':
+    'Wer mindestens 5 Minuten Pause macht, bekommt 5 Minuten je Stunde Abwesenheit doppelte Erfahrung (mindestens 2, höchstens 15 Minuten).',
 } as const;
 
 export type MessageKey = keyof typeof de;

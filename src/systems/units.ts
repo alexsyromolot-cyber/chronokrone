@@ -8,6 +8,7 @@ import type { MessageKey } from '../i18n/de';
 import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
 import { achievementMultiplier } from './achievements';
 import { chronicleBonus } from './chronicle';
+import { isRested, RECAP } from './recap';
 import { armorEndurance, talismanXp, weaponMultiplier } from './gear';
 import { skillBonus } from './skills';
 import { addLog, type GameState, type Unit } from './state';
@@ -87,10 +88,11 @@ export function attackInterval(state: GameState, unit: Unit): number {
 /** XP-Multiplikator = 1 + Skills + Talisman */
 export function xpMultiplier(state: GameState, unit: Unit): number {
   return (
-    1 +
-    skillBonus(state, unit.classId, 'xpMult') +
-    talismanXp(state, unit.classId) +
-    chronicleBonus(state, 'xp')
+    (1 +
+      skillBonus(state, unit.classId, 'xpMult') +
+      talismanXp(state, unit.classId) +
+      chronicleBonus(state, 'xp')) *
+    (isRested(state) ? RECAP.xpMultiplier : 1)
   );
 }
 

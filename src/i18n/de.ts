@@ -572,6 +572,38 @@ export const de = {
   'castle.prodChronicle': '× Chronik {chronicle}',
   'debug.jump': 'Sprung erzwingen',
   'debug.shards': '+50 Zeitsplitter',
+
+  // --- Meilenstein 5a ---
+  'narrator.unlockOrders':
+    'Ein Mönch hat Schreiben gelernt – und Befehle befolgen. Hofbefehle sind offen: WENN etwas passiert, DANN tut er etwas. Meistens.',
+  'orders.title': 'Hofbefehle',
+  'orders.stage':
+    'Stufe {n}: bis zu {rules} Regeln mit je {conds} Bedingung(en). Der Schreiber-Mönch prüft sie jede Sekunde von oben nach unten.',
+  'orders.empty': 'Noch keine Regeln. Beispiel: WENN keine Schlacht läuft DANN Schlacht starten.',
+  'orders.add': 'Regel hinzufügen',
+  'orders.addCond': '+ Bedingung',
+  'orders.if': 'WENN',
+  'orders.then': 'DANN',
+  'orders.and': 'UND',
+  'orders.or': 'ODER',
+  'orders.enabled': 'aktiv',
+  'orders.log': 'Ausführungs-Log',
+  'orders.logOk': 'Regel {n} ausgeführt',
+  'orders.logNotify': 'Regel {n}: Bedingung erfüllt!',
+  'orders.logFail': 'Regel {n} ging nicht: {reason}',
+  'ocond.noBattle': 'keine Schlacht läuft',
+  'ocond.inBattle': 'Schlacht läuft',
+  'ocond.resourceAtLeast': 'Vorrat',
+  'ocond.resourceFull': 'Lager voll',
+  'ocond.wallBelow': 'Mauer unter',
+  'ocond.enemiesAtLeast': 'Aliens auf dem Feld',
+  'ocond.skillPoints': 'Skillpunkte frei',
+  'oact.startBattle': 'Schlacht starten',
+  'oact.castSpell': 'Zauber wirken',
+  'oact.upgradeCheapest': 'niedrigstes Gebäude ausbauen',
+  'oact.recruit': 'anwerben',
+  'oact.upgradeWall': 'Mauer verstärken',
+  'oact.notify': 'nur melden',
 } as const;
 
 export type MessageKey = keyof typeof de;

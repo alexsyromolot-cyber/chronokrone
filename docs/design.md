@@ -336,3 +336,11 @@ Auftrag: `docs/masterprompt-ui-umbau.md` (Mockup in `docs/ui-mockup/`). Ziel: Da
 - **Erzähler** unten links mit Sprechblase (neueste Zeile); Klick öffnet den Verlauf. **Meldungen** als Karten oben rechts.
 - **Übergänge:** Tor schließt und öffnet sich (1,3 s), Räume blenden kurz über (0,25 s); mit „Bewegung reduzieren“ ein harter Schnitt.
 - Bot schließt das Ergebnisfenster sofort; Simulation: erster Sprung weiterhin nach ca. 56 Min., keine Wartezeit über 60 s. Alte Spielstände laden (neues Feld `scene` über Standardwerte, mit Test).
+
+### Etappe 2 – Grafik-Pipeline und Schlachtfeld (läuft)
+
+- `npm run sprites` erzeugt alle Grafiken deterministisch aus Code (`scripts/sprites/`): 32×32-Figuren der acht Epoche-1-Klassen mit Idle, Laufen, Angriff und Treffer; die Epoche-1-Aliens samt Elitegegnern (Schweben/Laufen, Treffer-Blitz); die Kulisse in Ebenen (Himmel, Berge, Wald, Boden mit Meteorkrater, Turm und Mauer). Licht von oben links, Farbrampen mit kühlen Schatten, farbige Umrisse.
+- Ablage in `src/assets/` statt `public/`: Vite bindet die Bilder ein, die Desktop-App lädt sie ohne `fetch`.
+- Schlachtfeld intern 640×360, Logik bleibt 320×180 (Klicks, Effekte, Tests unverändert). Epochen 2–5 zeigen vorerst die alte Grafik.
+- **Kampf-Overlay** (Alex' Wunsch: einfach, mittelalterlich, mit Zeitreise-Aspekt, kein generisches Overlay): Holztafeln mit Eisenbeschlag und Messing-Zahnrädern, Pergamentband als Titel. Wellen als acht Zahnräder wie Stundenmarken, Mauer als Steinquader-Balken, Sanduhr bis zur Wut (danach rot), Beutel für die Beute, Rückzug als Holzschild. Truppen als Porträts in Taschenuhr-Medaillons mit römischen Levelzahlen und Messing-Erfahrungsbalken.
+- Vergleichsbilder in `docs/ui-vergleich/`.

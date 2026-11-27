@@ -11,3 +11,4 @@ docs/ui-mockup/
 
 # Von npm run sprites erzeugt
 src/assets/sprites/
+src/assets/ui/

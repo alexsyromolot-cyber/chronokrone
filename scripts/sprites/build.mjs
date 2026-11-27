@@ -17,6 +17,7 @@ import { Pix, packSheet, toPngBuffer } from './lib.mjs';
 import { FIGURES, POSES, drawFigure } from './figures.mjs';
 import { ALIEN_IDS, alienFrames } from './aliens.mjs';
 import { drawBackdrop } from './backdrop.mjs';
+import { drawUi } from './ui.mjs';
 
 const { PNG } = pngjs;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -69,6 +70,13 @@ for (const [name, pix] of Object.entries(backdrop)) {
   fs.writeFileSync(path.join(outDir, `backdrop-1-${name}.png`), toPngBuffer(PNG, pix));
 }
 
+// ---------- Overlay (Kampf-HUD) ----------
+const uiDir = path.join(root, 'src/assets/ui');
+fs.mkdirSync(uiDir, { recursive: true });
+const ui = drawUi();
+for (const [name, pix] of Object.entries(ui))
+  fs.writeFileSync(path.join(uiDir, name + '.png'), toPngBuffer(PNG, pix));
+
 // ---------- Vorschau (4×) ----------
 function scaled(pix, k, bg) {
   const o = new Pix(pix.w * k, pix.h * k);
@@ -79,6 +87,14 @@ function scaled(pix, k, bg) {
 const previewDir = path.join(root, 'test-results');
 fs.mkdirSync(previewDir, { recursive: true });
 fs.writeFileSync(path.join(previewDir, 'sprites-preview.png'), toPngBuffer(PNG, scaled(sheet, 4, '#2a2f45')));
+// Overlay-Teile nebeneinander, 6×.
+const uiPreview = new Pix(240, 30);
+let ux = 2;
+for (const pix of Object.values(ui)) {
+  uiPreview.blit(pix, ux, 2);
+  ux += pix.w + 3;
+}
+fs.writeFileSync(path.join(previewDir, 'ui-preview.png'), toPngBuffer(PNG, scaled(uiPreview, 6, '#1a2030')));
 console.log(
   `Sprites: ${frames.length} Bilder, ${Object.keys(animations).length} Animationen, Blatt ${sheet.w}×${sheet.h}`,
 );

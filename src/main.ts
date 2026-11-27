@@ -5,6 +5,7 @@
  */
 import './style.css';
 import './shell.css';
+import './hud.css';
 import { FixedStepLoop } from './core/loop';
 import { installDebugPanel } from './dev/debug-panel';
 import { getLocale, setLocale, t, tk } from './i18n';

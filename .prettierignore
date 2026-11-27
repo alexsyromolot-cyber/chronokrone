@@ -8,3 +8,6 @@ masterprompt-claude-code.md
 # Vorlagen von Alex für den UI-Umbau – unverändert als Referenz
 docs/masterprompt-ui-umbau.md
 docs/ui-mockup/
+
+# Von npm run sprites erzeugt
+src/assets/sprites/

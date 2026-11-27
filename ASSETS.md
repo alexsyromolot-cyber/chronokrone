@@ -10,4 +10,4 @@ Jede Grafik-, Sound- oder Schriftquelle, die nicht im Code erzeugt wird, kommt h
 
 Schrift: System-Monospace (`ui-monospace`, Cascadia Mono, Consolas) – keine eingebettete Schrift, keine externen Fonts.
 
-Sound: noch keiner. Geplant per Web Audio im Code (ZzFX, MIT-Lizenz), ohne Fremd-Audiodateien.
+Sound: komplett im Code erzeugt mit einem eigenen kleinen Web-Audio-Synthesizer (`src/audio/`); Effekte und Musik stehen als Daten in `src/data/sounds.ts`. Keine Fremd-Audiodateien, keine fremde Bibliothek – eigenes Werk.

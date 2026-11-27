@@ -172,7 +172,7 @@ export const en: Messages = {
   'save.autosave': 'Autosave every {s} s',
   'save.loadFailed': 'The save was damaged – I loaded the latest backup.',
 
-  'help.shortcuts': 'Space: battle · 1–3: spells · S: save · Ctrl+Shift+D: debug',
+  'help.shortcuts': 'Space: battle · 1–3: spells · S: save · M: sound · O: settings',
 
   'debug.title': 'Debug',
   'debug.speed': 'Speed ×{speed}',
@@ -788,4 +788,27 @@ export const en: Messages = {
   'hud.rested': 'Rested: ×2 experience · {time} left',
   'hud.restedTip':
     'Take a break of at least 5 minutes and get 5 minutes of double experience per hour away (at least 2, at most 15 minutes).',
+
+  // --- Meilenstein 6a ---
+  'settings.button': '⚙ Settings',
+  'settings.title': 'Settings',
+  'settings.language': 'Language',
+  'settings.fontScale': 'Font size: {pct} %',
+  'settings.reducedMotion': 'Reduce motion (no shaking, fewer particles, no animations)',
+  'settings.sfx': 'Effects: {pct} %',
+  'settings.music': 'Music: {pct} %',
+  'settings.autosave': 'Autosave every',
+  'settings.keys': 'Keyboard shortcuts',
+  'settings.close': 'Close',
+  'settings.muted': 'Sound off (M)',
+  'settings.unmuted': 'Sound on',
+  'keys.space': 'Space',
+  'keys.battle': 'Start battle',
+  'keys.spells': 'Cast spells',
+  'keys.retreat': 'Retreat',
+  'keys.save': 'Save',
+  'keys.mute': 'Sound off/on',
+  'keys.settings': 'Settings',
+  'keys.close': 'Close window, clear selection',
+  'keys.debug': 'Debug panel',
 };

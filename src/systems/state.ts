@@ -145,6 +145,11 @@ export interface Settings {
   /** Autosave-Intervall in Sekunden (5–120). */
   autosaveSeconds: number;
   reducedMotion: boolean;
+  /** Lautstärke 0–1 für Effekte und Musik (getrennt regelbar). */
+  sfxVolume: number;
+  musicVolume: number;
+  /** Schriftgröße als Faktor (0,85–1,4). */
+  fontScale: number;
   locale: 'de' | 'en';
 }
 
@@ -351,7 +356,14 @@ export function createInitialState(seed = Date.now()): GameState {
       maxBuildingLevel: 1,
       maxUnitLevel: 1,
     },
-    settings: { autosaveSeconds: 30, reducedMotion: false, locale: 'de' },
+    settings: {
+      autosaveSeconds: 30,
+      reducedMotion: false,
+      locale: 'de',
+      sfxVolume: 0.6,
+      musicVolume: 0.35,
+      fontScale: 1,
+    },
     fx: [],
   };
 }

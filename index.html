@@ -23,6 +23,7 @@
         <div class="top-actions">
           <button id="save" class="btn small" type="button" data-i18n="save.save"></button>
           <button id="lang" class="btn small" type="button" data-i18n="lang.switch"></button>
+          <button id="settings-toggle" class="btn small" type="button" data-i18n="settings.button"></button>
         </div>
       </header>
 
@@ -96,16 +97,6 @@
       <footer class="footer">
         <button id="export" class="btn small" type="button" data-i18n="save.export"></button>
         <button id="import" class="btn small" type="button" data-i18n="save.import"></button>
-        <label class="autosave"
-          ><span id="autosave-label"></span>
-          <select id="autosave">
-            <option value="5">5 s</option>
-            <option value="10">10 s</option>
-            <option value="30">30 s</option>
-            <option value="60">60 s</option>
-            <option value="120">120 s</option>
-          </select>
-        </label>
         <span class="hint" data-i18n="help.shortcuts"></span>
         <button id="debug-toggle" class="btn small" type="button" hidden>Debug</button>
       </footer>
@@ -113,6 +104,7 @@
     <div id="tooltip" class="tooltip" hidden></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <aside id="debug" class="debug" hidden></aside>
+    <aside id="settings" class="settings" hidden></aside>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -7,7 +7,7 @@ import type { MessageKey } from '../i18n/de';
 import type { BuildingId } from './buildings';
 
 export type UnlockId =
-  'castle' | 'recruit' | 'skills' | 'wall' | 'bestiary' | 'siege' | 'research' | 'timeMachine';
+  'castle' | 'recruit' | 'skills' | 'wall' | 'bestiary' | 'siege' | 'research' | 'timeMachine' | 'orders';
 
 export type UnlockCondition =
   | { kind: 'battlesFought'; count: number }
@@ -16,7 +16,8 @@ export type UnlockCondition =
   | { kind: 'kills'; count: number }
   | { kind: 'wins'; count: number }
   | { kind: 'hasBuilding'; building: BuildingId }
-  | { kind: 'timeParts'; count: number };
+  | { kind: 'timeParts'; count: number }
+  | { kind: 'epochAtLeast'; count: number };
 
 export interface UnlockDef {
   id: UnlockId;
@@ -39,6 +40,9 @@ export const UNLOCKS: UnlockDef[] = [
     narrator: 'narrator.unlockResearch',
   },
   { id: 'timeMachine', condition: { kind: 'timeParts', count: 1 }, narrator: 'narrator.unlockTimeMachine' },
+  // Hofbefehle: am Ende von Epoche 1 (zwei Zeitmaschinenteile) – oder spätestens ab Epoche 2.
+  { id: 'orders', condition: { kind: 'timeParts', count: 2 }, narrator: 'narrator.unlockOrders' },
+  { id: 'orders', condition: { kind: 'epochAtLeast', count: 2 }, narrator: 'narrator.unlockOrders' },
 ];
 
 /** Wie viele Erzähler-Zeilen im Log aufbewahrt werden. */

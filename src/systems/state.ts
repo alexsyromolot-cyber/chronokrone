@@ -14,6 +14,7 @@ import { epochDef } from '../data/epochs';
 import { TERRAIN_CODES, type MapDef, type TerrainId } from '../data/map';
 import { LOG_LIMIT, type UnlockId } from '../data/progression';
 import type { GearSlot } from '../data/gear';
+import type { OrderRule } from '../data/orders';
 import type { ResearchId } from '../data/research';
 import type { SpecPath } from '../data/skills';
 import type { SpellId } from '../data/spells';
@@ -124,6 +125,20 @@ export interface Settings {
   locale: 'de' | 'en';
 }
 
+export interface OrdersState {
+  rules: OrderRule[];
+  nextId: number;
+  /** Sekunden bis zum nächsten Durchgang. */
+  timer: number;
+  log: { time: number; ruleId: number; ok: boolean; reason?: MessageKey }[];
+  /** War die Bedingung beim letzten Durchgang wahr? (für einmalige Meldungen) */
+  lastTrue: Record<number, boolean>;
+}
+
+export function emptyOrders(): OrdersState {
+  return { rules: [], nextId: 1, timer: 0, log: [], lastTrue: {} };
+}
+
 export interface GameState {
   /** Spielzeit in Sekunden (nur aktive Zeit, keine Offline-Zeit). */
   time: number;
@@ -159,6 +174,8 @@ export interface GameState {
   oracle: boolean;
   /** Spielzeit, zu der die Zeitmaschine fertig wurde (null = noch nicht). */
   timeMachineAt: number | null;
+  /** Hofbefehle (bleiben beim Sprung erhalten). */
+  orders: OrdersState;
   /** Abgeschlossene Forschung. */
   research: Partial<Record<ResearchId, boolean>>;
   wallUpgrades: number;
@@ -231,6 +248,7 @@ export function createInitialState(seed = Date.now()): GameState {
     skillPoints,
     skills: {},
     research: {},
+    orders: emptyOrders(),
     timeParts: {},
     oracle: false,
     timeMachineAt: null,

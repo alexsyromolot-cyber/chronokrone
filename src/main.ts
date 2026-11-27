@@ -28,6 +28,7 @@ import { researchHtml } from './ui/research-panel';
 import { timeMachineHtml } from './ui/timemachine-panel';
 import { installTooltips } from './ui/tooltip';
 import { chronicleHtml } from './ui/chronicle-panel';
+import { ordersHtml, ordersLogHtml, rulesAfterButton, rulesAfterChange } from './ui/orders-panel';
 import { showModal } from './ui/modal';
 import { EPOCHS, epochDef } from './data/epochs';
 import { shardsForJump, tokensForJump } from './systems/prestige';
@@ -73,6 +74,7 @@ const panels = {
   spells: el('#spells'),
   timemachine: el('#timemachine'),
   chronicle: el('#chronicle'),
+  orders: el('#orders'),
   bestiary: el('#bestiary'),
 };
 
@@ -107,6 +109,11 @@ function renderPanels(): void {
   const chronicleVisible = state.totalShards > 0;
   reveal(panels.chronicle, chronicleVisible);
   if (chronicleVisible) setHtml(el('#chronicle-body'), chronicleHtml(state));
+  reveal(panels.orders, !!state.unlocked.orders);
+  if (state.unlocked.orders) {
+    setHtml(el('#orders-body'), ordersHtml(state));
+    setHtml(el('#orders-log'), ordersLogHtml(state));
+  }
   applyEpoch();
   if (state.unlocked.timeMachine) setHtml(el('#timemachine-body'), timeMachineHtml(state));
   const anySpell = SPELL_IDS.some((id) => spellLevel(state, id) > 0);
@@ -239,6 +246,12 @@ function installInput(debug: { toggle(): void }): void {
       run(JSON.parse(actionEl.dataset.action ?? '{}') as Action);
       return;
     }
+    const orderBtn = target.closest<HTMLElement>('[data-order-btn]');
+    if (orderBtn) {
+      const rules = rulesAfterButton(state, orderBtn.dataset.orderBtn ?? '');
+      if (rules) run({ type: 'setOrders', rules });
+      return;
+    }
     if (target.closest('[data-jump]')) {
       confirmJump();
       return;
@@ -272,6 +285,14 @@ function installInput(debug: { toggle(): void }): void {
       castleUi.selected = null;
       renderPanels();
     }
+  });
+
+  // Baukasten der Hofbefehle: Auswahllisten, Zahlenfelder, Häkchen.
+  document.addEventListener('change', (e) => {
+    const input = (e.target as HTMLElement).closest<HTMLInputElement | HTMLSelectElement>('[data-order]');
+    if (!input) return;
+    const rules = rulesAfterChange(state, input);
+    if (rules) run({ type: 'setOrders', rules });
   });
 
   el('#save').addEventListener('click', () => save(true));

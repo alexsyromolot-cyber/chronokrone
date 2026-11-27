@@ -1124,3 +1124,56 @@ body {
     opacity: 0;
   }
 }
+
+/* ---------- Hofbefehle (M5a) ---------- */
+.rules {
+  list-style: none;
+  margin: 6px 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.rule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  background: var(--panel-2);
+  border-left: 3px solid var(--torch);
+  padding: 6px 8px;
+}
+
+.rule.off {
+  opacity: 0.5;
+  border-left-color: var(--line);
+}
+
+.rule-no {
+  color: var(--torch);
+  font-weight: 700;
+}
+
+.rule-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.rule select,
+.rule input[type='number'] {
+  font: inherit;
+  font-size: 0.9em;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 1px 4px;
+}
+
+.rule input[type='number'] {
+  width: 72px;
+}
+
+.order-log {
+  max-height: 150px;
+}

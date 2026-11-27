@@ -90,6 +90,23 @@ test('Zeitsprung: Dialog, Feier, Epoche 2 mit Chronik', async ({ page }) => {
   await page.screenshot({ path: 'test-results/05-epoche2.png', fullPage: true });
 });
 
+test('Hofbefehle: Regel zusammenklicken und automatisch ausführen lassen', async ({ page }) => {
+  await game(page, 'g.loop.fastForward(120)');
+  await game(page, `(() => { g.state.unlocked.orders = true; g.state.unlocked.recruit = true; })()`);
+  await page.locator('[data-order-btn="add"]').click();
+  await expect(page.locator('.rule')).toHaveCount(1);
+  // Aktion umstellen und wieder zurück – über die echten Auswahllisten.
+  await page.locator('select[data-order="0.action.kind"]').selectOption('notify');
+  expect(await game(page, 'g.state.orders.rules[0].action.kind')).toBe('notify');
+  await page.locator('select[data-order="0.action.kind"]').selectOption('startBattle');
+  // Der Schreiber-Mönch startet die Schlacht selbst.
+  await game(page, 'g.loop.fastForward(2)');
+  expect(await game(page, '!!g.state.battle')).toBe(true);
+  await page.waitForTimeout(300);
+  await expect(page.locator('#orders-log')).toContainText('Regel 1 ausgeführt');
+  await page.locator('#orders').screenshot({ path: 'test-results/06-hofbefehle.png' });
+});
+
 test('Sprache lässt sich umschalten', async ({ page }) => {
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.locator('h1')).toHaveText('Chronocrown');

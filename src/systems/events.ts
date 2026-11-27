@@ -152,6 +152,8 @@ export function catchDrone(state: GameState): MessageKey | null {
   const gold = droneLoot(state);
   gain(state, 'gold', gold);
   gain(state, 'scrap', DRONE.scrap);
+  state.stats.scrapCollected += DRONE.scrap;
+  state.stats.goldEarned += gold;
   state.stats.dronesCaught++;
   state.fx.push({ kind: 'drone', gold });
   return null;
@@ -173,6 +175,7 @@ export function rollDice(state: GameState, bet: DiceBet): MessageKey | null {
   const payout = win ? Math.floor(stake / rule.chance) : 0;
   state.resources.gold = state.resources.gold.sub(stake).add(new Decimal(payout));
   state.stats.diceGames++;
+  if (win && bet === 'twelve') state.stats.diceJackpots++;
   state.events.lastDice = { d1, d2, bet, stake, payout };
   return null;
 }

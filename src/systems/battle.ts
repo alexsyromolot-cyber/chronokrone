@@ -17,6 +17,7 @@ import { epochDef } from '../data/epochs';
 import { chronicleBonus } from './chronicle';
 import { gain, keepLevel } from './resources';
 import { globalBonus, skillBonus } from './skills';
+import { addTimeline } from './achievements';
 import { addLog, type BattleState, type Enemy, type GameState } from './state';
 import { addXp, attackInterval, attributesOf, critChance, troops, unitDamage } from './units';
 
@@ -82,6 +83,7 @@ export function startBattle(state: GameState, siege = state.siegeLevel): Message
     kills: 0,
     goldEarned: 0,
     cooldowns: {},
+    clicks: 0,
     spellCooldowns: {},
     militiaLeft: 0,
     militiaTimer: 0,
@@ -161,6 +163,7 @@ export function damageEnemy(
   const gold = Math.round(def.gold * goldMultiplier(b.wave, b.siege) * lootMult * 10) / 10;
   gain(state, 'gold', gold);
   b.goldEarned += gold;
+  state.stats.goldEarned += gold;
   b.kills++;
   state.stats.kills++;
   b.enemies = b.enemies.filter((e) => e !== enemy);
@@ -173,12 +176,17 @@ export function damageEnemy(
     state.scrapPity = 0;
     const first = state.resources.scrap.eq(0) && !state.log.some((l) => l.key === 'narrator.firstScrap');
     gain(state, 'scrap', 1);
+    state.stats.scrapCollected++;
     if (first) addLog(state, 'narrator.firstScrap');
   }
   state.fx.push({ kind: 'kill', x: enemy.x, lane: enemy.lane, enemy: enemy.type, gold, scrap });
 
   if (def.elite && !state.timeParts[enemy.type]) {
     state.timeParts[enemy.type] = true;
+    addTimeline(state, `elite.${enemy.type}.${state.epoch}`, {
+      name: `@enemy.${enemy.type}`,
+      epoch: state.epoch,
+    });
     state.fx.push({ kind: 'milestone' });
     addLog(state, 'narrator.partFound', {
       name: `@enemy.${enemy.type}`,
@@ -200,6 +208,7 @@ export function clickEnemy(state: GameState, enemyId: number): boolean {
   const enemy = state.battle?.enemies.find((e) => e.id === enemyId);
   if (!enemy) return false;
   state.stats.clicks++;
+  state.battle!.clicks++;
   damageEnemy(state, enemy, clickDamage(state), true);
   return true;
 }
@@ -222,6 +231,9 @@ export function endBattle(state: GameState, result: 'won' | 'lost'): void {
 
   if (result === 'won') {
     state.stats.wins++;
+    state.stats.highestSiege = Math.max(state.stats.highestSiege, b.siege + 1);
+    if (b.clicks === 0) state.stats.noClickWins++;
+    if (state.stats.wins === 1) addTimeline(state, 'firstWin');
     if (b.siege === state.siegeLevel) {
       state.siegeLevel++;
       addLog(state, 'narrator.siegeUp', { siege: state.siegeLevel + 1 });
@@ -245,6 +257,7 @@ export function tickBattle(state: GameState, dt: number): void {
     const bonus = B.waveClearGold * b.wave * B.goldGrowthPerSiege ** b.siege * epochDef(state.epoch).gold;
     gain(state, 'gold', bonus);
     b.goldEarned += bonus;
+    state.stats.goldEarned += bonus;
     if (b.wave >= B.wavesPerBattle) {
       endBattle(state, 'won');
       return;

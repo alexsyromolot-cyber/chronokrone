@@ -2,6 +2,7 @@ import Decimal from 'break_eternity.js';
 import { describe, expect, it } from 'vitest';
 import { RESOURCE_IDS } from '../data/resources';
 import { dispatch } from './actions';
+import { achievementMultiplier } from './achievements';
 import { tickBattle } from './battle';
 import { flows, inBounds, recipeBottleneck, tileAt, tickCastle } from './castle';
 import { newGame, tick } from './game';
@@ -127,6 +128,6 @@ describe('Neue Klassen', () => {
     const s = rich();
     const archer = { id: 1, classId: 'archer' as const, level: 1, xp: 0 };
     // Bogenschütze: 2 × (1 + 0,1 × Geschick 6) = 3,2 (ohne Boni)
-    expect(unitDamage(s, archer)).toBeCloseTo(3.2);
+    expect(unitDamage(s, archer)).toBeCloseTo(3.2 * achievementMultiplier(s)); // + Erfolgs-Bonus
   });
 });

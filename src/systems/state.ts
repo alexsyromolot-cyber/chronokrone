@@ -72,6 +72,8 @@ export interface BattleState {
   goldEarned: number;
   /** Abklingzeit je Truppe (unit.id → Sekunden bis zum nächsten Schlag). */
   cooldowns: Record<number, number>;
+  /** Klicks in dieser Schlacht (für das geheime Pazifisten-Achievement). */
+  clicks: number;
   /** Abklingzeit je Zauber in Sekunden. */
   spellCooldowns: Partial<Record<SpellId, number>>;
   /** Restdauer der Bauernmiliz und Zeit bis zu ihrem nächsten Schlag. */
@@ -108,6 +110,7 @@ export type FxEvent =
   | { kind: 'spell'; spell: SpellId }
   | { kind: 'jump'; epoch: number; shards: number; tokens: number }
   | { kind: 'drone'; gold: number }
+  | { kind: 'achievement'; id: string }
   | { kind: 'crit'; x: number; lane: number };
 
 export interface Stats {
@@ -122,6 +125,19 @@ export interface Stats {
   dronesCaught: number;
   diceGames: number;
   miracles: number;
+  recruits: number;
+  spellsCast: number;
+  skillRanksBought: number;
+  goldEarned: number;
+  scrapCollected: number;
+  retreats: number;
+  noClickWins: number;
+  diceJackpots: number;
+  ordersExecuted: number;
+  timeMachines: number;
+  highestSiege: number;
+  maxBuildingLevel: number;
+  maxUnitLevel: number;
 }
 
 export interface Settings {
@@ -192,6 +208,12 @@ export interface GameState {
   oracle: boolean;
   /** Spielzeit, zu der die Zeitmaschine fertig wurde (null = noch nicht). */
   timeMachineAt: number | null;
+  /** Freigeschaltete Achievements (id → Spielzeit). Bleiben bei jedem Sprung. */
+  achievements: Record<string, number>;
+  /** Fortschritts-Zeitstrahl: erste Male und große Momente. */
+  timeline: { time: number; key: string; params?: Record<string, string | number> }[];
+  /** Sekunden bis zur nächsten Achievement-Prüfung. */
+  achievementTimer: number;
   /** Ereignisse, Drohne, Würfel. */
   events: EventsState;
   /** Hofbefehle (bleiben beim Sprung erhalten). */
@@ -269,6 +291,9 @@ export function createInitialState(seed = Date.now()): GameState {
     skills: {},
     research: {},
     orders: emptyOrders(),
+    achievements: {},
+    timeline: [],
+    achievementTimer: 0,
     // Erstes Ereignis nach 3 Minuten, erste Drohne nach 2 Minuten – nicht schon in der ersten Schlacht.
     events: { timer: 180, active: null, buffs: [], drone: null, droneTimer: 120, lastDice: null },
     timeParts: {},
@@ -297,6 +322,19 @@ export function createInitialState(seed = Date.now()): GameState {
       dronesCaught: 0,
       diceGames: 0,
       miracles: 0,
+      recruits: 0,
+      spellsCast: 0,
+      skillRanksBought: 0,
+      goldEarned: 0,
+      scrapCollected: 0,
+      retreats: 0,
+      noClickWins: 0,
+      diceJackpots: 0,
+      ordersExecuted: 0,
+      timeMachines: 0,
+      highestSiege: 0,
+      maxBuildingLevel: 1,
+      maxUnitLevel: 1,
     },
     settings: { autosaveSeconds: 30, reducedMotion: false, locale: 'de' },
     fx: [],

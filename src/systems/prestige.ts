@@ -11,6 +11,7 @@ import Decimal from 'break_eternity.js';
 import { epochDef, SHARDS } from '../data/epochs';
 import { CLASSES, START_UNITS, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
+import { addTimeline } from './achievements';
 import { chronicleBonus } from './chronicle';
 import { totalSkillRanks } from './skills';
 import { addLog, buildTiles, emptyResources, type GameState } from './state';
@@ -52,6 +53,7 @@ export function performJump(state: GameState): MessageKey | null {
   resetForEpoch(state);
 
   state.fx.push({ kind: 'jump', epoch: state.epoch, shards, tokens });
+  addTimeline(state, `jump.${state.epoch}`, { epoch: `@epoch.${epochDef(state.epoch).id}` });
   addLog(state, state.epoch === 2 ? 'narrator.firstJump' : 'narrator.jump', {
     epoch: `@epoch.${epochDef(state.epoch).id}`,
     shards,

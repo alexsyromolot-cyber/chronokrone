@@ -29,6 +29,8 @@ import { timeMachineHtml } from './ui/timemachine-panel';
 import { installTooltips } from './ui/tooltip';
 import { chronicleHtml } from './ui/chronicle-panel';
 import { eventHtml, seasonHtml } from './ui/events-panel';
+import { achievementsHtml, achievementTitle, statsHtml } from './ui/achievements-panel';
+import { ACHIEVEMENTS } from './data/achievements';
 import { ordersHtml, ordersLogHtml, rulesAfterButton, rulesAfterChange } from './ui/orders-panel';
 import { showModal } from './ui/modal';
 import { EPOCHS, epochDef } from './data/epochs';
@@ -77,6 +79,8 @@ const panels = {
   chronicle: el('#chronicle'),
   orders: el('#orders'),
   event: el('#event'),
+  achievements: el('#achievements'),
+  stats: el('#stats'),
   bestiary: el('#bestiary'),
 };
 
@@ -116,6 +120,11 @@ function renderPanels(): void {
     setHtml(el('#orders-body'), ordersHtml(state));
     setHtml(el('#orders-log'), ordersLogHtml(state));
   }
+  const anyAchievement = Object.keys(state.achievements).length > 0;
+  reveal(panels.achievements, anyAchievement);
+  if (anyAchievement) setHtml(el('#achievements-body'), achievementsHtml(state));
+  reveal(panels.stats, !!state.unlocked.castle);
+  if (state.unlocked.castle) setHtml(el('#stats-body'), statsHtml(state));
   reveal(panels.event, !!state.events.active);
   if (state.events.active) setHtml(el('#event-body'), eventHtml(state));
   setHtml(el('#season-label'), state.unlocked.castle ? seasonHtml(state) : '');
@@ -357,6 +366,10 @@ async function start(): Promise<void> {
   const scene = await BattleScene.create(el('#stage'), el('#fx-layer'), {
     onEnemyClick: (enemyId) => run({ type: 'clickEnemy', enemyId }),
     onDroneClick: () => run({ type: 'catchDrone' }),
+    onAchievement: (id) => {
+      const def = ACHIEVEMENTS.find((a) => a.id === id);
+      if (def) showToast(`★ ${achievementTitle(id, def.metric)}`);
+    },
     reducedMotion,
   });
 

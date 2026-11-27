@@ -9,6 +9,7 @@ import { checkUnlocks } from './progression';
 import { tickSpells } from './spells';
 import { tickOrders } from './orders';
 import { tickEvents } from './events';
+import { checkAchievements } from './achievements';
 import { addLog, createInitialState, type GameState } from './state';
 
 const MAX_FX = 200;
@@ -20,6 +21,11 @@ export function tick(state: GameState, dt: number): void {
   tickSpells(state, dt);
   tickOrders(state, dt);
   tickEvents(state, dt);
+  state.achievementTimer -= dt;
+  if (state.achievementTimer <= 0) {
+    state.achievementTimer = 1;
+    checkAchievements(state);
+  }
   checkUnlocks(state);
   // Effekte holt der Renderer jeden Frame ab. Beim Vorspulen (ohne Frames) würden sie
   // sich sonst unbegrenzt stapeln – also nur die neuesten behalten.

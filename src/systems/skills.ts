@@ -67,6 +67,7 @@ export function buySkill(state: GameState, id: string): MessageKey | null {
   const skill = SKILLS_BY_ID[id]!;
   state.skillPoints[skill.classId] -= 1;
   state.skills[id] = skillRank(state, id) + 1;
+  state.stats.skillRanksBought++;
   if (skill.spec && !state.specs[skill.classId]) {
     state.specs[skill.classId] = skill.spec;
     addLog(state, 'narrator.specChosen', {

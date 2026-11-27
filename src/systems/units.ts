@@ -6,6 +6,7 @@ import { BARRACKS, BUILDINGS, type BuildingId } from '../data/buildings';
 import { CLASSES, TROOP_BUILDINGS, UNIT_FORMULAS as F, type Attributes, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
+import { achievementMultiplier } from './achievements';
 import { chronicleBonus } from './chronicle';
 import { armorEndurance, talismanXp, weaponMultiplier } from './gear';
 import { skillBonus } from './skills';
@@ -68,7 +69,8 @@ export function unitDamage(state: GameState, unit: Unit): number {
     (1 + F.damagePerAttr * main) *
     (1 + damageBonus(state, unit)) *
     weaponMultiplier(state, unit.classId, 'troop') *
-    (1 + chronicleBonus(state, 'damage'))
+    (1 + chronicleBonus(state, 'damage')) *
+    achievementMultiplier(state)
   );
 }
 
@@ -109,6 +111,7 @@ export function addXp(state: GameState, unit: Unit, xp: number): void {
   while (unit.xp >= need) {
     unit.xp -= need;
     unit.level++;
+    state.stats.maxUnitLevel = Math.max(state.stats.maxUnitLevel, unit.level);
     state.skillPoints[unit.classId] += 1;
     state.stats.skillPointsEarned += 1;
     state.fx.push({ kind: 'levelUp', unitId: unit.id });
@@ -162,6 +165,7 @@ export function recruit(state: GameState, classId: ClassId): MessageKey | null {
   if (blocker) return blocker;
   pay(state, recruitCost(state, classId));
   state.units.push({ id: state.nextUnitId++, classId, level: 1, xp: 0 });
+  state.stats.recruits++;
   if (state.units.length === 4) addLog(state, 'narrator.firstRecruit');
   return null;
 }

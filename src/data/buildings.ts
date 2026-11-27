@@ -50,7 +50,13 @@ export type BuildingId =
   | 'rodFactory'
   | 'reactor'
   | 'coolingTower'
-  | 'bunker';
+  | 'bunker'
+  // Epoche 5
+  | 'hullPlate'
+  | 'stardustScoop'
+  | 'glassFurnace'
+  | 'rosette'
+  | 'hangar';
 
 export interface Recipe {
   inputs: ResourceAmounts;
@@ -396,6 +402,56 @@ export const BUILDINGS: Record<BuildingId, BuildingDef> = {
     maxCount: 1,
     baseCost: { gold: 60000, steel: 1000, fuelRods: 40 },
     upgradeCost: { gold: 15000, fuelRods: 10 },
+    costGrowth: 1.4,
+  },
+  // --- Epoche 5: Sternenorden (Raumschiff-Raster, siehe data/starship.ts) ---
+  hullPlate: {
+    id: 'hullPlate',
+    buildable: true,
+    research: 'starNavigation',
+    // Reines Verbindungsstück: hält Module am Schiff, produziert nichts, Level bringt nichts.
+    maxLevel: 1,
+    baseCost: { gold: 40000, steel: 100 },
+    costGrowth: 1,
+  },
+  stardustScoop: {
+    id: 'stardustScoop',
+    buildable: true,
+    research: 'starNavigation',
+    baseCost: { gold: 120000, wire: 60, uranium: 100 },
+    upgradeCost: { gold: 30000, wire: 15 },
+    costGrowth: 1.2,
+    produces: { resource: 'stardust', perLevel: 0.5 },
+    // Auf dem „Bach“ – im All ein Nebelstrom – fliegt besonders viel Staub vorbei.
+    terrainBonus: { stream: 1.5 },
+    workerSlots: 2,
+  },
+  glassFurnace: {
+    id: 'glassFurnace',
+    buildable: true,
+    research: 'stainedGlass',
+    baseCost: { gold: 200000, stardust: 200, copper: 500 },
+    upgradeCost: { gold: 50000, stardust: 50 },
+    costGrowth: 1.25,
+    // Sternenglas schmelzen: 3 Sternenstaub werden zu 1 Sternenglas.
+    recipe: { inputs: { stardust: 3 }, outputs: { starglass: 1 }, cyclesPerLevel: 0.1 },
+    neighborBonus: { building: 'stardustScoop', bonus: 0.2 },
+  },
+  rosette: {
+    id: 'rosette',
+    buildable: true,
+    research: 'neonRosette',
+    baseCost: { gold: 300000, starglass: 30 },
+    upgradeCost: { gold: 80000, starglass: 10 },
+    costGrowth: 1.3,
+  },
+  hangar: {
+    id: 'hangar',
+    buildable: true,
+    research: 'starOrder',
+    maxCount: 1,
+    baseCost: { gold: 500000, starglass: 40, fuelRods: 40 },
+    upgradeCost: { gold: 120000, starglass: 10 },
     costGrowth: 1.4,
   },
 };

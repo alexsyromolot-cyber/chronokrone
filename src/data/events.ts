@@ -33,7 +33,9 @@ export type EventId =
   | 'bard'
   // Epoche 4
   | 'sandstorm'
-  | 'meltdown';
+  | 'meltdown'
+  // Epoche 5
+  | 'meteorShower';
 
 export interface EventDef {
   id: EventId;
@@ -54,6 +56,7 @@ export const EVENTS: EventDef[] = [
   { id: 'sandstorm', weight: 2, options: ['endure', 'shelter'], fromEpoch: 4 },
   // Kommt nie zufällig (Gewicht 0), sondern nur, wenn der Reaktor überhitzt.
   { id: 'meltdown', weight: 0, options: ['evacuate', 'contain', 'pray'] },
+  { id: 'meteorShower', weight: 2, options: ['shields', 'harvest'], fromEpoch: 5 },
 ];
 
 export const EVENT_INTERVAL: [number, number] = [240, 360];
@@ -82,6 +85,9 @@ export const EVENT_NUMBERS = {
   sandstormMult: 0.7,
   sandstormSeconds: 90,
   shelterGoldShare: 0.1,
+  /** Meteorschauer: Schilde kosten Gold; Ernten füllt das Sternenstaub-Lager zum Teil, ein Modul verliert 1 Level. */
+  meteorShieldShare: 0.1,
+  meteorHarvestShare: 0.5,
 } as const;
 
 /** Alien-Drohne: fliegt über das Schlachtfeld, ein Klick holt die Beute. */

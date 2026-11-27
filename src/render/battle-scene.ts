@@ -310,12 +310,13 @@ export class BattleScene {
         const elite = !!ENEMIES[e.type].elite;
         // Anker unten mittig: Stauchen und Wippen passieren dann „auf dem Boden“.
         sprite.anchor.set(0.5, 1);
-        if (elite) sprite.scale.set(2);
+        const base = ENEMIES[e.type].boss ? 3 : elite ? 2 : 1;
+        sprite.scale.set(base);
         const hpBar = new Graphics();
         const glow = new Graphics();
-        if (elite) glow.circle(0, 0, 18).fill({ color: ENEMIES[e.type].color, alpha: 0.25 });
+        if (elite) glow.circle(0, 0, 18 * (base / 2)).fill({ color: ENEMIES[e.type].color, alpha: 0.25 });
         this.enemyLayer.addChild(glow, sprite, hpBar);
-        view = { sprite, hpBar, glow, lastHp: e.hp, flash: 0, base: elite ? 2 : 1 };
+        view = { sprite, hpBar, glow, lastHp: e.hp, flash: 0, base };
         this.enemies.set(e.id, view);
       }
       if (e.hp < view.lastHp) view.flash = 0.12;

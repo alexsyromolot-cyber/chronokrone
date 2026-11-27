@@ -82,6 +82,9 @@ export interface BattleState {
   militiaTimer: number;
   /** Elitegegner, der als letzter Gegner dieser Schlacht noch erscheinen soll. */
   pendingElite: EnemyId | null;
+  /** Finalschlacht gegen das Mutterschiff? Und erreichte Phase des Endgegners. */
+  final?: boolean;
+  phase?: number;
 }
 
 export interface BattleSummary {
@@ -112,7 +115,8 @@ export type FxEvent =
   | { kind: 'jump'; epoch: number; shards: number; tokens: number }
   | { kind: 'drone'; gold: number }
   | { kind: 'achievement'; id: string }
-  | { kind: 'crit'; x: number; lane: number };
+  | { kind: 'crit'; x: number; lane: number }
+  | { kind: 'finale' };
 
 export interface Stats {
   battles: number;
@@ -253,6 +257,22 @@ export interface GameState {
   /** Sammlung „Relikte“ (bleibt bei jedem Sprung) und Glücksschutz. */
   relics: Record<string, boolean>;
   relicPity: number;
+  /** Finale (Epoche 5): Zeitpunkt des Siegs in dieser Schleife (null = noch nicht) und Siege insgesamt. */
+  finale: { wonAt: number | null; wins: number };
+  /**
+   * Zeitschleife (nach dem Finale): Anzahl abgeschlossener Schleifen, aktive Fluch-Siegel,
+   * Bestzeiten je Fluch-Kombination (Schlüssel = sortierte Siegel, '' = ohne Fluch), Start der Schleife.
+   */
+  loop: {
+    count: number;
+    curses: string[];
+    /** Für die nächste Schleife gewählte Flüche. */
+    nextCurses: string[];
+    /** Schleifen-Siegel (Bonus auf Produktion und Schaden). */
+    seals: number;
+    best: Record<string, number>;
+    startedAt: number;
+  };
   /** Ereignisse, Drohne, Würfel. */
   events: EventsState;
   /** Hofbefehle (bleiben beim Sprung erhalten). */
@@ -342,6 +362,8 @@ export function createInitialState(seed = Date.now()): GameState {
     reactor: { throttle: 0.5, heat: 0, fuel: 1, warned: false, meltdowns: 0 },
     relics: {},
     relicPity: 0,
+    finale: { wonAt: null, wins: 0 },
+    loop: { count: 0, curses: [], nextCurses: [], seals: 0, best: {}, startedAt: 0 },
     timeline: [],
     achievementTimer: 0,
     // Erstes Ereignis nach 3 Minuten, erste Drohne nach 2 Minuten – nicht schon in der ersten Schlacht.

@@ -36,6 +36,7 @@ import { chronicleHtml } from './ui/chronicle-panel';
 import { companionsHtml } from './ui/market-panel';
 import { cardsHtml } from './ui/cards-panel';
 import { relicsHtml } from './ui/reactor-panel';
+import { completionHtml, showCredits } from './ui/finale-panel';
 import { eventHtml, seasonHtml } from './ui/events-panel';
 import { achievementsHtml, achievementTitle, statsHtml } from './ui/achievements-panel';
 import { ACHIEVEMENTS } from './data/achievements';
@@ -99,6 +100,7 @@ const panels = {
   companions: el('#companions'),
   cards: el('#cards'),
   relics: el('#relics'),
+  completion: el('#completion'),
   stats: el('#stats'),
   bestiary: el('#bestiary'),
 };
@@ -152,6 +154,9 @@ function renderPanels(): void {
   const relicsVisible = state.epoch >= 4 || Object.keys(state.relics).length > 0;
   reveal(panels.relics, relicsVisible);
   if (relicsVisible) setHtml(el('#relics-body'), relicsHtml(state));
+  const completionVisible = state.epoch >= 5 || state.loop.count > 0;
+  reveal(panels.completion, completionVisible);
+  if (completionVisible) setHtml(el('#completion-body'), completionHtml(state));
   reveal(panels.stats, !!state.unlocked.castle);
   if (state.unlocked.castle) setHtml(el('#stats-body'), statsHtml(state));
   reveal(panels.event, !!state.events.active);
@@ -231,6 +236,11 @@ function confirmJump(): void {
   });
 }
 
+/** Abspann nach dem Finale (und auf Wunsch erneut aus dem Zeitmaschinen-Bereich). */
+function openCredits(): void {
+  showCredits(state, reducedMotion());
+}
+
 /** Einstellungen anwenden: Schriftgröße, Lautstärken. */
 function applySettings(): void {
   const s = state.settings;
@@ -285,6 +295,10 @@ function soundFor(fx: FxEvent): void {
       break;
     case 'milestone':
       sfx('levelUp');
+      break;
+    case 'finale':
+      sfx('jump');
+      openCredits();
       break;
   }
 }
@@ -358,6 +372,10 @@ function installInput(debug: { toggle(): void }): void {
     }
     if (target.closest('[data-jump]')) {
       confirmJump();
+      return;
+    }
+    if (target.closest('[data-credits]')) {
+      openCredits();
       return;
     }
     const tileEl = target.closest<HTMLElement>('[data-select]');

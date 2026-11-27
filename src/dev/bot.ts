@@ -13,6 +13,8 @@ import { price, TRADABLE } from '../systems/trade';
 import { powerNetwork } from '../systems/power';
 import { heatRate, reactorTile } from '../systems/reactor';
 import { REACTOR } from '../data/reactor';
+import { hull, shipActive } from '../systems/starship';
+import { isLastEpoch } from '../systems/finale';
 import { resourceCap } from '../systems/resources';
 import { SPELL_IDS } from '../data/spells';
 import { SKILLS } from '../data/skills';
@@ -35,7 +37,18 @@ export const DEFAULT_BOT: BotOptions = { clicksPerSecond: 3, pauseBetweenBattles
 /** Bestes freies Feld für ein Gebäude: passendes Gelände zuerst, dann Nachbarboni. */
 function bestTile(state: GameState, id: BuildingId): Tile | undefined {
   const def = BUILDINGS[id];
-  const free = state.tiles.filter((t) => t.unlocked && !t.building);
+  let free = state.tiles.filter((t) => t.unlocked && !t.building);
+  // Raumschiff: nur an die Hülle anbauen – sonst triebe das Modul im All.
+  if (shipActive(state)) {
+    const connected = hull(state);
+    free = free.filter((t) => neighbors(state, t).some((n) => connected.has(n)));
+  }
+  // Rosette: dorthin, wo möglichst viele Module in Zeile und Spalte stehen.
+  if (id === 'rosette') {
+    const lit = (t: Tile) =>
+      state.tiles.filter((m) => m.building && m.building !== 'keep' && (m.x === t.x || m.y === t.y)).length;
+    return free.sort((a, b) => lit(b) - lit(a))[0];
+  }
   const nb = def.neighborBonus;
   const score = (t: Tile) =>
     (def.terrainBonus?.[t.terrain] ?? 1) +
@@ -86,6 +99,10 @@ const BUILD_ORDER: BuildingId[] = [
   'reactor',
   'coolingTower',
   'bunker',
+  'stardustScoop',
+  'glassFurnace',
+  'rosette',
+  'hangar',
 ];
 
 const RECRUIT_ORDER: ClassId[] = [
@@ -102,6 +119,8 @@ const RECRUIT_ORDER: ClassId[] = [
   'teslaLancer',
   'prospector',
   'rayPaladin',
+  'starPilgrim',
+  'voidTemplar',
   'peasant',
 ];
 
@@ -148,6 +167,10 @@ function wishes(state: GameState): Action[] {
       buildingAvailable(state, 'coolingTower') === null ? bestTile(state, 'coolingTower') : undefined;
     if (ct) list.unshift({ type: 'build', x: ct.x, y: ct.y, building: 'coolingTower' });
   }
+  if (countBuildings(state, 'rosette') > 0 && countBuildings(state, 'rosette') < 3) {
+    const rt = buildingAvailable(state, 'rosette') === null ? bestTile(state, 'rosette') : undefined;
+    if (rt) list.push({ type: 'build', x: rt.x, y: rt.y, building: 'rosette' });
+  }
   const pylonTile = buildingAvailable(state, 'pylon') === null ? bestTile(state, 'pylon') : undefined;
   if (pylonTile) list.unshift({ type: 'build', x: pylonTile.x, y: pylonTile.y, building: 'pylon' });
 
@@ -185,12 +208,14 @@ export class Bot {
         dispatch(state, { type: 'castSpell', spell: 'blessing' });
     } else {
       // Zeitmaschine fertig? Sofort springen – zwischen zwei Schlachten.
-      if (state.timeMachineAt !== null && dispatch(state, { type: 'jump' }) === null) {
+      // Letzte Epoche: statt zu springen das Mutterschiff angreifen (bis es fällt).
+      const finale = isLastEpoch(state) && state.timeMachineAt !== null && state.finale.wonAt === null;
+      if (!finale && state.timeMachineAt !== null && dispatch(state, { type: 'jump' }) === null) {
         this.purchases.push({ time: state.time, action: { type: 'jump' } });
       }
       this.idleTimer += dt;
       if (this.idleTimer >= this.options.pauseBetweenBattles && troops(state).length > 0) {
-        dispatch(state, { type: 'startBattle' });
+        dispatch(state, finale ? { type: 'startFinale' } : { type: 'startBattle' });
       }
     }
 
@@ -222,6 +247,7 @@ export class Bot {
           bard: 'listen',
           sandstorm: 'shelter',
           meltdown: 'contain',
+          meteorShower: 'shields',
         }[ev.id] ?? 'decline';
       if (dispatch(state, { type: 'eventChoice', option: choice }) !== null)
         dispatch(state, { type: 'eventChoice', option: 'decline' });

@@ -32,6 +32,9 @@ export const RESOURCE_IDS = [
   // Epoche 4: Atomare Kreuzzüge
   'uranium',
   'fuelRods',
+  // Epoche 5: Sternenorden
+  'stardust',
+  'starglass',
 ] as const;
 export type ResourceId = (typeof RESOURCE_IDS)[number];
 
@@ -65,6 +68,8 @@ export const RESOURCES: Record<ResourceId, ResourceDef> = {
   wire: { baseCap: 80, capGrowth: 1.8, color: '#e8c070' },
   uranium: { baseCap: 400, capGrowth: 1.8, color: '#9be04a' },
   fuelRods: { baseCap: 60, capGrowth: 1.8, color: '#c8f060' },
+  stardust: { baseCap: 400, capGrowth: 1.8, color: '#c09aff' },
+  starglass: { baseCap: 60, capGrowth: 1.8, color: '#ff6ad5' },
 };
 
 /** Kosten-/Ertragsangabe: welche Ressource wie viel. */

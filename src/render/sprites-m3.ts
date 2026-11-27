@@ -230,6 +230,49 @@ export const M3_UNIT_SPRITES: Partial<Record<ClassId, PixelSprite>> = {
       k: '#2a2a30',
     },
   },
+  starPilgrim: {
+    rows: [
+      '....pp......',
+      '...pppp.....',
+      '..pssssp....',
+      '..psyysp.z..',
+      '...ssss..z..',
+      '..rrrrrr.z..',
+      '.srrrrrrsz..',
+      '..rrwwrr....',
+      '..rrrrrr....',
+      '..rrrrrr....',
+      '..rr..rr....',
+      '..kk..kk....',
+    ],
+    palette: { p: '#c09aff', s: SKIN, y: '#9ad8ff', r: '#5a3a8a', w: '#ff6ad5', z: '#ffe66d', k: '#2a2a30' },
+  },
+  voidTemplar: {
+    rows: [
+      '..........l.',
+      '...gggg...l.',
+      '..gccccg..l.',
+      '..gcyycg..l.',
+      '..gccccg..l.',
+      '.waaaaaaw.l.',
+      '.waaxxaaw...',
+      '..axxxxa....',
+      '..aaxxaa....',
+      '..aa..aa....',
+      '..aa..aa....',
+      '.kkk..kkk...',
+    ],
+    palette: {
+      l: '#ff6ad5',
+      g: '#d8dcf0',
+      c: '#3a2e5a',
+      y: '#9ad8ff',
+      a: '#e8e8f8',
+      w: '#9a9ab8',
+      x: '#ff6ad5',
+      k: '#2a2a40',
+    },
+  },
   monk: {
     rows: [
       '...bbbb.....',
@@ -273,6 +316,11 @@ const GLYPHS: Record<string, string[]> = {
   rod: ['.E.E.', '.E.E.', '.E.E.', '.E.E.', 'EEEEE'],
   drop: ['..E..', '.EEE.', 'EEEEE', 'EEEEE', '.EEE.'],
   shield: ['EEEEE', 'E.E.E', 'EEEEE', '.EEE.', '..E..'],
+  plate: ['EEEEE', 'E...E', 'E...E', 'E...E', 'EEEEE'],
+  sparkle: ['..E..', '.EEE.', 'EEEEE', '.EEE.', 'E...E'],
+  prism: ['..E..', '.E.E.', 'E...E', 'EEEEE', '.....'],
+  rose: ['.EEE.', 'EE.EE', 'E.E.E', 'EE.EE', '.EEE.'],
+  lance: ['....E', '...E.', 'EEE..', '.E...', 'E....'],
 };
 
 function building(roof: string, wall: string, emblem: string, glyph: keyof typeof GLYPHS): PixelSprite {
@@ -324,6 +372,11 @@ export const M3_BUILDING_SPRITES: Partial<Record<BuildingId, PixelSprite>> = {
   reactor: building('#3a4a2a', '#8a9a7a', '#d8f070', 'atom'),
   coolingTower: building('#6a7a8a', '#b0b8c0', '#9ad8ff', 'drop'),
   bunker: building('#4a4a3a', '#7a7a66', '#c8f060', 'shield'),
+  hullPlate: building('#3a3460', '#6a6490', '#9ad8ff', 'plate'),
+  stardustScoop: building('#2a2450', '#5a5490', '#c09aff', 'sparkle'),
+  glassFurnace: building('#4a2450', '#8a5490', '#ff6ad5', 'prism'),
+  rosette: building('#1a1040', '#3a2e6a', '#ff6ad5', 'rose'),
+  hangar: building('#2a2a50', '#6a6a9a', '#ff6ad5', 'lance'),
 };
 
 /** Gleiche Form, andere Farben – so entstehen die Elitegegner aus ihren normalen Verwandten. */
@@ -345,6 +398,29 @@ export const SCHILDLING_SPRITE: PixelSprite = {
     '....k.k.k...',
   ],
   palette: { L: '#b8bccb', b: '#8fa0c0', y: '#ff5d5d', k: '#4a4e60' },
+};
+
+/** Das Mutterschiff: eine Untertasse mit Kirchenfenster-Kuppel (in der Schlacht dreifach groß). */
+export const MOTHERSHIP_SPRITE: PixelSprite = {
+  rows: [
+    '....cccc....',
+    '...cpycpc...',
+    '..cyppcyyc..',
+    '.hhhhhhhhhh.',
+    'hhlhhlhhlhhh',
+    'hhhhhhhhhhhh',
+    '.dddddddddd.',
+    '..r..r..r...',
+  ],
+  palette: {
+    c: '#9ad8ff',
+    p: '#ff6ad5',
+    y: '#ffe66d',
+    h: '#8a8ab8',
+    l: '#ff5d5d',
+    d: '#4a4a70',
+    r: '#ff6ad5',
+  },
 };
 
 /** Elitegegner (werden in der Schlacht doppelt so groß gezeichnet). */

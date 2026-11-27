@@ -64,8 +64,12 @@ export const RELIC_NUMBERS = {
   hourglassDelay: 60,
   /** Zwillingsschlag: ein Klick trifft zusätzlich den nächsten Gegner mit diesem Anteil. */
   twinStrikeShare: 0.5,
-  /** Spiegelschild: Gegner an der Mauer verlieren diesen Anteil ihrer Max-LP pro Sekunde. */
-  mirrorShare: 0.02,
+  /**
+   * Spiegelschild: Gegner an der Mauer erleiden pro Sekunde diesen Anteil eines durchschnittlichen
+   * Truppen-Treffers. An den eigenen Schaden gekoppelt – ein Anteil der Gegner-LP würde jede
+   * Gegnerstärke ignorieren (auch das Mutterschiff).
+   */
+  mirrorShare: 0.5,
   /** Brennender Kelch: Kernschmelze wird zum Produktionsrausch. */
   chaliceMult: 2,
   chaliceSeconds: 60,

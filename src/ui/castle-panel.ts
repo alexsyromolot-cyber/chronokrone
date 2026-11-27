@@ -35,6 +35,8 @@ import {
 import { keepLevel } from '../systems/resources';
 import type { GameState, Tile } from '../systems/state';
 import { troopCapacity } from '../systems/units';
+import { isConnected, rosetteBonus, shipActive } from '../systems/starship';
+import { STARSHIP } from '../data/starship';
 import { spriteUrl } from '../render/pixel';
 import { BUILDING_SPRITES, TERRAIN_SPRITES } from '../render/sprites';
 import { costHtml, esc, num, pct, reasonText, tip } from './dom';
@@ -70,6 +72,8 @@ function tileHtml(state: GameState, tile: Tile, ui: CastleUi): string {
   if (!tile.unlocked) classes.push(fog ? 'fog' : 'locked');
   if (selected) classes.push('selected');
   if (powerBonus(state, tile) > 0) classes.push('powered');
+  if (tile.building && !isConnected(state, tile)) classes.push('adrift');
+  else if (tile.building && rosetteBonus(state, tile) > 0) classes.push('lit');
   if (clearable) classes.push('affordable');
   return `<button class="${classes.join(' ')}" data-select="${tile.x},${tile.y}" aria-label="${esc(label)}" ${tip(label)}>
     ${img}${tile.building ? `<span class="lvl">${tile.level}</span>` : ''}${!tile.unlocked && !fog ? '<span class="q">?</span>' : ''}
@@ -97,6 +101,7 @@ function productionHtml(state: GameState, tile: Tile): string {
     season: num(p.season, 2),
     power: num(p.power, 2),
     reactor: num(p.reactor, 2),
+    ship: num(p.ship, 2),
     total: num(p.total, 2),
   });
   return `<p class="prod" ${tip(formula)}>${esc(t('castle.produces', { value: num(p.total, 2), res: t(`res.${p.resource}`) }))} ⓘ</p>`;
@@ -132,6 +137,18 @@ function recipeHtml(state: GameState, tile: Tile): string {
     · ${esc(t('castle.recipeRate', { rate: num(rate, 2) }))} ⓘ</p>${status}`;
 }
 
+/** Raumschiff (Epoche 5): hängt das Modul an der Brücke, und wie viel Rosettenlicht fällt darauf? */
+function shipHtml(state: GameState, tile: Tile): string {
+  if (!shipActive(state) || tile.building === 'keep') return '';
+  if (!isConnected(state, tile)) return `<p class="bad">${esc(t('ship.adrift'))}</p>`;
+  if (tile.building === 'rosette')
+    return `<p>${esc(t('ship.rosetteEffect', { pct: pct(STARSHIP.rosettePerLevel * tile.level) }))}</p>`;
+  const bonus = rosetteBonus(state, tile);
+  return `<p class="good" ${tip(t('ship.tip', { pct: pct(STARSHIP.rosettePerLevel) }))}>${esc(
+    bonus > 0 ? t('ship.connectedLit', { pct: pct(bonus) }) : t('ship.connected'),
+  )} ⓘ</p>`;
+}
+
 function effectHtml(state: GameState, tile: Tile): string {
   const id = tile.building!;
   if (id === 'keep') {
@@ -159,6 +176,7 @@ function buildingDetail(state: GameState, tile: Tile): string {
       t('castle.level', { level: tile.level }),
     )}</small></h3>`,
     `<p class="desc">${esc(t(`building.${id}.desc`))}</p>`,
+    shipHtml(state, tile),
     productionHtml(state, tile),
     recipeHtml(state, tile),
     effectHtml(state, tile),

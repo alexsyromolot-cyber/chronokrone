@@ -8,7 +8,13 @@ import type { EnemyId } from '../data/enemies';
 import type { TerrainId } from '../data/map';
 import type { ClassId } from '../data/units';
 import type { PixelSprite } from './pixel';
-import { eliteSprites, M3_BUILDING_SPRITES, M3_UNIT_SPRITES, SCHILDLING_SPRITE } from './sprites-m3';
+import {
+  eliteSprites,
+  M3_BUILDING_SPRITES,
+  M3_UNIT_SPRITES,
+  MOTHERSHIP_SPRITE,
+  SCHILDLING_SPRITE,
+} from './sprites-m3';
 
 const SKIN = '#e8b98a';
 const DARK = '#2a1d1a';
@@ -251,4 +257,5 @@ export const ENEMY_SPRITES = {
   ...BASE_ENEMY_SPRITES,
   schildling: SCHILDLING_SPRITE,
   ...eliteSprites(BASE_ENEMY_SPRITES),
+  mutterschiff: MOTHERSHIP_SPRITE,
 } as Record<EnemyId, PixelSprite>;

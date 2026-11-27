@@ -45,7 +45,7 @@ export const de = {
   'castle.workers': 'Holzfäller: {n}/{max}',
   'castle.milestone': 'Nächster Meilenstein: Level {level} (Produktion ×2)',
   'castle.prodTip':
-    '{perLevel} × Level {level} × Meilenstein {milestone} × Gelände {terrain} × (1 + Nachbarn {neighbor} % + Arbeiter {workers} % + Skills {skills} % + Taverne {tavern} %) × Ausrüstung {gear} × Chronik & Erfolge {chronicle} × Strom {power} × Reaktor & Relikte {reactor} × Jahreszeit/Ereignis {season} = {total}/s',
+    '{perLevel} × Level {level} × Meilenstein {milestone} × Gelände {terrain} × (1 + Nachbarn {neighbor} % + Arbeiter {workers} % + Skills {skills} % + Taverne {tavern} %) × Ausrüstung {gear} × Chronik & Erfolge {chronicle} × Strom {power} × Reaktor & Relikte {reactor} × Schiff & Komplettierung {ship} × Jahreszeit/Ereignis {season} = {total}/s',
   'castle.costTip': 'Kosten = Grundkosten × {growth}^Level',
   'castle.buildCostTip': 'Baukosten = Grundkosten × {growth}^(vorhandene Gebäude dieses Typs)',
   'castle.keepEffect': 'Lagerlimits ×{cap} · Steuern · Klickschaden {click}',
@@ -503,7 +503,7 @@ export const de = {
   'tm.skills': 'Skill-Fortschritt: {have}/{need} Stufen',
   'tm.buildOracle': 'Rechenorakel bauen',
   'tm.build': 'Zeitmaschine bauen',
-  'tm.done': 'Fertig nach {time}. Der Sprung in die nächste Epoche folgt mit Meilenstein 4.',
+  'tm.done': 'Fertig nach {time}. Bereit für den Sprung.',
   'bestiary.bonus': '+{pct} % Schaden gegen diesen Typ',
   'bestiary.bonusTip': 'Je Abschuss-Stufe ({tiers}) +5 % Schaden gegen diesen Typ. Elitegegner: sofort voll.',
   'bestiary.elite': 'Elite',
@@ -1066,12 +1066,114 @@ export const de = {
   'relic.twinStrike': 'Zwillingsschlag',
   'relic.twinStrike.desc': 'Jeder Klick trifft zusätzlich den nächsten Gegner mit {share} % Schaden.',
   'relic.mirrorShield': 'Spiegelschild',
-  'relic.mirrorShield.desc': 'Gegner an der Mauer verlieren {mirror} % ihrer LP pro Sekunde.',
+  'relic.mirrorShield.desc':
+    'Gegner an der Mauer erleiden pro Sekunde {mirror} % eines durchschnittlichen Truppen-Treffers.',
   'relic.burningChalice': 'Brennender Kelch',
   'relic.burningChalice.desc':
     'Eine Kernschmelze richtet keinen Schaden an, sondern gibt {seconds} s lang ×{mult} Produktion.',
   'relic.treasureMap': 'Schatzkarte',
   'relic.treasureMap.desc': 'Die Alien-Drohne kommt doppelt so oft.',
+
+  // --- M7d: Epoche 5 ---
+  'res.stardust': 'Sternenstaub',
+  'res.starglass': 'Sternenglas',
+  'building.hullPlate': 'Hüllensegment',
+  'building.hullPlate.desc':
+    'Ein Stück Schiff. Produziert nichts, hält aber Module mit der Brücke verbunden. Kein Ausbau nötig.',
+  'building.stardustScoop': 'Sternenstaub-Kollektor',
+  'building.stardustScoop.desc':
+    'Fängt Sternenstaub. Auf Nebelströmen (Bach-Feldern) besonders ergiebig. Sternenpilger arbeiten hier.',
+  'building.glassFurnace': 'Buntglashütte',
+  'building.glassFurnace.desc': 'Schmilzt aus 3 Sternenstaub 1 Sternenglas. Neben einem Kollektor +20 %.',
+  'building.rosette': 'Neon-Rosette',
+  'building.rosette.desc':
+    'Ein Kirchenfenster aus Sternenglas. Sein Licht stärkt jedes verbundene Modul in derselben Zeile und Spalte.',
+  'building.hangar': 'Ordenshangar',
+  'building.hangar.desc': 'Bildet Leere-Templer aus. Mehr Level = mehr Truppenplätze und Schaden.',
+  'class.starPilgrim': 'Sternenpilger',
+  'class.starPilgrim.desc': 'Arbeitet am Sternenstaub-Kollektor. Magie erhöht den Fang.',
+  'class.voidTemplar': 'Leere-Templer',
+  'class.voidTemplar.desc':
+    'Ritter im Raumanzug mit Neonlanze. Große Reichweite, trifft mehrere. Magie zählt.',
+  'research.starNavigation': 'Sternennavigation',
+  'research.starNavigation.desc':
+    'Die Burg fliegt. Niemand weiß, wie. Schaltet Hüllensegment und Sternenstaub-Kollektor frei.',
+  'research.stainedGlass': 'Buntglas',
+  'research.stainedGlass.desc': 'Sternenstaub, sehr heiß, sehr bunt. Schaltet die Buntglashütte frei.',
+  'research.neonRosette': 'Neon-Rosette',
+  'research.neonRosette.desc':
+    'Ein Kirchenfenster, das leuchtet. Die Mönche sind begeistert. Schaltet die Neon-Rosette frei.',
+  'research.starOrder': 'Sternenorden',
+  'research.starOrder.desc': 'Ritter. Im Weltall. Mit Lanzen aus Licht. Schaltet den Ordenshangar frei.',
+  'skill.stargaze': 'Sternengucker',
+  'skill.cosmicHymn': 'Kosmische Hymne',
+  'skill.glassBlowing': 'Glasbläserei',
+  'skill.nebulaSense': 'Nebelgespür',
+  'skill.prismHeart': 'Prismenherz',
+  'skill.pilgrimSong': 'Pilgerlied',
+  'skill.neonFaith': 'Neonglaube',
+  'skill.zeroG': 'Schwerelos',
+  'skill.hullPrayer': 'Hüllengebet',
+  'skill.prismLance': 'Prismenlanze',
+  'skill.lightYear': 'Lichtjahr',
+  'skill.supernova': 'Supernova',
+  'epoch.5': 'Sternenorden',
+  'enemy.mutterschiff': 'Das Mutterschiff',
+  'enemy.mutterschiff.desc':
+    'Endgegner. So groß, dass es eigenes Wetter hat. Ruft Begleiter, wenn es wütend wird.',
+  'narrator.enemy.mutterschiff': 'Das Mutterschiff stürzt. Sehr langsam. Sehr laut. Sehr endgültig.',
+  'narrator.finaleStart':
+    'Auf zum Mutterschiff! Alle Mann an die Mauer. Und an die Hülle. Und an die Fenster.',
+  'narrator.bossArrives': 'Da ist es. Das Mutterschiff. Es ist … größer als auf den Skizzen.',
+  'narrator.bossPhase1': 'Das Mutterschiff blinkt rot. Begleiter strömen heraus!',
+  'narrator.bossPhase2': 'Letzte Reserven! Das Mutterschiff wirft alles, was es hat.',
+  'narrator.finaleWon': 'Das Mutterschiff ist besiegt! Die Krone der Zeit gehört uns.',
+  'reason.lastEpoch': 'Es gibt keine spätere Epoche. Das Mutterschiff wartet.',
+  'event.meteorShower.title': 'Meteorschauer',
+  'event.meteorShower.log': 'Ein Meteorschauer prasselt auf die Hülle zu. Schilde hoch oder Netze raus?',
+  'eventopt.meteorShower.shields': 'Schilde hoch (10 % des Golds)',
+  'eventopt.meteorShower.harvest': 'Einsammeln (halbes Sternenstaub-Lager, aber ein Modul verliert 1 Level)',
+  'event.meteorShower.shields': 'Schilde halten. Die Meteore prallen ab, das Gold auch.',
+  'event.meteorShower.harvest': 'Volle Netze! Und eine Delle. Irgendwo. Irgendwer schaut nach.',
+  'ship.adrift':
+    'Treibt im All! Nicht mit der Brücke verbunden – produziert nichts. Bebaue die Lücke, z. B. mit einem Hüllensegment.',
+  'ship.connected': 'Mit der Brücke verbunden.',
+  'ship.connectedLit': 'Mit der Brücke verbunden · Rosettenlicht +{pct} %',
+  'ship.rosetteEffect': 'Leuchtet durch Zeile und Spalte: +{pct} % für jedes verbundene Modul dort.',
+  'ship.tip':
+    'Raumschiff-Raster: Jedes Modul braucht eine lückenlose Kette bebauter Felder bis zur Brücke. Jede Neon-Rosette in derselben Zeile oder Spalte gibt +{pct} % je Level.',
+  'finale.ready': 'Die Zeitmaschine steht. Aber es gibt kein Später mehr – nur noch das Mutterschiff.',
+  'finale.won': 'Das Mutterschiff ist besiegt. Du kannst es jederzeit erneut herausfordern.',
+  'finale.tip':
+    'Finalschlacht auf Belagerungsstufe {siege}: 8 Wellen, am Ende das Mutterschiff. Es ruft zweimal Begleiter.',
+  'finale.button': 'Zum Mutterschiff!',
+  'finale.again': 'Mutterschiff erneut angreifen',
+  'finale.credits': 'Abspann ansehen',
+  'tl.finale': 'Mutterschiff besiegt (Schleife {loop})',
+  'completion.title': 'Komplettierung',
+  'completion.intro':
+    'Wie vollständig sind alle Sammlungen zusammen? {pct} % – das gibt +{bonus} % Produktion und Schaden (höchstens +{max} %).',
+  'completion.inactive': 'Wirkt ab Epoche 5.',
+  'completion.part.achievements': 'Erfolge',
+  'completion.part.bestiary': 'Bestiarium',
+  'completion.part.companions': 'Begleiter',
+  'completion.part.cards': 'Karten',
+  'completion.part.relics': 'Relikte',
+  'completion.part.chronicle': 'Chronik-Knoten',
+  'completion.row': '{name}: {have}/{total}',
+  'credits.title': 'Chronokrone',
+  'credits.story1':
+    'Das Mutterschiff fällt. In seinem Wrack findet ihr ein Logbuch – in eurer eigenen Handschrift.',
+  'credits.story2':
+    'Die Aliens waren nie Eroberer. Sie waren Zeitreisende, ein paar Epochen voraus, und sie wollten nur eines: die Krone der Zeit, bevor jemand anderes sie findet.',
+  'credits.story3':
+    'Jetzt gehört sie euch. Und mit ihr die Frage, ob ihr es noch einmal schafft – schneller, klüger, verfluchter.',
+  'credits.stats': 'Gesamtzeit {time} · {kills} Aliens besiegt · {clicks} Klicks · {jumps} Zeitsprünge',
+  'credits.epoch': 'Epoche {n}: {time}',
+  'credits.roles':
+    'Idee, Spieltest und Krone: Alex · Code, Texte und Pixel: Claude · Musik und Klänge: im Code erzeugt',
+  'credits.thanks': 'Danke fürs Spielen!',
+  'credits.close': 'Weiterspielen',
 } as const;
 
 export type MessageKey = keyof typeof de;

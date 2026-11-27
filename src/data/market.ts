@@ -25,6 +25,8 @@ export const BASE_PRICES: Partial<Record<ResourceId, number>> = {
   wire: 20,
   uranium: 10,
   fuelRods: 40,
+  stardust: 25,
+  starglass: 100,
 };
 
 export const MARKET = {

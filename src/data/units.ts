@@ -31,7 +31,9 @@ export type ClassId =
   | 'lineman'
   | 'teslaLancer'
   | 'prospector'
-  | 'rayPaladin';
+  | 'rayPaladin'
+  | 'starPilgrim'
+  | 'voidTemplar';
 export type AttributeId = 'str' | 'dex' | 'mag' | 'end';
 export type Attributes = Record<AttributeId, number>;
 
@@ -281,10 +283,44 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     splash: 24,
     color: '#c8f060',
   },
+  // --- Epoche 5: Sternenorden ---
+  starPilgrim: {
+    id: 'starPilgrim',
+    role: 'gatherer',
+    requires: 'stardustScoop',
+    baseCost: { gold: 80000, stardust: 40 },
+    costGrowth: 1.35,
+    baseAttributes: { str: 3, dex: 5, mag: 6, end: 5 },
+    attrPerLevel: { str: 0.4, dex: 0.8, mag: 1.2, end: 0.8 },
+    // Sternenstaub sammelt, wer an ihn glaubt.
+    mainAttr: 'mag',
+    baseDamage: 6,
+    attackInterval: 1.2,
+    range: MELEE,
+    splash: 0,
+    color: '#c09aff',
+  },
+  voidTemplar: {
+    id: 'voidTemplar',
+    role: 'troop',
+    requires: 'hangar',
+    baseCost: { gold: 600000, starglass: 20, steel: 300 },
+    costGrowth: 1.4,
+    baseAttributes: { str: 8, dex: 6, mag: 10, end: 8 },
+    attrPerLevel: { str: 1.2, dex: 0.8, mag: 1.8, end: 1.2 },
+    mainAttr: 'mag',
+    baseDamage: 280,
+    attackInterval: 1.5,
+    // Neonlanze: große Reichweite, das Licht fächert sich auf.
+    range: 90,
+    splash: 30,
+    color: '#ff6ad5',
+  },
 };
 
 /** Reihenfolge in Listen und Panels. */
 export const CLASS_ORDER: ClassId[] = [
+  'voidTemplar',
   'rayPaladin',
   'teslaLancer',
   'steamKnight',
@@ -299,6 +335,7 @@ export const CLASS_ORDER: ClassId[] = [
   'stoker',
   'lineman',
   'prospector',
+  'starPilgrim',
 ];
 
 /** Gebäude, deren Level Truppenplätze und Truppenschaden geben. */
@@ -309,6 +346,7 @@ export const TROOP_BUILDINGS: BuildingId[] = [
   'steamFoundry',
   'teslaTower',
   'bunker',
+  'hangar',
 ];
 
 export const UNIT_FORMULAS = {

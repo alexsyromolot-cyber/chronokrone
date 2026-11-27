@@ -24,7 +24,7 @@ describe('Skilltrees', () => {
     // Epoche-1-Klassen haben volle Bäume mit Spezialisierung; spätere Klassen starten kleiner.
     const classes = new Set(
       SKILLS.map((s) => s.classId).filter(
-        (c) => !['stoker', 'steamKnight', 'lineman', 'teslaLancer'].includes(c),
+        (c) => !['stoker', 'steamKnight', 'lineman', 'teslaLancer', 'prospector', 'rayPaladin'].includes(c),
       ),
     );
     for (const c of classes) {

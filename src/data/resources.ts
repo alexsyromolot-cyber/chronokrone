@@ -29,6 +29,9 @@ export const RESOURCE_IDS = [
   // Epoche 3: Elektro-Lehnswesen
   'copper',
   'wire',
+  // Epoche 4: Atomare Kreuzzüge
+  'uranium',
+  'fuelRods',
 ] as const;
 export type ResourceId = (typeof RESOURCE_IDS)[number];
 
@@ -60,6 +63,8 @@ export const RESOURCES: Record<ResourceId, ResourceDef> = {
   gears: { baseCap: 40, capGrowth: 1.8, color: '#d9a15a' },
   copper: { baseCap: 400, capGrowth: 1.8, color: '#d9774a' },
   wire: { baseCap: 80, capGrowth: 1.8, color: '#e8c070' },
+  uranium: { baseCap: 400, capGrowth: 1.8, color: '#9be04a' },
+  fuelRods: { baseCap: 60, capGrowth: 1.8, color: '#c8f060' },
 };
 
 /** Kosten-/Ertragsangabe: welche Ressource wie viel. */

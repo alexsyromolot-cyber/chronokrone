@@ -7,6 +7,7 @@ import { CARD_RULES, CARDS, type CardEffect } from '../data/cards';
 import { POWER } from '../data/power';
 import type { MessageKey } from '../i18n/de';
 import { milestoneMultiplier, neighbors } from './castle';
+import { pityLimit } from './relics';
 import { addLog, type GameState, type Tile } from './state';
 
 // ---------- Stromnetz ----------
@@ -127,7 +128,7 @@ export function rollCard(state: GameState): void {
   const missing = CARDS.filter((c) => !state.cards[c.id]);
   if (missing.length === 0) return;
   state.cardPity++;
-  if (!chance(state.rng, CARD_RULES.findChance) && state.cardPity < CARD_RULES.pity) return;
+  if (!chance(state.rng, CARD_RULES.findChance) && state.cardPity < pityLimit(state, CARD_RULES.pity)) return;
   state.cardPity = 0;
   const found = missing[randomInt(state.rng, 0, missing.length - 1)]!;
   state.cards[found.id] = true;

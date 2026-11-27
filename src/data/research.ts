@@ -36,7 +36,13 @@ export type ResearchId =
   | 'electricity'
   | 'copperCraft'
   | 'wiring'
-  | 'teslaCoil';
+  | 'teslaCoil'
+  // Epoche 4
+  | 'prospecting'
+  | 'fuelRods'
+  | 'fission'
+  | 'cooling'
+  | 'atomicFaith';
 
 export interface ResearchDef {
   id: ResearchId;
@@ -102,6 +108,19 @@ export const RESEARCH: ResearchDef[] = [
     pos: [1, 8],
     epoch: 3,
   },
+  // --- Epoche 4: Atomare Kreuzzüge ---
+  { id: 'prospecting', cost: 8000, requires: [], buildings: ['uraniumMine'], pos: [0, 9], epoch: 4 },
+  {
+    id: 'fuelRods',
+    cost: 12000,
+    requires: ['prospecting'],
+    buildings: ['rodFactory'],
+    pos: [1, 9],
+    epoch: 4,
+  },
+  { id: 'fission', cost: 16000, requires: ['fuelRods'], buildings: ['reactor'], pos: [0, 10], epoch: 4 },
+  { id: 'cooling', cost: 16000, requires: ['fission'], buildings: ['coolingTower'], pos: [1, 10], epoch: 4 },
+  { id: 'atomicFaith', cost: 25000, requires: ['fission'], buildings: ['bunker'], pos: [0, 11], epoch: 4 },
 ];
 
 export const RESEARCH_BY_ID = Object.fromEntries(RESEARCH.map((r) => [r.id, r])) as Record<

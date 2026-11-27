@@ -20,6 +20,8 @@ import { globalBonus, skillBonus } from './skills';
 import { addTimeline } from './achievements';
 import { rollCompanion } from './trade';
 import { cardBonus, rollCard } from './power';
+import { hasRelic, rollRelic } from './relics';
+import { RELIC_NUMBERS } from '../data/reactor';
 import { addLog, type BattleState, type Enemy, type GameState } from './state';
 import { addXp, attackInterval, attributesOf, critChance, troops, unitDamage } from './units';
 
@@ -218,7 +220,12 @@ export function clickEnemy(state: GameState, enemyId: number): boolean {
   if (!enemy) return false;
   state.stats.clicks++;
   state.battle!.clicks++;
+  // Zwillingsschlag: der Klick springt auf den nächsten Gegner über.
+  const twin = hasRelic(state, 'twinStrike')
+    ? state.battle!.enemies.find((e) => e.id !== enemyId && e.hp > 0)
+    : undefined;
   damageEnemy(state, enemy, clickDamage(state), true);
+  if (twin) damageEnemy(state, twin, clickDamage(state) * RELIC_NUMBERS.twinStrikeShare, true);
   return true;
 }
 
@@ -245,6 +252,7 @@ export function endBattle(state: GameState, result: 'won' | 'lost'): void {
     if (state.stats.wins === 1) addTimeline(state, 'firstWin');
     rollCompanion(state);
     rollCard(state);
+    rollRelic(state);
     if (b.siege === state.siegeLevel) {
       state.siegeLevel++;
       addLog(state, 'narrator.siegeUp', { siege: state.siegeLevel + 1 });
@@ -297,7 +305,12 @@ export function tickBattle(state: GameState, dt: number): void {
 
   // Bewegung. Lautes Fluchen der Bauern verlangsamt die Aliens.
   const slow = 1 / (1 + globalBonus(state, 'enemySlow'));
-  const enrage = enrageFactor(b.elapsed);
+  // Gesprungene Sanduhr: die Wut kommt später.
+  const enrage = enrageFactor(
+    b.elapsed - (hasRelic(state, 'crackedHourglass') ? RELIC_NUMBERS.hourglassDelay : 0),
+  );
+  const mirror = hasRelic(state, 'mirrorShield');
+  const reflected: [Enemy, number][] = [];
   for (const e of b.enemies) {
     e.prevX = e.x;
     if (e.x > B.wallX) {
@@ -306,8 +319,11 @@ export function tickBattle(state: GameState, dt: number): void {
       const dmg = ENEMIES[e.type].wallDps * enrage * dt;
       b.wallHp -= dmg;
       b.wallDamageAcc += dmg;
+      if (mirror) reflected.push([e, e.maxHp * RELIC_NUMBERS.mirrorShare * dt]);
     }
   }
+  // Spiegelschild erst nach der Schleife anwenden: besiegte Gegner verlassen die Liste.
+  for (const [e, dmg] of reflected) damageEnemy(state, e, dmg, false);
   // Heilerinnen & Co.: die Mauer regeneriert einen Anteil ihrer LP pro Sekunde.
   b.wallHp = Math.min(b.wallMaxHp, b.wallHp + b.wallMaxHp * globalBonus(state, 'wallRegen') * dt);
   if (b.wallDamageAcc >= 2) {

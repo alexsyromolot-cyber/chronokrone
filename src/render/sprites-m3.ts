@@ -188,6 +188,48 @@ export const M3_UNIT_SPRITES: Partial<Record<ClassId, PixelSprite>> = {
       l: '#c0c0d0',
     },
   },
+  prospector: {
+    rows: [
+      '...gggg.....',
+      '..gggggg....',
+      '...ssss.....',
+      '...yyyy..p..',
+      '...ssss..p..',
+      '..aaaaaa.p..',
+      '.saaaaaasp..',
+      '..aaddaa....',
+      '..aaaaaa....',
+      '...aaaa.....',
+      '...a..a.....',
+      '..kk..kk....',
+    ],
+    palette: { g: '#c8b040', s: SKIN, y: '#9be04a', a: '#c8b040', d: '#3a3a30', p: '#8a8a8a', k: '#2a2a30' },
+  },
+  rayPaladin: {
+    rows: [
+      '.........z..',
+      '...hhhh..z..',
+      '..hhhhhh.z..',
+      '..hyyyyh.z..',
+      '..hhhhhh.z..',
+      '.waaaaaaw...',
+      '.waaxaaaw...',
+      '..axxxaa....',
+      '..aaxaaa....',
+      '..aa..aa....',
+      '..aa..aa....',
+      '.kkk..kkk...',
+    ],
+    palette: {
+      z: '#c8f060',
+      h: '#b8bccb',
+      y: '#c8f060',
+      a: '#e0e0d0',
+      w: '#9a9a88',
+      x: '#c03a2a',
+      k: '#2a2a30',
+    },
+  },
   monk: {
     rows: [
       '...bbbb.....',
@@ -209,7 +251,7 @@ export const M3_UNIT_SPRITES: Partial<Record<ClassId, PixelSprite>> = {
 
 /** 5×5-Symbole für die Gebäudevorlage ('E' = Symbolfarbe, '.' = Wand). */
 const GLYPHS: Record<string, string[]> = {
-  cross: ['..E..', 'EEEEE', '..E..', '..E..', '..E..'],
+  cross: ['..E..', 'EEEEE', '..E..', '.EEE.', '..E..'],
   pick: ['EEEEE', '..E..', '..E..', '..E..', '..E..'],
   leaf: ['..E..', '.EEE.', 'EEEEE', '.EEE.', '..E..'],
   crate: ['EEEEE', 'E.E.E', 'EEEEE', 'E.E.E', 'EEEEE'],
@@ -227,6 +269,10 @@ const GLYPHS: Record<string, string[]> = {
   bolt: ['..EE.', '.EE..', 'EEEEE', '..EE.', '.EE..'],
   coil: ['EEEEE', '....E', 'EEEEE', 'E....', 'EEEEE'],
   pylon: ['E...E', '.E.E.', '..E..', '.E.E.', 'E...E'],
+  atom: ['E...E', '.EEE.', 'EE.EE', '.EEE.', 'E...E'],
+  rod: ['.E.E.', '.E.E.', '.E.E.', '.E.E.', 'EEEEE'],
+  drop: ['..E..', '.EEE.', 'EEEEE', 'EEEEE', '.EEE.'],
+  shield: ['EEEEE', 'E.E.E', 'EEEEE', '.EEE.', '..E..'],
 };
 
 function building(roof: string, wall: string, emblem: string, glyph: keyof typeof GLYPHS): PixelSprite {
@@ -273,6 +319,11 @@ export const M3_BUILDING_SPRITES: Partial<Record<BuildingId, PixelSprite>> = {
   powerPlant: building('#3a3a48', '#7a7a88', '#ffd36a', 'bolt'),
   pylon: building('#4a4a52', '#9a9aa2', '#e8c070', 'pylon'),
   teslaTower: building('#2a2a5a', '#6a6a9a', '#9ad8ff', 'bolt'),
+  uraniumMine: building('#4a5a2a', '#8a8a6a', '#9be04a', 'pick'),
+  rodFactory: building('#5a5a4a', '#a0a088', '#c8f060', 'rod'),
+  reactor: building('#3a4a2a', '#8a9a7a', '#d8f070', 'atom'),
+  coolingTower: building('#6a7a8a', '#b0b8c0', '#9ad8ff', 'drop'),
+  bunker: building('#4a4a3a', '#7a7a66', '#c8f060', 'shield'),
 };
 
 /** Gleiche Form, andere Farben – so entstehen die Elitegegner aus ihren normalen Verwandten. */

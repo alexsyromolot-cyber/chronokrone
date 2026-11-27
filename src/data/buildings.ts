@@ -44,7 +44,13 @@ export type BuildingId =
   | 'wireWorks'
   | 'powerPlant'
   | 'pylon'
-  | 'teslaTower';
+  | 'teslaTower'
+  // Epoche 4
+  | 'uraniumMine'
+  | 'rodFactory'
+  | 'reactor'
+  | 'coolingTower'
+  | 'bunker';
 
 export interface Recipe {
   inputs: ResourceAmounts;
@@ -340,6 +346,56 @@ export const BUILDINGS: Record<BuildingId, BuildingDef> = {
     maxCount: 1,
     baseCost: { gold: 12000, wire: 80, gears: 60 },
     upgradeCost: { gold: 3000, wire: 20 },
+    costGrowth: 1.4,
+  },
+  // --- Epoche 4: Atomare Kreuzzüge ---
+  uraniumMine: {
+    id: 'uraniumMine',
+    buildable: true,
+    research: 'prospecting',
+    baseCost: { gold: 15000, stone: 5000, wire: 20 },
+    upgradeCost: { gold: 4000, wire: 5 },
+    costGrowth: 1.2,
+    produces: { resource: 'uranium', perLevel: 0.6 },
+    terrainBonus: { rock: 1.5 },
+    workerSlots: 2,
+  },
+  rodFactory: {
+    id: 'rodFactory',
+    buildable: true,
+    research: 'fuelRods',
+    baseCost: { gold: 25000, steel: 500, uranium: 200 },
+    upgradeCost: { gold: 6000, uranium: 60 },
+    costGrowth: 1.25,
+    // Brennstäbe pressen: 2 Uran werden zu 1 Brennstab.
+    recipe: { inputs: { uranium: 2 }, outputs: { fuelRods: 1 }, cyclesPerLevel: 0.12 },
+    neighborBonus: { building: 'uraniumMine', bonus: 0.2 },
+  },
+  reactor: {
+    id: 'reactor',
+    buildable: true,
+    research: 'fission',
+    // Einer reicht für alle – und einer ist schon gefährlich genug.
+    maxCount: 1,
+    baseCost: { gold: 40000, steel: 800, fuelRods: 20 },
+    upgradeCost: { gold: 10000, fuelRods: 10, wire: 20 },
+    costGrowth: 1.3,
+  },
+  coolingTower: {
+    id: 'coolingTower',
+    buildable: true,
+    research: 'cooling',
+    baseCost: { gold: 12000, stone: 4000, wire: 10 },
+    upgradeCost: { gold: 3000, stone: 1000 },
+    costGrowth: 1.2,
+  },
+  bunker: {
+    id: 'bunker',
+    buildable: true,
+    research: 'atomicFaith',
+    maxCount: 1,
+    baseCost: { gold: 60000, steel: 1000, fuelRods: 40 },
+    upgradeCost: { gold: 15000, fuelRods: 10 },
     costGrowth: 1.4,
   },
 };

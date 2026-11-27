@@ -20,6 +20,8 @@ import { achievementMultiplier } from './achievements';
 import { chronicleBonus } from './chronicle';
 import { companionBonus, companionSetMultiplier } from './trade';
 import { powerBonus } from './power';
+import { reactorBonus } from './reactor';
+import { relicSetBonus } from './relics';
 import { productionModifier } from './events';
 import { weaponMultiplier } from './gear';
 import { globalBonus, skillBonus } from './skills';
@@ -106,6 +108,8 @@ export interface ProductionBreakdown {
   season: number;
   /** Stromnetz: 1 + Bonus, wenn das Gebäude am Netz hängt (Epoche 3). */
   power: number;
+  /** Reaktor (alle Gebäude) und vollständige Relikt-Sammlung (Epoche 4). */
+  reactor: number;
   /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern) × gear × chronicle */
   total: number;
 }
@@ -137,7 +141,9 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     (def.produces.resource === 'knowledge' ? 1 + chronicleBonus(state, 'knowledge') : 1);
   const season = productionModifier(state, def.produces.resource);
   const power = 1 + powerBonus(state, tile);
+  const reactor = (1 + reactorBonus(state)) * (1 + relicSetBonus(state));
   const total =
+    reactor *
     power *
     season *
     def.produces.perLevel *
@@ -161,6 +167,7 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     chronicle,
     season,
     power,
+    reactor,
     total,
   };
 }
@@ -176,7 +183,9 @@ export function recipeRate(state: GameState, tile: Tile): number {
     milestoneMultiplier(tile.level) *
     (1 + neighborBonus(state, tile) + globalBonus(state, 'recipeMult', tile.building!)) *
     (1 + chronicleBonus(state, 'production')) *
-    (1 + powerBonus(state, tile))
+    (1 + powerBonus(state, tile)) *
+    (1 + reactorBonus(state)) *
+    (1 + relicSetBonus(state))
   );
 }
 

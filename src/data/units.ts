@@ -29,7 +29,9 @@ export type ClassId =
   | 'stoker'
   | 'steamKnight'
   | 'lineman'
-  | 'teslaLancer';
+  | 'teslaLancer'
+  | 'prospector'
+  | 'rayPaladin';
 export type AttributeId = 'str' | 'dex' | 'mag' | 'end';
 export type Attributes = Record<AttributeId, number>;
 
@@ -246,10 +248,44 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     splash: 30,
     color: '#ffe66d',
   },
+  // --- Epoche 4: Atomare Kreuzzüge ---
+  prospector: {
+    id: 'prospector',
+    role: 'gatherer',
+    requires: 'uraniumMine',
+    baseCost: { gold: 10000, uranium: 40 },
+    costGrowth: 1.35,
+    baseAttributes: { str: 4, dex: 3, mag: 1, end: 7 },
+    attrPerLevel: { str: 0.6, dex: 0.4, mag: 0.2, end: 1.3 },
+    // Wer im Uranstaub gräbt, braucht vor allem Ausdauer.
+    mainAttr: 'end',
+    baseDamage: 4,
+    attackInterval: 1.2,
+    range: MELEE,
+    splash: 0,
+    color: '#9be04a',
+  },
+  rayPaladin: {
+    id: 'rayPaladin',
+    role: 'troop',
+    requires: 'bunker',
+    baseCost: { gold: 80000, fuelRods: 20, steel: 200 },
+    costGrowth: 1.4,
+    baseAttributes: { str: 10, dex: 3, mag: 5, end: 8 },
+    attrPerLevel: { str: 1.8, dex: 0.4, mag: 0.8, end: 1.2 },
+    mainAttr: 'str',
+    baseDamage: 90,
+    attackInterval: 1.4,
+    // Strahlenschwert: mittlere Reichweite, leuchtender Bogen trifft mehrere.
+    range: 70,
+    splash: 24,
+    color: '#c8f060',
+  },
 };
 
 /** Reihenfolge in Listen und Panels. */
 export const CLASS_ORDER: ClassId[] = [
+  'rayPaladin',
   'teslaLancer',
   'steamKnight',
   'peasant',
@@ -262,6 +298,7 @@ export const CLASS_ORDER: ClassId[] = [
   'monk',
   'stoker',
   'lineman',
+  'prospector',
 ];
 
 /** Gebäude, deren Level Truppenplätze und Truppenschaden geben. */
@@ -271,6 +308,7 @@ export const TROOP_BUILDINGS: BuildingId[] = [
   'mageTower',
   'steamFoundry',
   'teslaTower',
+  'bunker',
 ];
 
 export const UNIT_FORMULAS = {

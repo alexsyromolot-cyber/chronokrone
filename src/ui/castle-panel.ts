@@ -41,6 +41,7 @@ import { costHtml, esc, num, pct, reasonText, tip } from './dom';
 import { diceHtml } from './events-panel';
 import { marketHtml } from './market-panel';
 import { gridHtml } from './cards-panel';
+import { reactorHtml } from './reactor-panel';
 import { powerBonus } from '../systems/power';
 import { action } from './panels-top';
 
@@ -95,6 +96,7 @@ function productionHtml(state: GameState, tile: Tile): string {
     chronicle: num(p.chronicle, 2),
     season: num(p.season, 2),
     power: num(p.power, 2),
+    reactor: num(p.reactor, 2),
     total: num(p.total, 2),
   });
   return `<p class="prod" ${tip(formula)}>${esc(t('castle.produces', { value: num(p.total, 2), res: t(`res.${p.resource}`) }))} ⓘ</p>`;
@@ -145,6 +147,7 @@ function effectHtml(state: GameState, tile: Tile): string {
     return `<p>${esc(t('castle.tavernEffect', { pct: pct(TAVERN_BONUS_PER_LEVEL * tile.level) }))}</p>${diceHtml(state)}`;
   if (id === 'market') return marketHtml(state);
   if (id === 'powerPlant' || id === 'pylon') return gridHtml(state);
+  if (id === 'reactor' || id === 'coolingTower') return reactorHtml(state);
   return '';
 }
 

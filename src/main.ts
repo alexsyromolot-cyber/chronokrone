@@ -35,6 +35,7 @@ import { welcomeBack } from './systems/recap';
 import { chronicleHtml } from './ui/chronicle-panel';
 import { companionsHtml } from './ui/market-panel';
 import { cardsHtml } from './ui/cards-panel';
+import { relicsHtml } from './ui/reactor-panel';
 import { eventHtml, seasonHtml } from './ui/events-panel';
 import { achievementsHtml, achievementTitle, statsHtml } from './ui/achievements-panel';
 import { ACHIEVEMENTS } from './data/achievements';
@@ -97,6 +98,7 @@ const panels = {
   achievements: el('#achievements'),
   companions: el('#companions'),
   cards: el('#cards'),
+  relics: el('#relics'),
   stats: el('#stats'),
   bestiary: el('#bestiary'),
 };
@@ -147,6 +149,9 @@ function renderPanels(): void {
   const cardsVisible = state.epoch >= 3 || Object.keys(state.cards).length > 0;
   reveal(panels.cards, cardsVisible);
   if (cardsVisible) setHtml(el('#cards-body'), cardsHtml(state));
+  const relicsVisible = state.epoch >= 4 || Object.keys(state.relics).length > 0;
+  reveal(panels.relics, relicsVisible);
+  if (relicsVisible) setHtml(el('#relics-body'), relicsHtml(state));
   reveal(panels.stats, !!state.unlocked.castle);
   if (state.unlocked.castle) setHtml(el('#stats-body'), statsHtml(state));
   reveal(panels.event, !!state.events.active);

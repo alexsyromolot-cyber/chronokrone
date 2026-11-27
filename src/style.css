@@ -1415,3 +1415,32 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* --- Reaktor (Epoche 4) --- */
+.heat-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin: 0.3em 0;
+}
+.heat-bar span {
+  display: block;
+  height: 100%;
+  background: #9be04a;
+  transition: width 0.3s;
+}
+.heat-bar.warn span {
+  background: #e8c040;
+}
+.heat-bar.bad span {
+  background: #e05a3a;
+}
+.warn {
+  color: #e8c040;
+}
+@media (prefers-reduced-motion: reduce) {
+  .heat-bar span {
+    transition: none;
+  }
+}

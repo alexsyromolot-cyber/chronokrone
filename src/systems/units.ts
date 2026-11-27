@@ -10,6 +10,7 @@ import { achievementMultiplier } from './achievements';
 import { chronicleBonus } from './chronicle';
 import { companionBonus, companionSetMultiplier } from './trade';
 import { cardBonus } from './power';
+import { relicSetBonus } from './relics';
 import { isRested, RECAP } from './recap';
 import { armorEndurance, talismanXp, weaponMultiplier } from './gear';
 import { skillBonus } from './skills';
@@ -56,7 +57,8 @@ export function damageBonus(state: GameState, unit: Unit): number {
     skillBonus(state, unit.classId, 'damageMult') +
     BARRACKS.damageBonusPerLevel * trainingLevel(state, unit.classId) +
     companionBonus(state, unit.classId, 'damage') +
-    cardBonus(state, 'damage')
+    cardBonus(state, 'damage') +
+    relicSetBonus(state)
   );
 }
 

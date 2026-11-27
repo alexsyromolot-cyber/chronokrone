@@ -24,13 +24,24 @@ export const SEASON_EFFECTS: Record<SeasonId, Partial<Record<ResourceId, number>
   winter: { wood: 0.75, herbs: 0.6, knowledge: 1.2 },
 };
 
-export type EventId = 'stableFire' | 'merchant' | 'defector' | 'rain' | 'harvest' | 'bard';
+export type EventId =
+  | 'stableFire'
+  | 'merchant'
+  | 'defector'
+  | 'rain'
+  | 'harvest'
+  | 'bard'
+  // Epoche 4
+  | 'sandstorm'
+  | 'meltdown';
 
 export interface EventDef {
   id: EventId;
   weight: number;
   /** Antwortmöglichkeiten; die erste ist der Standard, wenn das Ereignis verfällt. */
   options: string[];
+  /** Erst ab dieser Epoche im Zufallstopf. */
+  fromEpoch?: number;
 }
 
 export const EVENTS: EventDef[] = [
@@ -40,6 +51,9 @@ export const EVENTS: EventDef[] = [
   { id: 'rain', weight: 2, options: ['ok'] },
   { id: 'harvest', weight: 2, options: ['ok'] },
   { id: 'bard', weight: 2, options: ['chase', 'listen'] },
+  { id: 'sandstorm', weight: 2, options: ['endure', 'shelter'], fromEpoch: 4 },
+  // Kommt nie zufällig (Gewicht 0), sondern nur, wenn der Reaktor überhitzt.
+  { id: 'meltdown', weight: 0, options: ['evacuate', 'contain', 'pray'] },
 ];
 
 export const EVENT_INTERVAL: [number, number] = [240, 360];
@@ -64,6 +78,10 @@ export const EVENT_NUMBERS = {
   /** Barde: XP-Anteil des nächsten Levels für alle Einheiten bzw. Gold für das Verjagen. */
   bardXpShare: 0.5,
   bardGold: 20,
+  /** Sandsturm: Aushalten = Produktion × endureMult für endureSeconds; Schutz kostet Gold. */
+  sandstormMult: 0.7,
+  sandstormSeconds: 90,
+  shelterGoldShare: 0.1,
 } as const;
 
 /** Alien-Drohne: fliegt über das Schlachtfeld, ein Klick holt die Beute. */

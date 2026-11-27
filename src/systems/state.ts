@@ -9,7 +9,9 @@ import Decimal from 'break_eternity.js';
 import type { RngState } from '../core/rng';
 import type { BuildingId } from '../data/buildings';
 import type { EnemyId } from '../data/enemies';
-import { EPOCH1_MAP, TERRAIN_CODES, type TerrainId } from '../data/map';
+import type { ChronicleId } from '../data/chronicle';
+import { epochDef } from '../data/epochs';
+import { TERRAIN_CODES, type MapDef, type TerrainId } from '../data/map';
 import { LOG_LIMIT, type UnlockId } from '../data/progression';
 import type { GearSlot } from '../data/gear';
 import type { ResearchId } from '../data/research';
@@ -102,6 +104,7 @@ export type FxEvent =
   | { kind: 'milestone' }
   | { kind: 'battleEnd'; result: 'won' | 'lost' }
   | { kind: 'spell'; spell: SpellId }
+  | { kind: 'jump'; epoch: number; shards: number; tokens: number }
   | { kind: 'crit'; x: number; lane: number };
 
 export interface Stats {
@@ -124,6 +127,19 @@ export interface Settings {
 export interface GameState {
   /** Spielzeit in Sekunden (nur aktive Zeit, keine Offline-Zeit). */
   time: number;
+  /** Aktuelle Epoche (1 = Finsteres Mittelalter). */
+  epoch: number;
+  /** Spielzeit, zu der die aktuelle Epoche begann. */
+  epochStartedAt: number;
+  /** Zeitsplitter (Prestige-Währung) und insgesamt verdiente. */
+  shards: number;
+  totalShards: number;
+  /** Ränge in der Chronik (dauerhaft). */
+  chronicle: Partial<Record<ChronicleId, number>>;
+  /** Umskill-Tokens: beim Sprung zurückgegebene Skillpunkte, frei einer Klasse zuweisbar. */
+  respecTokens: number;
+  /** Dauer jeder abgeschlossenen Epoche in Sekunden (für Statistik und Run-Karte). */
+  epochTimes: number[];
   rng: RngState;
   resources: Record<ResourceId, Decimal>;
   tiles: Tile[];
@@ -162,8 +178,8 @@ export interface GameState {
   fx: FxEvent[];
 }
 
-export function createInitialState(seed = Date.now()): GameState {
-  const map = EPOCH1_MAP;
+/** Raster aus einer Kartendefinition: Bergfried und Startfelder frei, Rest unerschlossen. */
+export function buildTiles(map: MapDef): Tile[] {
   const tiles: Tile[] = [];
   for (let y = 0; y < map.height; y++) {
     for (let x = 0; x < map.width; x++) {
@@ -180,6 +196,15 @@ export function createInitialState(seed = Date.now()): GameState {
     }
   }
 
+  return tiles;
+}
+
+export function emptyResources(): Record<ResourceId, Decimal> {
+  return Object.fromEntries(RESOURCE_IDS.map((id) => [id, new Decimal(0)])) as Record<ResourceId, Decimal>;
+}
+
+export function createInitialState(seed = Date.now()): GameState {
+  const tiles = buildTiles(epochDef(1).map);
   const resources = Object.fromEntries(RESOURCE_IDS.map((id) => [id, new Decimal(0)])) as Record<
     ResourceId,
     Decimal
@@ -191,6 +216,13 @@ export function createInitialState(seed = Date.now()): GameState {
 
   return {
     time: 0,
+    epoch: 1,
+    epochStartedAt: 0,
+    shards: 0,
+    totalShards: 0,
+    chronicle: {},
+    respecTokens: 0,
+    epochTimes: [],
     rng: { seed: seed | 0 },
     resources,
     tiles,

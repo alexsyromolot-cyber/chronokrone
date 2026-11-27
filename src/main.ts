@@ -6,7 +6,7 @@
 import './style.css';
 import { FixedStepLoop } from './core/loop';
 import { installDebugPanel } from './dev/debug-panel';
-import { getLocale, setLocale, t } from './i18n';
+import { getLocale, setLocale, t, tk } from './i18n';
 import type { MessageKey } from './i18n/de';
 import { BattleScene } from './render/battle-scene';
 import { fromExportString, toExportString } from './save/serialize';
@@ -27,6 +27,10 @@ import { spellLevel } from './systems/spells';
 import { researchHtml } from './ui/research-panel';
 import { timeMachineHtml } from './ui/timemachine-panel';
 import { installTooltips } from './ui/tooltip';
+import { chronicleHtml } from './ui/chronicle-panel';
+import { showModal } from './ui/modal';
+import { EPOCHS, epochDef } from './data/epochs';
+import { shardsForJump, tokensForJump } from './systems/prestige';
 
 const saves = new SaveManager(new LocalStorageBackend());
 
@@ -68,6 +72,7 @@ const panels = {
   research: el('#research'),
   spells: el('#spells'),
   timemachine: el('#timemachine'),
+  chronicle: el('#chronicle'),
   bestiary: el('#bestiary'),
 };
 
@@ -99,6 +104,10 @@ function renderPanels(): void {
   reveal(panels.skills, !!state.unlocked.skills);
   reveal(panels.research, !!state.unlocked.research);
   reveal(panels.timemachine, !!state.unlocked.timeMachine);
+  const chronicleVisible = state.totalShards > 0;
+  reveal(panels.chronicle, chronicleVisible);
+  if (chronicleVisible) setHtml(el('#chronicle-body'), chronicleHtml(state));
+  applyEpoch();
   if (state.unlocked.timeMachine) setHtml(el('#timemachine-body'), timeMachineHtml(state));
   const anySpell = SPELL_IDS.some((id) => spellLevel(state, id) > 0);
   reveal(panels.spells, anySpell);
@@ -111,6 +120,65 @@ function renderPanels(): void {
   if (state.unlocked.bestiary) setHtml(el('#bestiary-body'), bestiaryHtml(state));
 }
 
+/**
+ * Epochen-Look: Die Palette der Epoche ersetzt die Farb-Tokens der Oberfläche.
+ * Läuft bei jedem Panel-Update, tut aber nur beim Wechsel etwas.
+ */
+let shownEpoch = 0;
+function applyEpoch(): void {
+  if (shownEpoch === state.epoch) return;
+  const firstShow = shownEpoch === 0;
+  shownEpoch = state.epoch;
+  const p = epochDef(state.epoch).palette;
+  const root = document.documentElement.style;
+  root.setProperty('--torch', p.accent);
+  root.setProperty('--panel', p.panel);
+  root.setProperty('--bg', p.background);
+  document.body.dataset.epoch = String(state.epoch);
+  el('#epoch-label').textContent = t('epoch.title', {
+    n: state.epoch,
+    name: tk(`epoch.${epochDef(state.epoch).id}`),
+  });
+  if (!firstShow) celebrateJump();
+}
+
+/** Die Feier nach dem Sprung: „Prestige ist ein Fest, kein Verlust.“ */
+let lastJump: { shards: number; tokens: number } = { shards: 0, tokens: 0 };
+function celebrateJump(): void {
+  const name = tk(`epoch.${epochDef(state.epoch).id}`);
+  const lines = [t('jump.celebrateSub', lastJump), t('jump.celebrateHint')];
+  if (state.epoch > EPOCHS.length) lines.push(t('jump.lastEpoch', { epoch: name }));
+  showModal({
+    title: t('jump.celebrate', { epoch: name }),
+    lines,
+    variant: `celebrate ${reducedMotion() ? '' : 'animated'}`,
+    buttons: [{ label: t('jump.continue'), primary: true }],
+  });
+}
+
+/** Vor dem Sprung genau sagen, was bleibt und was neu beginnt. */
+function confirmJump(): void {
+  const next = tk(`epoch.${epochDef(state.epoch + 1).id}`);
+  const shards = shardsForJump(state);
+  const tokens = tokensForJump(state);
+  showModal({
+    title: t('jump.confirmTitle', { epoch: next }),
+    lines: [t('jump.gain', { shards, tokens }), t('jump.keeps'), t('jump.resets')],
+    buttons: [
+      { label: t('jump.cancel') },
+      {
+        label: t('jump.go'),
+        primary: true,
+        onClick: () => {
+          lastJump = { shards, tokens };
+          run({ type: 'jump' });
+          save();
+        },
+      },
+    ],
+  });
+}
+
 function applyStaticTexts(): void {
   document.documentElement.lang = getLocale();
   document.title = t('app.title');
@@ -118,6 +186,10 @@ function applyStaticTexts(): void {
     node.textContent = t(node.dataset.i18n as MessageKey);
   }
   el('#autosave-label').textContent = t('save.autosave', { s: state.settings.autosaveSeconds });
+  el('#epoch-label').textContent = t('epoch.title', {
+    n: state.epoch,
+    name: tk(`epoch.${epochDef(state.epoch).id}`),
+  });
   el<HTMLSelectElement>('#autosave').value = String(state.settings.autosaveSeconds);
 }
 
@@ -163,6 +235,10 @@ function installInput(debug: { toggle(): void }): void {
     const actionEl = target.closest<HTMLElement>('[data-action]');
     if (actionEl && !(actionEl as HTMLButtonElement).disabled) {
       run(JSON.parse(actionEl.dataset.action ?? '{}') as Action);
+      return;
+    }
+    if (target.closest('[data-jump]')) {
+      confirmJump();
       return;
     }
     const tileEl = target.closest<HTMLElement>('[data-select]');

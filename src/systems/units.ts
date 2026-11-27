@@ -6,6 +6,7 @@ import { BARRACKS, BUILDINGS, type BuildingId } from '../data/buildings';
 import { CLASSES, TROOP_BUILDINGS, UNIT_FORMULAS as F, type Attributes, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
+import { chronicleBonus } from './chronicle';
 import { armorEndurance, talismanXp, weaponBonus } from './gear';
 import { skillBonus } from './skills';
 import { addLog, type GameState, type Unit } from './state';
@@ -63,7 +64,12 @@ export function critChance(state: GameState, unit: Unit): number {
 export function unitDamage(state: GameState, unit: Unit): number {
   const def = CLASSES[unit.classId];
   const main = attributesOf(unit)[def.mainAttr];
-  return def.baseDamage * (1 + F.damagePerAttr * main) * (1 + damageBonus(state, unit));
+  return (
+    def.baseDamage *
+    (1 + F.damagePerAttr * main) *
+    (1 + damageBonus(state, unit)) *
+    (1 + chronicleBonus(state, 'damage'))
+  );
 }
 
 /** Sekunden zwischen zwei Schlägen = attackInterval / (1 + 0,03 × Geschick) / (1 + Tempo-Skills) */
@@ -78,7 +84,12 @@ export function attackInterval(state: GameState, unit: Unit): number {
 
 /** XP-Multiplikator = 1 + Skills + Talisman */
 export function xpMultiplier(state: GameState, unit: Unit): number {
-  return 1 + skillBonus(state, unit.classId, 'xpMult') + talismanXp(state, unit.classId);
+  return (
+    1 +
+    skillBonus(state, unit.classId, 'xpMult') +
+    talismanXp(state, unit.classId) +
+    chronicleBonus(state, 'xp')
+  );
 }
 
 /** Sammler-Arbeitsbonus = 0,5 + 0,05 × Hauptattribut der Klasse */

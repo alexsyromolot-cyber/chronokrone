@@ -6,6 +6,7 @@
  */
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import { BATTLE, ENEMIES } from '../data/enemies';
+import { epochDef, type EpochPalette } from '../data/epochs';
 import type { GameState } from '../systems/state';
 import { attackInterval, troops } from '../systems/units';
 import { Effects } from './effects';
@@ -38,6 +39,11 @@ export class BattleScene {
   private shake = 0;
   /** Das umgebende Element bestimmt die verfügbare Breite (host selbst schrumpft aufs Canvas). */
   private readonly sizer: HTMLElement;
+  /** Hintergrund und Mauer hängen von der Epochen-Palette ab und werden beim Sprung neu gezeichnet. */
+  private background = new Container();
+  private wall = new Container();
+  private palette: EpochPalette = epochDef(1).palette;
+  private paletteEpoch = 1;
 
   private constructor(
     private readonly app: Application,
@@ -47,13 +53,9 @@ export class BattleScene {
   ) {
     this.sizer = host.parentElement ?? host;
     const particleLayer = new Container();
-    app.stage.addChild(
-      this.drawBackground(),
-      this.enemyLayer,
-      this.drawWall(),
-      this.defenderLayer,
-      particleLayer,
-    );
+    this.background = this.drawBackground();
+    this.wall = this.drawWall();
+    app.stage.addChild(this.background, this.enemyLayer, this.wall, this.defenderLayer, particleLayer);
     this.effects = new Effects(particleLayer, fxLayer);
     app.canvas.addEventListener('pointerdown', (e) => this.handlePointer(e));
     new ResizeObserver(() => this.resize()).observe(this.sizer);
@@ -92,10 +94,11 @@ export class BattleScene {
     const bg = new Container();
     const sky = new Graphics();
     // Nachthimmel in Bändern statt Verlauf – passt zur Pixelart.
-    const bands = ['#0b0f1a', '#10162a', '#151d36', '#1b2542', '#212d4d'];
+    const p = this.palette;
+    const bands = p.sky;
     bands.forEach((c, i) => sky.rect(0, i * 22, VIEW_W, 22).fill(c));
     for (let i = 0; i < 50; i++)
-      sky.rect((i * 89) % VIEW_W, (i * 47) % 100, 1, 1).fill(i % 6 ? '#5d6b94' : '#f3ead7');
+      sky.rect((i * 89) % VIEW_W, (i * 47) % 100, 1, 1).fill(i % 6 ? p.stars : '#f3ead7');
     sky
       .rect(270, 18, 10, 10)
       .fill('#e8e2c8')
@@ -105,14 +108,14 @@ export class BattleScene {
       .fill('#c9c2a3');
     // Waldrand am Horizont mit Meteor-Glut dahinter.
     sky.rect(200, 108, 60, 14).fill('#3a2230');
-    sky.rect(216, 104, 28, 6).fill('#5a2a2a');
+    sky.rect(216, 104, 28, 6).fill(p.glow);
     for (let x = 0; x < VIEW_W; x += 6) {
       const h = 10 + ((x * 7) % 9);
-      sky.rect(x, 122 - h, 6, h).fill('#14261d');
-      sky.rect(x + 2, 122 - h - 3, 2, 3).fill('#14261d');
+      sky.rect(x, 122 - h, 6, h).fill(p.treeline);
+      sky.rect(x + 2, 122 - h - 3, 2, 3).fill(p.treeline);
     }
-    const ground = new Graphics().rect(0, 122, VIEW_W, VIEW_H - 122).fill('#1c2a1f');
-    ground.rect(0, GROUND_Y, VIEW_W, VIEW_H - GROUND_Y).fill('#16221a');
+    const ground = new Graphics().rect(0, 122, VIEW_W, VIEW_H - 122).fill(p.ground);
+    ground.rect(0, GROUND_Y, VIEW_W, VIEW_H - GROUND_Y).fill(p.groundDark);
     for (let x = 0; x < VIEW_W; x += 13) ground.rect(x, GROUND_Y + ((x * 3) % 20), 2, 1).fill('#2a3d2c');
     bg.addChild(sky, ground);
     return bg;
@@ -121,12 +124,14 @@ export class BattleScene {
   private drawWall(): Container {
     const wall = new Container();
     const g = new Graphics();
-    g.rect(WALL_LEFT, WALL_TOP, BATTLE.wallX - WALL_LEFT, GROUND_Y - WALL_TOP).fill('#3b3f52');
+    const p = this.palette;
+    this.torches.length = 0;
+    g.rect(WALL_LEFT, WALL_TOP, BATTLE.wallX - WALL_LEFT, GROUND_Y - WALL_TOP).fill(p.wall);
     for (let y = WALL_TOP + 4; y < GROUND_Y; y += 8) {
       const offset = (y / 8) % 2 ? 0 : 4;
-      for (let x = WALL_LEFT + offset; x < BATTLE.wallX; x += 8) g.rect(x, y, 7, 1).fill('#30334a');
+      for (let x = WALL_LEFT + offset; x < BATTLE.wallX; x += 8) g.rect(x, y, 7, 1).fill(p.wallDark);
     }
-    for (let x = WALL_LEFT; x < BATTLE.wallX; x += 8) g.rect(x, WALL_TOP - 5, 5, 5).fill('#3b3f52');
+    for (let x = WALL_LEFT; x < BATTLE.wallX; x += 8) g.rect(x, WALL_TOP - 5, 5, 5).fill(p.wall);
     g.rect(0, WALL_TOP + 20, WALL_LEFT, GROUND_Y - WALL_TOP - 20).fill('#2a2d3b');
     wall.addChild(g);
     // Fackeln: warmes Licht gegen die kalte Nacht.
@@ -142,6 +147,22 @@ export class BattleScene {
       wall.addChild(torch);
     }
     return wall;
+  }
+
+  /** Nach einem Epochenwechsel Himmel, Boden und Mauer in der neuen Palette zeichnen. */
+  private applyEpoch(epoch: number): void {
+    if (epoch === this.paletteEpoch) return;
+    this.paletteEpoch = epoch;
+    this.palette = epochDef(epoch).palette;
+    const stage = this.app.stage;
+    const bgIndex = stage.getChildIndex(this.background);
+    const wallIndex = stage.getChildIndex(this.wall);
+    this.background.destroy({ children: true });
+    this.wall.destroy({ children: true });
+    this.background = this.drawBackground();
+    this.wall = this.drawWall();
+    stage.addChildAt(this.background, bgIndex);
+    stage.addChildAt(this.wall, wallIndex);
   }
 
   /** Klick in Feld-Koordinaten umrechnen und den nächsten Alien im Klickradius treffen. */
@@ -303,6 +324,7 @@ export class BattleScene {
   /** Einmal pro Frame. `alpha` = Anteil zwischen zwei Logik-Ticks (für flüssige Bewegung). */
   update(state: GameState, alpha: number, dtSeconds: number): void {
     this.time += dtSeconds;
+    this.applyEpoch(state.epoch);
     this.syncDefenders(state);
     this.syncEnemies(state, alpha);
     this.consumeFx(state);

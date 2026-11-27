@@ -1000,3 +1000,122 @@ h3.sub {
 .part:not(.seen) img {
   filter: brightness(0);
 }
+
+/* ---------- Epochen, Sprung, Chronik (M4) ---------- */
+body {
+  transition: background 1.2s ease;
+}
+
+.epoch-label {
+  color: var(--ink-dim);
+  font-size: 0.85em;
+}
+
+.btn.jump {
+  font-size: 1.1em;
+  padding: 6px 18px;
+  box-shadow: 0 0 10px var(--torch);
+}
+
+.jump-preview {
+  color: var(--torch);
+  cursor: help;
+}
+
+.shards {
+  color: var(--torch);
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.chronicle-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.tokens {
+  border: 1px dashed var(--torch-dark);
+  padding: 6px 8px;
+  margin-bottom: 10px;
+}
+
+.tokens p {
+  margin: 0 0 4px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: #000a;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modal {
+  max-width: 520px;
+  background: var(--panel);
+  border: 2px solid var(--torch);
+  padding: 16px 20px;
+}
+
+.modal h2 {
+  font-size: 1.1em;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Die Feier nach dem Sprung: Zeitstrudel aus Ringen hinter dem Fenster. */
+.modal-backdrop.celebrate .modal {
+  text-align: center;
+  border-width: 3px;
+}
+
+.modal-backdrop.celebrate h2 {
+  font-size: 1.6em;
+  color: var(--torch);
+}
+
+.modal-backdrop.celebrate.animated::before,
+.modal-backdrop.celebrate.animated::after {
+  content: '';
+  position: absolute;
+  width: 60vmin;
+  height: 60vmin;
+  border-radius: 50%;
+  border: 4px dashed var(--torch);
+  animation: warp 3s linear infinite;
+  opacity: 0.5;
+}
+
+.modal-backdrop.celebrate.animated::after {
+  width: 90vmin;
+  height: 90vmin;
+  animation-direction: reverse;
+  animation-duration: 5s;
+}
+
+.modal-backdrop.celebrate.animated .modal {
+  position: relative;
+  animation: arrive 0.9s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes warp {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes arrive {
+  from {
+    transform: scale(0.2) rotate(-12deg);
+    opacity: 0;
+  }
+}

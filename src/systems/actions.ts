@@ -8,6 +8,7 @@
 import { BATTLE } from '../data/enemies';
 import type { BuildingId } from '../data/buildings';
 import type { UnlockId } from '../data/progression';
+import type { ChronicleId } from '../data/chronicle';
 import type { GearSlot } from '../data/gear';
 import type { ResearchId } from '../data/research';
 import type { SpellId } from '../data/spells';
@@ -21,6 +22,8 @@ import { craftGear } from './gear';
 import { doResearch } from './research';
 import { castSpell, upgradeSpell } from './spells';
 import { buildOracle, buildTimeMachine } from './timemachine';
+import { buyChronicle } from './chronicle';
+import { performJump, useToken } from './prestige';
 import { buySkill } from './skills';
 import type { GameState } from './state';
 import { recruit } from './units';
@@ -40,7 +43,10 @@ export type Action =
   | { type: 'upgradeSpell'; spell: SpellId }
   | { type: 'craftGear'; classId: ClassId; slot: GearSlot }
   | { type: 'buildOracle' }
-  | { type: 'buildTimeMachine' };
+  | { type: 'buildTimeMachine' }
+  | { type: 'jump' }
+  | { type: 'buyChronicle'; id: ChronicleId }
+  | { type: 'useToken'; classId: ClassId };
 
 /** Kosten der nächsten Mauerverstärkung = wallUpgradeCost × wallUpgradeGrowth^Stufe */
 export function wallUpgradeCost(state: GameState): Cost {
@@ -68,6 +74,7 @@ const REQUIRED_UNLOCK: Partial<Record<Action['type'], UnlockId>> = {
   craftGear: 'recruit',
   buildOracle: 'research',
   buildTimeMachine: 'timeMachine',
+  jump: 'timeMachine',
 };
 
 /**
@@ -118,6 +125,12 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return buildOracle(state);
     case 'buildTimeMachine':
       return buildTimeMachine(state);
+    case 'jump':
+      return performJump(state);
+    case 'buyChronicle':
+      return buyChronicle(state, action.id);
+    case 'useToken':
+      return useToken(state, action.classId);
     case 'upgradeWall': {
       const blocker = wallUpgradeBlocker(state);
       if (blocker) return blocker;

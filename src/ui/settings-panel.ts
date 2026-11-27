@@ -3,19 +3,20 @@
  * dazu die Liste aller Tastenkürzel. Einstellungen sind keine Spielaktionen und werden
  * direkt in state.settings geschrieben (und mit dem Spielstand gespeichert).
  */
-import { t } from '../i18n';
+import { t, tk } from '../i18n';
 import type { Settings } from '../systems/state';
 import { esc } from './dom';
 
+/** Taste ("@…" = Textschlüssel, weil die Taste je Sprache anders heißt) und Beschreibung. */
 export const SHORTCUTS: [string, string][] = [
-  ['Leertaste', 'keys.battle'],
+  ['@keys.space', 'keys.battle'],
   ['1 – 3', 'keys.spells'],
   ['R', 'keys.retreat'],
   ['S', 'keys.save'],
   ['M', 'keys.mute'],
   ['O', 'keys.settings'],
   ['Esc', 'keys.close'],
-  ['Strg + Umschalt + D', 'keys.debug'],
+  ['@keys.debugCombo', 'keys.debug'],
 ];
 
 const range = (key: keyof Settings, value: number, min: number, max: number, step: number) =>
@@ -27,7 +28,7 @@ export function settingsHtml(s: Settings): string {
     .join('');
   const keys = SHORTCUTS.map(
     ([key, label]) =>
-      `<tr><th><kbd>${esc(key === 'Leertaste' ? t('keys.space') : key)}</kbd></th><td>${esc(t(label as 'keys.battle'))}</td></tr>`,
+      `<tr><th><kbd>${esc(key.startsWith('@') ? tk(key.slice(1)) : key)}</kbd></th><td>${esc(t(label as 'keys.battle'))}</td></tr>`,
   ).join('');
   return `<h3>${esc(t('settings.title'))}</h3>
     <label>${esc(t('settings.language'))}

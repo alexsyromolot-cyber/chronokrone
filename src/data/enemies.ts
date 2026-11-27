@@ -154,7 +154,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   // Das Mutterschiff: kommt nur in der Finalschlacht (Epoche 5), als letzter Gegner der letzten Welle.
   mutterschiff: {
     id: 'mutterschiff',
-    hp: 250,
+    hp: 180,
     speed: 5,
     wallDps: 20,
     gold: 3000,
@@ -175,7 +175,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
  */
 export const FINALE = {
   phases: [0.66, 0.33],
-  escortsPerPhase: 6,
+  escortsPerPhase: 4,
   /** Belagerungsstufe (ab 0) der Finalschlacht = die des letzten Elitegegners. */
   siege: 11,
   escort: 'brummdrohne' as EnemyId,

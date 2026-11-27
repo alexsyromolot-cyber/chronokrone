@@ -45,7 +45,9 @@ export function performJump(state: GameState): MessageKey | null {
 
   const shards = shardsForJump(state);
   const tokens = tokensForJump(state);
-  state.epochTimes.push(state.time - state.epochStartedAt);
+  const took = state.time - state.epochStartedAt;
+  state.epochTimes.push(took);
+  if (state.stats.fastestJump === 0 || took < state.stats.fastestJump) state.stats.fastestJump = took;
   state.shards += shards;
   state.totalShards += shards;
   state.respecTokens += tokens;

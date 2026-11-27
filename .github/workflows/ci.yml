@@ -19,6 +19,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+        env:
+          # Electron (Desktop-App, M8) wird für Web-Build und Tests nicht gebraucht.
+          ELECTRON_SKIP_BINARY_DOWNLOAD: 1
       - run: npm run check
       - run: npm run build
       - run: npx playwright install --with-deps chromium

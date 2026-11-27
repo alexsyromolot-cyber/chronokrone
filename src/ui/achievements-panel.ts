@@ -87,7 +87,8 @@ export function statsHtml(state: GameState): string {
       return `<li><time>${mmss(e.time)}</time> ${esc(tk(`tl.${template}`, e.params))}</li>`;
     })
     .join('');
-  return `<table class="stats-table">${rows}<tr><th>${esc(tk('stat.playHours'))}</th><td>${esc(mmss(state.time))}</td></tr></table>
+  return `<div class="buy"><button class="btn primary" data-runcard="1">${esc(t('runcard.open'))}</button></div>
+    <table class="stats-table">${rows}<tr><th>${esc(tk('stat.playHours'))}</th><td>${esc(mmss(state.time))}</td></tr></table>
     ${epochs ? `<h3 class="sub">${esc(t('stats.epochs'))}</h3><ul class="plain">${epochs}</ul>` : ''}
     ${timeline ? `<h3 class="sub">${esc(t('timeline.title'))}</h3><ul class="log-list timeline">${timeline}</ul>` : ''}`;
 }

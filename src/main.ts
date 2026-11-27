@@ -11,7 +11,8 @@ import type { MessageKey } from './i18n/de';
 import { BattleScene } from './render/battle-scene';
 import { fromExportString, toExportString } from './save/serialize';
 import { SaveManager } from './save/save-manager';
-import { LocalStorageBackend } from './save/storage';
+import { defaultStorage } from './save/storage';
+import { openRunCard } from './ui/runcard-panel';
 import { dispatch, type Action } from './systems/actions';
 import { startBattle } from './systems/battle';
 import { newGame, tick } from './systems/game';
@@ -47,7 +48,7 @@ import { showModal } from './ui/modal';
 import { EPOCHS, epochDef } from './data/epochs';
 import { shardsForJump, tokensForJump } from './systems/prestige';
 
-const saves = new SaveManager(new LocalStorageBackend());
+const saves = new SaveManager(defaultStorage());
 
 /** Rückblick auf die letzte Sitzung, falls man lange genug weg war (wird nach dem Start gezeigt). */
 let pendingRecap: ReturnType<typeof welcomeBack> = null;
@@ -406,6 +407,10 @@ function installInput(debug: { toggle(): void }): void {
     }
     if (target.closest('[data-jump]')) {
       confirmJump();
+      return;
+    }
+    if (target.closest('[data-runcard]')) {
+      openRunCard(state, epochDef(state.epoch).palette.accent, (name) => (state.settings.nickname = name));
       return;
     }
     if (target.closest('[data-loop]')) {

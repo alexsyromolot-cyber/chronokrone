@@ -1220,6 +1220,31 @@ export const de = {
     'Die Schleife {n} beginnt. Regel: {rule}. Willkommen zurück in „{epoch}“ – kommt dir bekannt vor, oder?',
   'tl.loop': 'Zeitschleife {n} begonnen',
   'credits.loop': 'Zeitschleife beginnen',
+
+  // --- M8: Run-Karte ---
+  'runcard.title': 'Run-Karte',
+  'runcard.open': 'Run-Karte',
+  'runcard.name': 'Spitzname:',
+  'runcard.anonymous': 'Unbekannter Herrscher',
+  'runcard.highest': 'Höchste Zahl (Gold)',
+  'runcard.fastestJump': 'Schnellster Sprung',
+  'runcard.progress': 'Fortschritt',
+  'runcard.progressValue': 'Epoche {epoch} · {loops} Schleifen · {wins}× Mutterschiff',
+  'runcard.playtime': 'Spielzeit',
+  'runcard.kills': 'Aliens besiegt',
+  'runcard.challenges': 'Challenge-Zeiten (bis zum Mutterschiff)',
+  'runcard.noChallenges': 'Noch keine – schließe eine Zeitschleife ab.',
+  'runcard.noCurse': 'ohne Fluch',
+  'runcard.savePng': 'Als Bild speichern',
+  'runcard.copyCode': 'Code kopieren',
+  'runcard.copied': 'Code kopiert. Schick ihn an Freunde – sie fügen ihn hier ein.',
+  'runcard.copyManual': 'Kopieren nicht erlaubt – markiere den Code und kopiere ihn von Hand.',
+  'runcard.viewTitle': 'Fremde Run-Karte ansehen',
+  'runcard.pastePlaceholder': 'Code einfügen (beginnt mit CK1.)',
+  'runcard.view': 'Ansehen',
+  'runcard.viewing': 'Du siehst die Karte von {name}.',
+  'runcard.invalid': 'Das ist kein gültiger Run-Karten-Code.',
+  'runcard.close': 'Schließen',
 } as const;
 
 export type MessageKey = keyof typeof de;

@@ -80,6 +80,7 @@ export function resetForEpoch(state: GameState): void {
   state.scrapPity = 0;
   state.market = { prices: {}, history: {}, timer: 0 };
   state.power = { fuel: 1 };
+  state.reactor = { throttle: 0.5, heat: 0, fuel: 1, warned: false, meltdowns: 0 };
 
   // Chronik: Veteranen starten auf höherem Level, der Bergfried größer, Vorräte im Lager.
   const startLevel = 1 + chronicleBonus(state, 'startLevel');

@@ -50,6 +50,14 @@ export const EPOCH3_MAP: MapDef = {
   startUnlocked: [{ x: 2, y: 3 }],
 };
 
+export const EPOCH4_MAP: MapDef = {
+  ...EPOCH1_MAP,
+  // Wüste nach dem großen Leuchten: kaum Wald, viel Fels für Uran, ein dünner Bach.
+  terrain: ['rrgggrrr', 'rggggrgr', 'gggsgggr', 'grggsggg', 'ggggsrgg', 'rgggsggr', 'rrgggsgr', 'grrggsrr'],
+  keep: { x: 3, y: 3 },
+  startUnlocked: [{ x: 2, y: 3 }],
+};
+
 export const EPOCHS: EpochDef[] = [
   {
     id: 1,
@@ -114,6 +122,28 @@ export const EPOCHS: EpochDef[] = [
       panel2: '#2b2430',
       line: '#46394a',
       background: '#151118',
+    },
+  },
+  {
+    id: 4,
+    map: EPOCH4_MAP,
+    enemyHp: 1000,
+    gold: 400,
+    palette: {
+      // Gelbgrünes Glühen über Wüstensand, Bunkerbeton.
+      sky: ['#11160c', '#1a2210', '#263014', '#384418', '#4c5a1c'],
+      stars: '#d8f070',
+      treeline: '#1a1e10',
+      glow: '#a8d030',
+      ground: '#3a3420',
+      groundDark: '#2e2a1a',
+      wall: '#5a5440',
+      wallDark: '#4a4434',
+      accent: '#c8f060',
+      panel: '#1c1e14',
+      panel2: '#282c1c',
+      line: '#3e4428',
+      background: '#14160e',
     },
   },
 ];

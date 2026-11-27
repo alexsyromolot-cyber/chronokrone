@@ -20,6 +20,9 @@ import {
 import { RESOURCE_IDS, type ResourceId } from '../data/resources';
 import type { MessageKey } from '../i18n/de';
 import { gain, resourceCap } from './resources';
+import { resolveMeltdown } from './reactor';
+import { hasRelic } from './relics';
+import { RELIC_NUMBERS } from '../data/reactor';
 import { addLog, type GameState } from './state';
 import { addXp, xpForNext } from './units';
 
@@ -47,9 +50,10 @@ function fill(state: GameState, id: ResourceId): number {
 }
 
 function startEvent(state: GameState): void {
-  const total = EVENTS.reduce((s, e) => s + e.weight, 0);
+  const pool = EVENTS.filter((e) => (e.fromEpoch ?? 1) <= state.epoch);
+  const total = pool.reduce((s, e) => s + e.weight, 0);
   let roll = nextRandom(state.rng) * total;
-  const def = EVENTS.find((e) => (roll -= e.weight) < 0) ?? EVENTS[0]!;
+  const def = pool.find((e) => (roll -= e.weight) < 0) ?? pool[0]!;
   const params: Record<string, string | number> = {};
 
   if (def.id === 'stableFire') {
@@ -135,6 +139,21 @@ export function resolveEvent(state: GameState, option: string): MessageKey | nul
     case 'bard.chase':
       gain(state, 'gold', N.bardGold);
       break;
+    case 'sandstorm.endure':
+      state.events.buffs.push({
+        resource: 'all',
+        mult: N.sandstormMult,
+        until: state.time + N.sandstormSeconds,
+      });
+      break;
+    case 'sandstorm.shelter':
+      state.resources.gold = state.resources.gold.sub(state.resources.gold.mul(N.shelterGoldShare).floor());
+      break;
+    case 'meltdown.evacuate':
+    case 'meltdown.contain':
+    case 'meltdown.pray':
+      resolveMeltdown(state, option);
+      break;
   }
   state.events.active = null;
   addLog(state, `event.${ev.id}.${option}` as MessageKey, p);
@@ -204,7 +223,9 @@ export function tickEvents(state: GameState, dt: number): void {
   } else {
     ev.droneTimer -= dt;
     if (ev.droneTimer <= 0) {
-      ev.droneTimer = between(state, DRONE.interval);
+      ev.droneTimer =
+        between(state, DRONE.interval) *
+        (hasRelic(state, 'treasureMap') ? RELIC_NUMBERS.treasureMapInterval : 1);
       ev.drone = { left: DRONE.flightTime, lane: randomInt(state.rng, 0, 2) };
     }
   }

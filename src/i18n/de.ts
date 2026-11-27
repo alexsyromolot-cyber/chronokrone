@@ -45,7 +45,7 @@ export const de = {
   'castle.workers': 'Holzfäller: {n}/{max}',
   'castle.milestone': 'Nächster Meilenstein: Level {level} (Produktion ×2)',
   'castle.prodTip':
-    '{perLevel} × Level {level} × Meilenstein {milestone} × Gelände {terrain} × (1 + Nachbarn {neighbor} % + Arbeiter {workers} % + Skills {skills} % + Taverne {tavern} %) × Ausrüstung {gear} × Chronik & Erfolge {chronicle} × Strom {power} × Jahreszeit/Ereignis {season} = {total}/s',
+    '{perLevel} × Level {level} × Meilenstein {milestone} × Gelände {terrain} × (1 + Nachbarn {neighbor} % + Arbeiter {workers} % + Skills {skills} % + Taverne {tavern} %) × Ausrüstung {gear} × Chronik & Erfolge {chronicle} × Strom {power} × Reaktor & Relikte {reactor} × Jahreszeit/Ereignis {season} = {total}/s',
   'castle.costTip': 'Kosten = Grundkosten × {growth}^Level',
   'castle.buildCostTip': 'Baukosten = Grundkosten × {growth}^(vorhandene Gebäude dieses Typs)',
   'castle.keepEffect': 'Lagerlimits ×{cap} · Steuern · Klickschaden {click}',
@@ -967,6 +967,111 @@ export const de = {
 
   // --- Höchstlevel ---
   'reason.maxLevel': 'Höchstes Level erreicht.',
+
+  // --- M7c: Epoche 4 ---
+  'res.uranium': 'Uran',
+  'res.fuelRods': 'Brennstäbe',
+  'building.uraniumMine': 'Uranmine',
+  'building.uraniumMine.desc': 'Fördert Uran. Auf Fels besonders ergiebig. Uransucher arbeiten hier.',
+  'building.rodFactory': 'Brennstabwerk',
+  'building.rodFactory.desc': 'Presst aus 2 Uran 1 Brennstab. Neben einer Uranmine +20 %.',
+  'building.reactor': 'Reaktor',
+  'building.reactor.desc':
+    'Verbrennt Brennstäbe und steigert die Produktion ALLER Gebäude. Erzeugt Hitze – bei 100 % droht die Kernschmelze. Nur einer erlaubt.',
+  'building.coolingTower': 'Kühlturm',
+  'building.coolingTower.desc':
+    'Kühlt den Reaktor. Jedes Level senkt die Hitze pro Sekunde – egal, wo der Turm steht.',
+  'building.bunker': 'Kreuzzugsbunker',
+  'building.bunker.desc': 'Bildet Strahlenpaladine aus. Mehr Level = mehr Truppenplätze und Schaden.',
+  'class.prospector': 'Uransucher',
+  'class.prospector.desc': 'Arbeitet in der Uranmine. Ausdauer erhöht die Förderung.',
+  'class.rayPaladin': 'Strahlenpaladin',
+  'class.rayPaladin.desc':
+    'Heiliger Krieger mit leuchtendem Schwert. Mittlere Reichweite, trifft mehrere. Stärke zählt.',
+  'research.prospecting': 'Uransuche',
+  'research.prospecting.desc':
+    'Ein Stein, der im Dunkeln leuchtet, ist bestimmt gesund. Schaltet die Uranmine frei.',
+  'research.fuelRods': 'Brennstäbe',
+  'research.fuelRods.desc':
+    'Uran in handliche Stangen gepresst. Bitte nicht lutschen. Schaltet das Brennstabwerk frei.',
+  'research.fission': 'Kernspaltung',
+  'research.fission.desc':
+    'Der Hofgelehrte spaltet etwas sehr Kleines und ist sehr stolz. Schaltet den Reaktor frei.',
+  'research.cooling': 'Kühlung',
+  'research.cooling.desc': 'Wasser auf heiße Dinge. Revolutionär. Schaltet den Kühlturm frei.',
+  'research.atomicFaith': 'Atomarer Glaube',
+  'research.atomicFaith.desc':
+    'Ein neuer Orden schwört auf das heilige Leuchten. Schaltet den Kreuzzugsbunker frei.',
+  'skill.geigerSense': 'Geigersinn',
+  'skill.leadLungs': 'Bleilunge',
+  'skill.rodPress': 'Stabpresse',
+  'skill.deepVein': 'Tiefe Ader',
+  'skill.enrichment': 'Anreicherung',
+  'skill.glowShift': 'Leuchtschicht',
+  'skill.halfLife': 'Halbwertszeit',
+  'skill.fastFission': 'Schnelle Spaltung',
+  'skill.leadPlating': 'Bleipanzer',
+  'skill.falloutArc': 'Fallout-Bogen',
+  'skill.longBeam': 'Langer Strahl',
+  'skill.chainReaction': 'Kettenreaktion',
+  'epoch.4': 'Atomare Kreuzzüge',
+  'reactor.tip':
+    'Bonus = {bonus} % × Level × Leistung (auf alle Gebäude). Hitze/s = {heat} × Level × Leistung² − {cool} × Kühlturm-Level. Verbrauch = {rods} Brennstäbe/s × Level × Leistung. Hitze wächst quadratisch, Bonus nur linear – Überlast ist ein Wagnis.',
+  'reactor.preview': 'Hitze bei dieser Leistung: {rate} %/s',
+  'reactor.throttle.0': 'Aus',
+  'reactor.throttle.50': 'Halbe Kraft',
+  'reactor.throttle.100': 'Volle Kraft',
+  'reactor.throttle.150': 'Überlast',
+  'reactor.status': 'Reaktor: Produktion +{bonus} % für alle Gebäude · verbraucht {rods} Brennstäbe/s',
+  'reactor.heat': 'Hitze {heat} % ({rate} %/s).',
+  'reactor.eta': 'Kernschmelze in {s} s!',
+  'reactor.none': 'Noch kein Reaktor gebaut. Kühltürme kühlen erst, wenn es etwas zu kühlen gibt.',
+  'reactor.noRods': 'Zu wenig Brennstäbe – der Reaktor läuft nur zu {pct} %.',
+  'reactor.meltdownHint':
+    'Bei 100 % Hitze: Kernschmelze. Du entscheidest dann über die Folgen (z. B. Eindämmen für {gold} % des Golds).',
+  'narrator.reactorWarn': 'Der Reaktor glüht. Und zwar nicht vor Stolz. Hitze über 80 %!',
+  'narrator.chalice':
+    'Kernschmelze! Der Brennende Kelch trinkt sie aus. Alles produziert kurz doppelt. Regeln sind für andere.',
+  'narrator.relic': 'Relikt gefunden: {name}. Es bricht eine Regel. Absichtlich.',
+  'event.meltdown.title': 'Kernschmelze!',
+  'event.meltdown.log':
+    'Der Reaktor schmilzt! Er hat sich selbst abgeschaltet, aber irgendwer muss aufräumen.',
+  'eventopt.meltdown.evacuate': 'Evakuieren (Reaktor verliert die Hälfte seiner Level)',
+  'eventopt.meltdown.contain': 'Eindämmen (25 % des Golds)',
+  'eventopt.meltdown.pray': 'Beten (10 %: nichts passiert, sonst Reaktor auf Level 1)',
+  'event.meltdown.evacuate':
+    'Evakuiert. Der Reaktor ist nur noch halb so groß. Die Bauern zählen ihre Finger.',
+  'event.meltdown.contain': 'Eingedämmt. Mit sehr viel Gold und sehr viel Beton.',
+  'event.meltdown.pray': 'Gebetet. Der Reaktor glaubt nicht an Gebete. Level 1.',
+  'event.meltdown.miracle':
+    "Ein Wunder! Die Kernschmelze schmilzt einfach … zurück. Ich war's nicht. Vermutlich.",
+  'event.sandstorm.title': 'Strahlender Sandsturm',
+  'event.sandstorm.log': 'Ein leuchtender Sandsturm zieht auf. Arbeiten im Freien? Mutig.',
+  'eventopt.sandstorm.endure': 'Weiterarbeiten (90 s lang Produktion −30 %)',
+  'eventopt.sandstorm.shelter': 'In die Bunker (10 % des Golds)',
+  'event.sandstorm.endure': 'Alle arbeiten weiter, nur langsamer. Und mit Sand in den Zähnen.',
+  'event.sandstorm.shelter': 'Alle im Bunker. Der Sturm zieht vorbei, die Miete nicht.',
+  'relics.title': 'Relikte',
+  'relics.intro':
+    '{found}/{total} gefunden. Jedes Relikt bricht eine Spielregel – sofort und für immer. Jeder Sieg hat {chance} % Chance, spätestens nach {pity} Siegen kommt eines.',
+  'relics.set': 'Ganze Sammlung: +{pct} % Produktion und Schaden.',
+  'relic.leadApron': 'Bleischürze',
+  'relic.leadApron.desc': 'Der Reaktor erzeugt {heat} % weniger Hitze.',
+  'relic.crackedHourglass': 'Gesprungene Sanduhr',
+  'relic.crackedHourglass.desc': 'Die Wut der Aliens setzt {delay} s später ein.',
+  'relic.goldenScale': 'Goldene Waage',
+  'relic.goldenScale.desc': 'Auf dem Markt sind Kauf- und Verkaufspreis gleich.',
+  'relic.luckyIsotope': 'Glücksisotop',
+  'relic.luckyIsotope.desc': 'Alle Glücksschutz-Grenzen der Sammlungen werden halbiert.',
+  'relic.twinStrike': 'Zwillingsschlag',
+  'relic.twinStrike.desc': 'Jeder Klick trifft zusätzlich den nächsten Gegner mit {share} % Schaden.',
+  'relic.mirrorShield': 'Spiegelschild',
+  'relic.mirrorShield.desc': 'Gegner an der Mauer verlieren {mirror} % ihrer LP pro Sekunde.',
+  'relic.burningChalice': 'Brennender Kelch',
+  'relic.burningChalice.desc':
+    'Eine Kernschmelze richtet keinen Schaden an, sondern gibt {seconds} s lang ×{mult} Produktion.',
+  'relic.treasureMap': 'Schatzkarte',
+  'relic.treasureMap.desc': 'Die Alien-Drohne kommt doppelt so oft.',
 } as const;
 
 export type MessageKey = keyof typeof de;

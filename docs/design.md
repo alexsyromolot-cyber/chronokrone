@@ -281,6 +281,13 @@ am letzten Elitegegner. Mit multiplikativen Waffen fließt die Wirtschaft wieder
 - Gegner-LP ×160, Beute ×64: gleiches Verhältnis wie Epoche 2 (2,5). Mit ×400 kam der Bot nicht am letzten Elitegegner vorbei.
 - Bot-Ergebnis: Epoche 3 dauert 2:37 h.
 
+### M7c – Epoche 4 „Atomare Kreuzzüge“
+
+- Neue Rohstoffe Uran und Brennstäbe; Gebäude Uranmine, Brennstabwerk (2 Uran → 1 Stab), Reaktor (höchstens einer), Kühlturm, Kreuzzugsbunker. Klassen Uransucher (Sammler, Ausdauer) und Strahlenpaladin (Truppe, Stärke, Reichweite 70, Flächenschaden).
+- **Reaktor-Risiko:** Der Spieler wählt die Leistung (aus, halb, voll, Überlast 150 %). Bonus auf ALLE Gebäude = 15 % × Level × Leistung, Verbrauch 0,04 Stäbe/s × Level × Leistung. Hitze/s = 0,004 × Level × Leistung² − 0,006 × Kühlturm-Level. Weil die Hitze quadratisch wächst, der Bonus nur linear, ist Überlast ein Wagnis. Warnung ab 80 %.
+- **Kernschmelze (Katastrophe mit Entscheidung):** Bei 100 % Hitze fährt der Reaktor herunter (Leistung 0, Hitze 40 %). Dann: Evakuieren (Reaktor verliert die Hälfte seiner Level), Eindämmen (25 % des Golds) oder Beten (10 % Wunder, sonst Level 1). Dazu das Ereignis „Strahlender Sandsturm“ ab Epoche 4.
+- **Relikte (Regelbrecher):** 8 Relikte, wirken sofort und für immer: Bleischürze (−35 % Hitze), Gesprungene Sanduhr (Wut 60 s später), Goldene Waage (keine Marktspanne), Glücksisotop (alle Pity-Grenzen halbiert), Zwillingsschlag (Klick trifft auch den nächsten Gegner mit 50 %), Spiegelschild (Gegner an der Mauer verlieren 2 % LP/s), Brennender Kelch (Kernschmelze wird zum Produktionsrausch ×2 für 60 s), Schatzkarte (Drohne doppelt so oft). 25 % Fundchance je Sieg, Glücksschutz nach 5 Siegen; volle Sammlung +15 % Produktion und Schaden.
+
 ## 20. Offene Fragen
 
 Keine. (Die Balancing-Frage aus M3 – zähe Phase vor dem letzten Elitegegner – ist mit den multiplikativen Waffen gelöst.)

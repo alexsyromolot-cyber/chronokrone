@@ -11,6 +11,8 @@ import { RESEARCH } from '../data/research';
 import { BASE_PRICES } from '../data/market';
 import { price, TRADABLE } from '../systems/trade';
 import { powerNetwork } from '../systems/power';
+import { heatRate, reactorTile } from '../systems/reactor';
+import { REACTOR } from '../data/reactor';
 import { resourceCap } from '../systems/resources';
 import { SPELL_IDS } from '../data/spells';
 import { SKILLS } from '../data/skills';
@@ -79,6 +81,11 @@ const BUILD_ORDER: BuildingId[] = [
   'wireWorks',
   'powerPlant',
   'teslaTower',
+  'uraniumMine',
+  'rodFactory',
+  'reactor',
+  'coolingTower',
+  'bunker',
 ];
 
 const RECRUIT_ORDER: ClassId[] = [
@@ -93,6 +100,8 @@ const RECRUIT_ORDER: ClassId[] = [
   'steamKnight',
   'lineman',
   'teslaLancer',
+  'prospector',
+  'rayPaladin',
   'peasant',
 ];
 
@@ -133,6 +142,12 @@ function wishes(state: GameState): Action[] {
   const built = state.tiles.filter((t) => t.building).sort((a, b) => a.level - b.level);
   for (const t of built) list.push({ type: 'upgrade', x: t.x, y: t.y });
 
+  // Reaktor heißer als die Kühlung bei voller Kraft? Dann ein weiterer Kühlturm (höchstens 4).
+  if (reactorTile(state) && heatRate(state, 1, 1) > 0 && countBuildings(state, 'coolingTower') < 4) {
+    const ct =
+      buildingAvailable(state, 'coolingTower') === null ? bestTile(state, 'coolingTower') : undefined;
+    if (ct) list.unshift({ type: 'build', x: ct.x, y: ct.y, building: 'coolingTower' });
+  }
   const pylonTile = buildingAvailable(state, 'pylon') === null ? bestTile(state, 'pylon') : undefined;
   if (pylonTile) list.unshift({ type: 'build', x: pylonTile.x, y: pylonTile.y, building: 'pylon' });
 
@@ -197,18 +212,30 @@ export class Bot {
     // Ereignisse: die „aktive“ Antwort wählen; Drohnen fangen.
     const ev = state.events.active;
     if (ev) {
-      const choice = {
-        stableFire: 'extinguish',
-        merchant: 'trade',
-        defector: 'buy',
-        rain: 'ok',
-        harvest: 'ok',
-        bard: 'listen',
-      }[ev.id];
+      const choice =
+        {
+          stableFire: 'extinguish',
+          merchant: 'trade',
+          defector: 'buy',
+          rain: 'ok',
+          harvest: 'ok',
+          bard: 'listen',
+          sandstorm: 'shelter',
+          meltdown: 'contain',
+        }[ev.id] ?? 'decline';
       if (dispatch(state, { type: 'eventChoice', option: choice }) !== null)
         dispatch(state, { type: 'eventChoice', option: 'decline' });
     }
     if (state.events.drone) dispatch(state, { type: 'catchDrone' });
+
+    // Reaktor: höchste Leistung, bei der die Hitze in den nächsten 30 s unter 75 % bleibt.
+    if (reactorTile(state)) {
+      const safe = [...REACTOR.throttles]
+        .reverse()
+        .find((th) => heatRate(state, th, 1) <= 0 || state.reactor.heat + heatRate(state, th, 1) * 30 < 0.75);
+      const want = safe ?? 0;
+      if (state.reactor.throttle !== want) dispatch(state, { type: 'setThrottle', throttle: want });
+    }
 
     // Einkaufen einmal pro Sekunde reicht – Menschen klicken auch nicht schneller.
     this.shopTimer -= dt;

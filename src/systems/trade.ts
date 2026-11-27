@@ -11,6 +11,7 @@ import type { ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { gain, resourceCap } from './resources';
 import { addLog, type GameState } from './state';
+import { hasRelic, pityLimit } from './relics';
 
 export const TRADABLE = Object.keys(BASE_PRICES) as ResourceId[];
 
@@ -24,6 +25,8 @@ export function price(state: GameState, id: ResourceId): number {
 
 /** Spanne = 10 % − 1 % je Marktlevel über 1 (mindestens 2 %). */
 export function spread(state: GameState): number {
+  // Goldene Waage: Regelbruch – kein Unterschied zwischen Kauf- und Verkaufspreis.
+  if (hasRelic(state, 'goldenScale')) return 0;
   return Math.max(0.02, MARKET.spread - MARKET_SPREAD_PER_LEVEL * Math.max(0, marketLevel(state) - 1));
 }
 
@@ -95,7 +98,11 @@ export function rollCompanion(state: GameState): void {
   const missing = COMPANIONS.filter((c) => !state.companions[c.id]);
   if (missing.length === 0) return;
   state.companionPity++;
-  if (!chance(state.rng, COMPANION_RULES.findChance) && state.companionPity < COMPANION_RULES.pity) return;
+  if (
+    !chance(state.rng, COMPANION_RULES.findChance) &&
+    state.companionPity < pityLimit(state, COMPANION_RULES.pity)
+  )
+    return;
   state.companionPity = 0;
   const found = missing[randomInt(state.rng, 0, missing.length - 1)]!;
   state.companions[found.id] = true;

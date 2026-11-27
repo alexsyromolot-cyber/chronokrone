@@ -242,6 +242,23 @@ export const SKILLS: SkillDef[] = [
     ['longArc', 'rangeAdd', 20, 2, 1, 1, 'capacitor'],
     ['overload', 'critChance', 0.06, 3, 2, 1, 'chainSpark'],
   ]),
+  // --- Epoche 4 ---
+  ...tree('prospector', [
+    ['geigerSense', 'productionMult', 0.2, 5, 0, 0],
+    ['leadLungs', 'xpMult', 0.2, 3, 1, 0],
+    ['rodPress', 'recipeMult', 0.15, 3, 2, 0, undefined, 'rodFactory'],
+    ['deepVein', 'terrainBonusMult', 0.3, 3, 0, 1, 'geigerSense'],
+    ['enrichment', 'recipeMult', 0.25, 3, 1, 1, 'rodPress', 'rodFactory'],
+    ['glowShift', 'productionMult', 0.1, 5, 2, 1, 'leadLungs'],
+  ]),
+  ...tree('rayPaladin', [
+    ['halfLife', 'damageMult', 0.4, 5, 0, 0],
+    ['fastFission', 'attackSpeed', 0.08, 3, 1, 0],
+    ['leadPlating', 'wallHpMult', 0.1, 3, 2, 0],
+    ['falloutArc', 'splashMult', 0.25, 3, 0, 1, 'halfLife'],
+    ['longBeam', 'rangeAdd', 20, 2, 1, 1, 'fastFission'],
+    ['chainReaction', 'critChance', 0.06, 3, 2, 1, 'falloutArc'],
+  ]),
 ];
 
 export const SKILLS_BY_ID: Record<string, SkillDef> = Object.fromEntries(SKILLS.map((s) => [s.id, s]));

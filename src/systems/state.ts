@@ -248,6 +248,11 @@ export interface GameState {
   cards: Record<string, boolean>;
   cardSlots: string[];
   cardPity: number;
+  /** Reaktor (Epoche 4): Leistung, Hitze 0…1, Brennstoff-Anteil, Warnung schon gezeigt, Kernschmelzen. */
+  reactor: { throttle: number; heat: number; fuel: number; warned: boolean; meltdowns: number };
+  /** Sammlung „Relikte“ (bleibt bei jedem Sprung) und Glücksschutz. */
+  relics: Record<string, boolean>;
+  relicPity: number;
   /** Ereignisse, Drohne, Würfel. */
   events: EventsState;
   /** Hofbefehle (bleiben beim Sprung erhalten). */
@@ -334,6 +339,9 @@ export function createInitialState(seed = Date.now()): GameState {
     cards: {},
     cardSlots: [],
     cardPity: 0,
+    reactor: { throttle: 0.5, heat: 0, fuel: 1, warned: false, meltdowns: 0 },
+    relics: {},
+    relicPity: 0,
     timeline: [],
     achievementTimer: 0,
     // Erstes Ereignis nach 3 Minuten, erste Drohne nach 2 Minuten – nicht schon in der ersten Schlacht.

@@ -149,6 +149,17 @@ export function resolveEvent(state: GameState, option: string): MessageKey | nul
     case 'sandstorm.shelter':
       state.resources.gold = state.resources.gold.sub(state.resources.gold.mul(N.shelterGoldShare).floor());
       break;
+    case 'meteorShower.shields':
+      state.resources.gold = state.resources.gold.sub(state.resources.gold.mul(N.meteorShieldShare).floor());
+      break;
+    case 'meteorShower.harvest': {
+      gain(state, 'stardust', resourceCap(state, 'stardust').mul(N.meteorHarvestShare));
+      // Ein Meteor trifft ein zufälliges Modul (nie die Brücke): 1 Level weniger, nie unter 1.
+      const hit = state.tiles.filter((t) => t.building && t.building !== 'keep' && t.level > 1);
+      const victim = hit.length ? hit[randomInt(state.rng, 0, hit.length - 1)] : undefined;
+      if (victim) victim.level--;
+      break;
+    }
     case 'meltdown.evacuate':
     case 'meltdown.contain':
     case 'meltdown.pray':

@@ -2,7 +2,7 @@
  * Zeitmaschine: Checkliste aller Bedingungen mit Haken, Rechenorakel und Bau.
  * „Nie eine Wartezeit ohne nächstes sichtbares Ziel“ – hier sieht man genau, was fehlt.
  */
-import { ELITES } from '../data/enemies';
+import { ELITES, FINALE } from '../data/enemies';
 import { t, tk } from '../i18n';
 import { shardsForJump, tokensForJump } from '../systems/prestige';
 import { totalSkillRanks } from '../systems/skills';
@@ -18,11 +18,24 @@ import { spriteUrl } from '../render/pixel';
 import { ENEMY_SPRITES } from '../render/sprites';
 import { costHtml, esc, reasonText, tip } from './dom';
 import { action } from './panels-top';
+import { finaleBlocker, isLastEpoch } from '../systems/finale';
+
+/** Letzte Epoche: Die Zeitmaschine führt zum Mutterschiff statt in die nächste Epoche. */
+function finaleHtml(state: GameState): string {
+  const blocker = finaleBlocker(state);
+  const won = state.finale.wonAt !== null;
+  return `<p class="${won ? 'good' : ''}">${esc(t(won ? 'finale.won' : 'finale.ready'))}</p>
+    <div class="buy"><button class="btn primary jump" ${blocker ? 'disabled' : ''} ${action({ type: 'startFinale' })} ${tip(
+      blocker ? reasonText(blocker) : t('finale.tip', { siege: FINALE.siege + 1 }),
+    )}>${esc(t(won ? 'finale.again' : 'finale.button'))}</button></div>
+    ${won ? `<div class="buy"><button class="btn" data-credits="1">${esc(t('finale.credits'))}</button></div>` : ''}`;
+}
 
 const check = (ok: boolean) => `<span class="${ok ? 'good' : 'bad'}">${ok ? '✔' : '✘'}</span>`;
 
 export function timeMachineHtml(state: GameState): string {
   const c = timeMachineChecklist(state);
+  if (state.timeMachineAt !== null && isLastEpoch(state)) return finaleHtml(state);
   if (state.timeMachineAt !== null) {
     const m = Math.floor(state.timeMachineAt / 60);
     const s = String(Math.floor(state.timeMachineAt % 60)).padStart(2, '0');

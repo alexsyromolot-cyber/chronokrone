@@ -1444,3 +1444,63 @@ body {
     transition: none;
   }
 }
+
+/* --- Raumschiff und Finale (Epoche 5) --- */
+.tile.adrift {
+  opacity: 0.55;
+  box-shadow: inset 0 0 0 2px rgba(224, 90, 58, 0.7);
+}
+.tile.lit {
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 106, 213, 0.55),
+    0 0 6px rgba(154, 216, 255, 0.4);
+}
+.completion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.4em 0;
+  display: grid;
+  gap: 4px;
+}
+.completion-list li {
+  display: grid;
+  grid-template-columns: 1fr 40%;
+  align-items: center;
+  gap: 8px;
+}
+.completion-list .bar {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.completion-list .bar span {
+  display: block;
+  height: 100%;
+  background: var(--torch, #ff6ad5);
+}
+.completion-list li.done {
+  color: var(--good, #8fd98f);
+}
+.modal-backdrop.credits .modal {
+  max-width: 560px;
+  text-align: center;
+}
+.modal-backdrop.credits.animated .modal p {
+  animation: credits-in 0.8s both;
+}
+.modal-backdrop.credits.animated .modal p:nth-of-type(2) {
+  animation-delay: 1.2s;
+}
+.modal-backdrop.credits.animated .modal p:nth-of-type(3) {
+  animation-delay: 2.4s;
+}
+.modal-backdrop.credits.animated .modal p:nth-of-type(n + 4) {
+  animation-delay: 3.6s;
+}
+@keyframes credits-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

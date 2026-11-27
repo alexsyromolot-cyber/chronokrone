@@ -42,7 +42,12 @@ export type ResearchId =
   | 'fuelRods'
   | 'fission'
   | 'cooling'
-  | 'atomicFaith';
+  | 'atomicFaith'
+  // Epoche 5
+  | 'starNavigation'
+  | 'stainedGlass'
+  | 'neonRosette'
+  | 'starOrder';
 
 export interface ResearchDef {
   id: ResearchId;
@@ -121,6 +126,39 @@ export const RESEARCH: ResearchDef[] = [
   { id: 'fission', cost: 16000, requires: ['fuelRods'], buildings: ['reactor'], pos: [0, 10], epoch: 4 },
   { id: 'cooling', cost: 16000, requires: ['fission'], buildings: ['coolingTower'], pos: [1, 10], epoch: 4 },
   { id: 'atomicFaith', cost: 25000, requires: ['fission'], buildings: ['bunker'], pos: [0, 11], epoch: 4 },
+  // --- Epoche 5: Sternenorden ---
+  {
+    id: 'starNavigation',
+    cost: 12000,
+    requires: [],
+    buildings: ['hullPlate', 'stardustScoop'],
+    pos: [0, 12],
+    epoch: 5,
+  },
+  {
+    id: 'stainedGlass',
+    cost: 18000,
+    requires: ['starNavigation'],
+    buildings: ['glassFurnace'],
+    pos: [1, 12],
+    epoch: 5,
+  },
+  {
+    id: 'neonRosette',
+    cost: 24000,
+    requires: ['stainedGlass'],
+    buildings: ['rosette'],
+    pos: [0, 13],
+    epoch: 5,
+  },
+  {
+    id: 'starOrder',
+    cost: 30000,
+    requires: ['stainedGlass'],
+    buildings: ['hangar'],
+    pos: [1, 13],
+    epoch: 5,
+  },
 ];
 
 export const RESEARCH_BY_ID = Object.fromEntries(RESEARCH.map((r) => [r.id, r])) as Record<

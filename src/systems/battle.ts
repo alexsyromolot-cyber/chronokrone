@@ -22,6 +22,8 @@ import { rollCompanion } from './trade';
 import { cardBonus, rollCard } from './power';
 import { hasRelic, rollRelic } from './relics';
 import { RELIC_NUMBERS } from '../data/reactor';
+import { bossPhase, winFinale } from './finale';
+import { FINALE } from '../data/enemies';
 import { addLog, type BattleState, type Enemy, type GameState } from './state';
 import { addXp, attackInterval, attributesOf, critChance, troops, unitDamage } from './units';
 
@@ -133,7 +135,8 @@ function spawn(state: GameState, b: BattleState): void {
   const elite = b.pendingElite && b.toSpawn === 1 ? b.pendingElite : null;
   if (elite) {
     b.pendingElite = null;
-    if (!state.bestiary[elite]) addLog(state, 'narrator.eliteArrives', { name: `@enemy.${elite}` });
+    if (ENEMIES[elite].boss) addLog(state, 'narrator.bossArrives');
+    else if (!state.bestiary[elite]) addLog(state, 'narrator.eliteArrives', { name: `@enemy.${elite}` });
   }
   const type = elite ?? pickEnemyType(state, b.wave);
   const hp = ENEMIES[type].hp * enemyHpMultiplier(b.wave, b.siege) * epochDef(state.epoch).enemyHp;
@@ -142,6 +145,22 @@ function spawn(state: GameState, b: BattleState): void {
     type,
     x: B.spawnX,
     prevX: B.spawnX,
+    lane: randomInt(state.rng, 0, 2),
+    hp,
+    maxHp: hp,
+  });
+}
+
+/** Begleiter des Mutterschiffs: stark wie Gegner der letzten Welle, aus verschiedenen Bahnen. */
+function spawnEscort(state: GameState, b: BattleState): void {
+  const hp =
+    ENEMIES[FINALE.escort].hp * enemyHpMultiplier(B.wavesPerBattle, b.siege) * epochDef(state.epoch).enemyHp;
+  const x = B.spawnX - randomInt(state.rng, 0, 40);
+  b.enemies.push({
+    id: b.nextEnemyId++,
+    type: FINALE.escort,
+    x,
+    prevX: x,
     lane: randomInt(state.rng, 0, 2),
     hp,
     maxHp: hp,
@@ -164,6 +183,9 @@ export function damageEnemy(
   const amount = raw * (1 - armor) * (1 + bestiaryBonus(state, enemy.type));
   enemy.hp -= amount;
   state.fx.push({ kind: 'hit', x: enemy.x, lane: enemy.lane, amount, byClick });
+  // Endgegner unter einer Phasen-Schwelle? Dann kommen Begleiter.
+  const escorts = def0.boss ? bossPhase(state, enemy) : 0;
+  for (let i = 0; i < escorts; i++) spawnEscort(state, b);
   if (enemy.hp > 0) return;
 
   const def = ENEMIES[enemy.type];
@@ -192,7 +214,7 @@ export function damageEnemy(
   }
   state.fx.push({ kind: 'kill', x: enemy.x, lane: enemy.lane, enemy: enemy.type, gold, scrap });
 
-  if (def.elite && !state.timeParts[enemy.type]) {
+  if (def.elite && !def.boss && !state.timeParts[enemy.type]) {
     state.timeParts[enemy.type] = true;
     addTimeline(state, `elite.${enemy.type}.${state.epoch}`, {
       name: `@enemy.${enemy.type}`,
@@ -244,6 +266,7 @@ export function endBattle(state: GameState, result: 'won' | 'lost'): void {
     seconds: b.elapsed,
   };
   state.fx.push({ kind: 'battleEnd', result });
+  if (result === 'won' && b.final) winFinale(state);
 
   if (result === 'won') {
     state.stats.wins++;
@@ -288,7 +311,7 @@ export function tickBattle(state: GameState, dt: number): void {
     b.wave++;
     b.toSpawn += waveSize(b.wave);
     if (b.wave === B.wavesPerBattle) {
-      b.pendingElite = eliteForSiege(b.siege);
+      b.pendingElite = b.final ? 'mutterschiff' : eliteForSiege(b.siege);
       if (b.pendingElite) b.toSpawn += 1;
     }
     b.waveTimer = B.waveInterval;
@@ -309,7 +332,11 @@ export function tickBattle(state: GameState, dt: number): void {
   const enrage = enrageFactor(
     b.elapsed - (hasRelic(state, 'crackedHourglass') ? RELIC_NUMBERS.hourglassDelay : 0),
   );
-  const mirror = hasRelic(state, 'mirrorShield');
+  // Spiegelschild: pro Sekunde ein Anteil eines durchschnittlichen Truppen-Treffers.
+  const squad = hasRelic(state, 'mirrorShield') ? troops(state) : [];
+  const mirrorDps = squad.length
+    ? (squad.reduce((sum, u) => sum + unitDamage(state, u), 0) / squad.length) * RELIC_NUMBERS.mirrorShare
+    : 0;
   const reflected: [Enemy, number][] = [];
   for (const e of b.enemies) {
     e.prevX = e.x;
@@ -319,7 +346,7 @@ export function tickBattle(state: GameState, dt: number): void {
       const dmg = ENEMIES[e.type].wallDps * enrage * dt;
       b.wallHp -= dmg;
       b.wallDamageAcc += dmg;
-      if (mirror) reflected.push([e, e.maxHp * RELIC_NUMBERS.mirrorShare * dt]);
+      if (mirrorDps > 0) reflected.push([e, mirrorDps * dt]);
     }
   }
   // Spiegelschild erst nach der Schleife anwenden: besiegte Gegner verlassen die Liste.

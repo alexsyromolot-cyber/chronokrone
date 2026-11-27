@@ -8,7 +8,7 @@
  *                 Start-Boni aus der Chronik – damit sich der Sprung wie ein Aufstieg anfühlt.
  */
 import Decimal from 'break_eternity.js';
-import { epochDef, SHARDS } from '../data/epochs';
+import { epochDef, EPOCHS, SHARDS } from '../data/epochs';
 import { CLASSES, START_UNITS, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { addTimeline } from './achievements';
@@ -34,6 +34,7 @@ export function tokensForJump(state: GameState): number {
 export function jumpBlocker(state: GameState): MessageKey | null {
   if (state.timeMachineAt === null) return 'reason.noTimeMachine';
   if (state.battle) return 'reason.battleRunning';
+  if (state.epoch >= EPOCHS.length) return 'reason.lastEpoch';
   return null;
 }
 

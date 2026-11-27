@@ -58,6 +58,14 @@ export const EPOCH4_MAP: MapDef = {
   startUnlocked: [{ x: 2, y: 3 }],
 };
 
+export const EPOCH5_MAP: MapDef = {
+  ...EPOCH1_MAP,
+  // Das Raumschiff: „Fels“ sind Asteroiden, „Bäche“ Nebelströme, Gras ist leeres Deck.
+  terrain: ['rggsgggr', 'ggsggrgg', 'gsgggggr', 'gsgggsgg', 'ggsgggsg', 'rgsggrsg', 'ggsgggsg', 'rgggrgsr'],
+  keep: { x: 3, y: 3 },
+  startUnlocked: [{ x: 2, y: 3 }],
+};
+
 export const EPOCHS: EpochDef[] = [
   {
     id: 1,
@@ -144,6 +152,28 @@ export const EPOCHS: EpochDef[] = [
       panel2: '#282c1c',
       line: '#3e4428',
       background: '#14160e',
+    },
+  },
+  {
+    id: 5,
+    map: EPOCH5_MAP,
+    enemyHp: 20000,
+    gold: 8000,
+    palette: {
+      // Weltraum, Neon, Kirchenfenster: tiefes Blauschwarz, Magenta und Cyan wie buntes Glas.
+      sky: ['#05040c', '#0a0818', '#120c26', '#1a1034', '#241444'],
+      stars: '#9ad8ff',
+      treeline: '#140c24',
+      glow: '#ff6ad5',
+      ground: '#1a1630',
+      groundDark: '#141026',
+      wall: '#3a3460',
+      wallDark: '#2e2850',
+      accent: '#ff6ad5',
+      panel: '#140f24',
+      panel2: '#1e1734',
+      line: '#3a2e5a',
+      background: '#0c0918',
     },
   },
 ];

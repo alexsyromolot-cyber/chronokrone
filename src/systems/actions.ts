@@ -32,6 +32,7 @@ import { catchDrone, resolveEvent, rollDice } from './events';
 import { buy, sell } from './trade';
 import { equipCard, unequipCard } from './power';
 import { setThrottle } from './reactor';
+import { startFinale } from './finale';
 import { buySkill } from './skills';
 import type { GameState } from './state';
 import { recruit } from './units';
@@ -63,7 +64,8 @@ export type Action =
   | { type: 'marketBuy'; resource: ResourceId }
   | { type: 'equipCard'; cardId: string }
   | { type: 'unequipCard'; cardId: string }
-  | { type: 'setThrottle'; throttle: number };
+  | { type: 'setThrottle'; throttle: number }
+  | { type: 'startFinale' };
 
 /** Kosten der nächsten Mauerverstärkung = wallUpgradeCost × wallUpgradeGrowth^Stufe */
 export function wallUpgradeCost(state: GameState): Cost {
@@ -101,6 +103,7 @@ const REQUIRED_UNLOCK: Partial<Record<Action['type'], UnlockId>> = {
   equipCard: 'castle',
   unequipCard: 'castle',
   setThrottle: 'castle',
+  startFinale: 'castle',
 };
 
 /**
@@ -176,6 +179,8 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return unequipCard(state, action.cardId);
     case 'setThrottle':
       return setThrottle(state, action.throttle);
+    case 'startFinale':
+      return startFinale(state);
     case 'upgradeWall': {
       const blocker = wallUpgradeBlocker(state);
       if (blocker) return blocker;

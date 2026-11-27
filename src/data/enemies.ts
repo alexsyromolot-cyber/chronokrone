@@ -26,7 +26,8 @@ export type EnemyId =
   | 'muttersauger'
   | 'blechkoloss'
   | 'brummkoenigin'
-  | 'kommandant';
+  | 'kommandant'
+  | 'mutterschiff';
 
 export interface EnemyDef {
   id: EnemyId;
@@ -46,6 +47,8 @@ export interface EnemyDef {
   elite?: boolean;
   /** Anteil, den Nahkampfschaden weniger macht (0,5 = halber Schaden). */
   meleeArmor?: number;
+  /** Endgegner: wird dreifach groß gezeichnet und ruft in Phasen Begleiter (siehe FINALE). */
+  boss?: boolean;
 }
 
 export const ENEMIES: Record<EnemyId, EnemyDef> = {
@@ -148,6 +151,34 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     color: '#ff6a5d',
     elite: true,
   },
+  // Das Mutterschiff: kommt nur in der Finalschlacht (Epoche 5), als letzter Gegner der letzten Welle.
+  mutterschiff: {
+    id: 'mutterschiff',
+    hp: 180,
+    speed: 5,
+    wallDps: 20,
+    gold: 3000,
+    xp: 400,
+    fromWave: 99,
+    weight: 0,
+    color: '#ff6ad5',
+    elite: true,
+    boss: true,
+  },
+};
+
+/**
+ * Finale: Ist die Zeitmaschine in der letzten Epoche gebaut, startet statt des Sprungs die
+ * Schlacht gegen das Mutterschiff (Belagerungsstufe des letzten Elitegegners, 8 Wellen, Mutterschiff
+ * am Ende). Fest statt „höchste Stufe“: Wer weiter vorgeprescht ist, soll nicht bestraft werden.
+ * Fällt seine LP unter eine Phasen-Schwelle, ruft es escortsPerPhase Begleiter.
+ */
+export const FINALE = {
+  phases: [0.66, 0.33],
+  escortsPerPhase: 4,
+  /** Belagerungsstufe (ab 0) der Finalschlacht = die des letzten Elitegegners. */
+  siege: 11,
+  escort: 'brummdrohne' as EnemyId,
 };
 
 /** Welcher Elitegegner in welcher Belagerungsstufe (ab 0) am Ende der letzten Welle kommt. */

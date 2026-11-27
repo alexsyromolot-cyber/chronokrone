@@ -16,6 +16,8 @@ function isMet(state: GameState, c: UnlockCondition): boolean {
       return state.stats.kills >= c.count;
     case 'wins':
       return state.stats.wins >= c.count;
+    case 'hasBuilding':
+      return state.tiles.some((t) => t.building === c.building);
   }
 }
 

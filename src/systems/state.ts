@@ -11,6 +11,7 @@ import type { BuildingId } from '../data/buildings';
 import type { EnemyId } from '../data/enemies';
 import { EPOCH1_MAP, TERRAIN_CODES, type TerrainId } from '../data/map';
 import { LOG_LIMIT, type UnlockId } from '../data/progression';
+import type { ResearchId } from '../data/research';
 import { RESOURCE_IDS, type ResourceId } from '../data/resources';
 import { CLASSES, START_UNITS, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
@@ -84,6 +85,7 @@ export interface LogEntry {
 /** Kurzlebige Ereignisse für Effekte (Zahlen, Partikel, Shake). Werden nicht gespeichert. */
 export type FxEvent =
   | { kind: 'hit'; x: number; lane: number; amount: number; byClick: boolean }
+  | { kind: 'shot'; toX: number; lane: number; color: string; slot: number }
   | { kind: 'kill'; x: number; lane: number; enemy: EnemyId; gold: number; scrap: boolean }
   | { kind: 'wallHit' }
   | { kind: 'levelUp'; unitId: number }
@@ -117,6 +119,8 @@ export interface GameState {
   nextUnitId: number;
   skillPoints: Record<ClassId, number>;
   skills: Record<string, number>;
+  /** Abgeschlossene Forschung. */
+  research: Partial<Record<ResearchId, boolean>>;
   wallUpgrades: number;
   /** Höchste freigeschaltete Belagerungsstufe (0 = erste). */
   siegeLevel: number;
@@ -170,6 +174,7 @@ export function createInitialState(seed = Date.now()): GameState {
     nextUnitId: START_UNITS.length + 1,
     skillPoints,
     skills: {},
+    research: {},
     wallUpgrades: 0,
     siegeLevel: 0,
     battle: null,

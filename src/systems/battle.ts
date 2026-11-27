@@ -4,7 +4,7 @@
  */
 import { chance, nextRandom, randomInt } from '../core/rng';
 import { BATTLE as B, ENEMIES, type EnemyId } from '../data/enemies';
-import { UNIT_FORMULAS } from '../data/units';
+import { CLASSES, UNIT_FORMULAS } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { gain, keepLevel } from './resources';
 import { skillBonus } from './skills';
@@ -13,6 +13,8 @@ import { addXp, attackInterval, attributesOf, troops, unitDamage } from './units
 
 /** Wie weit vor der Mauer Nahkämpfer zuschlagen können (Pixel). */
 const MELEE_REACH = 26;
+/** Anteil des Schadens, den Aliens im Flächenradius abbekommen. */
+const SPLASH_FACTOR = 0.6;
 
 /** Mauer-LP = (Basis + 10 × Verstärkungen + 2 × Ausdauer aller Truppen) × (1 + Mauerwächter-Bonus) */
 export function wallMaxHp(state: GameState): number {
@@ -219,19 +221,31 @@ export function tickBattle(state: GameState, dt: number): void {
     state.fx.push({ kind: 'wallHit' });
   }
 
-  // Verteidiger schlagen automatisch den vordersten Alien in Reichweite.
-  for (const unit of troops(state)) {
+  // Verteidiger schlagen automatisch den vordersten Alien in ihrer Reichweite.
+  const team = troops(state);
+  for (let slot = 0; slot < team.length; slot++) {
+    const unit = team[slot]!;
     const cd = (b.cooldowns[unit.id] ?? 0) - dt;
     if (cd > 0) {
       b.cooldowns[unit.id] = cd;
       continue;
     }
+    const def = CLASSES[unit.classId];
     let target: Enemy | undefined;
     for (const e of b.enemies) {
-      if (e.x <= B.wallX + MELEE_REACH && (!target || e.x < target.x)) target = e;
+      if (e.x <= B.wallX + def.range && (!target || e.x < target.x)) target = e;
     }
     if (target) {
-      damageEnemy(state, target, unitDamage(state, unit), false);
+      const dmg = unitDamage(state, unit);
+      if (def.range > MELEE_REACH) {
+        state.fx.push({ kind: 'shot', toX: target.x, lane: target.lane, color: def.color, slot });
+      }
+      // Flächenschaden: Nachbarn des Ziels bekommen einen Teil ab (vor dem Haupttreffer
+      // ausgewählt, damit ein sterbendes Ziel die Liste nicht verändert).
+      const splashed =
+        def.splash > 0 ? b.enemies.filter((e) => e !== target && Math.abs(e.x - target.x) <= def.splash) : [];
+      damageEnemy(state, target, dmg, false);
+      for (const e of splashed) damageEnemy(state, e, dmg * SPLASH_FACTOR, false);
       b.cooldowns[unit.id] = attackInterval(unit);
     } else {
       b.cooldowns[unit.id] = 0;

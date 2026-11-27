@@ -2,8 +2,8 @@
  * Einheiten: Attribute, Kampfwerte, Erfahrung, Anwerben.
  * Formeln und Zahlen stehen in data/units.ts.
  */
-import { BARRACKS, BUILDINGS } from '../data/buildings';
-import { CLASSES, UNIT_FORMULAS as F, type Attributes, type ClassId } from '../data/units';
+import { BARRACKS, BUILDINGS, type BuildingId } from '../data/buildings';
+import { CLASSES, TROOP_BUILDINGS, UNIT_FORMULAS as F, type Attributes, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
 import { skillBonus } from './skills';
@@ -28,17 +28,33 @@ export function troops(state: GameState): Unit[] {
   return state.units.filter(isTroop);
 }
 
-export function barracksLevel(state: GameState): number {
-  return state.tiles.find((t) => t.building === 'barracks')?.level ?? 0;
+function levelOf(state: GameState, building: BuildingId): number {
+  return state.tiles.find((t) => t.building === building)?.level ?? 0;
 }
 
-/** Schaden = baseDamage × (1 + 0,10 × Stärke) × (1 + Skill-Bonus + Kasernen-Bonus) */
+export function barracksLevel(state: GameState): number {
+  return levelOf(state, 'barracks');
+}
+
+/** Level des Ausbildungsgebäudes einer Truppenklasse (Kaserne, Schießstand, Magierturm). */
+export function trainingLevel(state: GameState, classId: ClassId): number {
+  const building = CLASSES[classId].requires ?? 'barracks';
+  return levelOf(state, building);
+}
+
+/** +Anteil Schaden aus Skills und Ausbildungsgebäude. */
+export function damageBonus(state: GameState, unit: Unit): number {
+  return (
+    skillBonus(state, unit.classId, 'damageMult') +
+    BARRACKS.damageBonusPerLevel * trainingLevel(state, unit.classId)
+  );
+}
+
+/** Schaden = baseDamage × (1 + 0,10 × Hauptattribut) × (1 + Skill-Bonus + Gebäude-Bonus) */
 export function unitDamage(state: GameState, unit: Unit): number {
   const def = CLASSES[unit.classId];
-  const str = attributesOf(unit).str;
-  const bonus =
-    skillBonus(state, unit.classId, 'damageMult') + BARRACKS.damageBonusPerLevel * barracksLevel(state);
-  return def.baseDamage * (1 + F.damagePerStr * str) * (1 + bonus);
+  const main = attributesOf(unit)[def.mainAttr];
+  return def.baseDamage * (1 + F.damagePerAttr * main) * (1 + damageBonus(state, unit));
 }
 
 /** Sekunden zwischen zwei Schlägen = attackInterval / (1 + 0,03 × Geschick) */
@@ -46,9 +62,9 @@ export function attackInterval(unit: Unit): number {
   return CLASSES[unit.classId].attackInterval / (1 + F.speedPerDex * attributesOf(unit).dex);
 }
 
-/** Sammler-Arbeitsbonus = 0,5 + 0,05 × Stärke */
+/** Sammler-Arbeitsbonus = 0,5 + 0,05 × Hauptattribut der Klasse */
 export function workPower(unit: Unit): number {
-  return F.workBase + F.workPerStr * attributesOf(unit).str;
+  return F.workBase + F.workPerAttr * attributesOf(unit)[CLASSES[unit.classId].mainAttr];
 }
 
 /** XP für den Schritt von `level` auf `level + 1`. */
@@ -71,8 +87,10 @@ export function addXp(state: GameState, unit: Unit, xp: number): void {
   }
 }
 
+/** Truppenplätze = 3 + 2 × (Summe der Level von Kaserne, Schießstand und Magierturm) */
 export function troopCapacity(state: GameState): number {
-  return BARRACKS.troopSlotsBase + BARRACKS.troopSlotsPerLevel * barracksLevel(state);
+  const levels = TROOP_BUILDINGS.reduce((sum, b) => sum + levelOf(state, b), 0);
+  return BARRACKS.troopSlotsBase + BARRACKS.troopSlotsPerLevel * levels;
 }
 
 /** Sammler brauchen Arbeitsplätze in ihrem Gebäude. */

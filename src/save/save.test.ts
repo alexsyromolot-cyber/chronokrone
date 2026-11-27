@@ -62,6 +62,25 @@ describe('Migrationen', () => {
     expect(out.state).toEqual({ a: 1, b: 2 });
   });
 
+  it('v1 → v2: das alte 4×4-Raster landet in der Mitte der 8×8-Karte', () => {
+    const tilesV1 = [];
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        tilesV1.push({ x, y, terrain: 'grass', unlocked: x < 2, building: null as string | null, level: 0 });
+      }
+    }
+    tilesV1[5]!.building = 'keep'; // (1,1)
+    tilesV1[5]!.level = 3;
+    const text = JSON.stringify({ version: 1, savedAt: 0, state: { tiles: tilesV1, time: 42 } });
+    const { state, migratedFrom } = deserialize(text);
+    expect(migratedFrom).toBe(1);
+    expect(state.tiles).toHaveLength(64);
+    const keep = state.tiles.find((t) => t.building === 'keep')!;
+    expect([keep.x, keep.y, keep.level]).toEqual([3, 3, 3]);
+    expect(state.tiles.find((t) => t.x === 0 && t.y === 0)!.unlocked).toBe(false);
+    expect(state.time).toBe(42);
+  });
+
   it('bricht ab, wenn ein Schritt fehlt', () => {
     expect(() => migrate({ version: 0, savedAt: 0, state: {} }, {}, 1)).toThrow();
   });

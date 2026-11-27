@@ -5,10 +5,11 @@
  */
 import { BUILDINGS, type BuildingId } from '../data/buildings';
 import { BATTLE } from '../data/enemies';
+import { RESEARCH } from '../data/research';
 import { SKILLS } from '../data/skills';
 import type { ClassId } from '../data/units';
 import { dispatch, type Action } from '../systems/actions';
-import { countBuildings, neighbors } from '../systems/castle';
+import { buildingAvailable, countBuildings, inBounds, neighbors } from '../systems/castle';
 import type { GameState, Tile } from '../systems/state';
 import { troops } from '../systems/units';
 
@@ -32,23 +33,57 @@ function bestTile(state: GameState, id: BuildingId): Tile | undefined {
   return free.sort((a, b) => score(b) - score(a))[0];
 }
 
+/** Reihenfolge, in der der Bot jedes Gebäude einmal baut, sobald es erforscht ist. */
+const BUILD_ORDER: BuildingId[] = [
+  'lumberHut',
+  'quarry',
+  'barracks',
+  'monastery',
+  'mine',
+  'herbGarden',
+  'sawmill',
+  'storehouse',
+  'smelter',
+  'alchemy',
+  'archeryRange',
+  'tavern',
+  'smithy',
+  'scriptorium',
+  'workshop',
+  'mageTower',
+];
+
+const RECRUIT_ORDER: ClassId[] = [
+  'monk',
+  'woodcutter',
+  'miner',
+  'herbalist',
+  'knight',
+  'archer',
+  'warlock',
+  'peasant',
+];
+
 /** Kaufwünsche in Prioritätsreihenfolge; der erste, der klappt, wird gekauft. */
 function wishes(state: GameState): Action[] {
   const list: Action[] = [];
   for (const s of SKILLS) list.push({ type: 'buySkill', skillId: s.id });
 
-  const order: BuildingId[] = ['lumberHut', 'quarry', 'barracks'];
-  const locked = state.tiles.find((x) => !x.unlocked && neighbors(state, x).some((n) => n.unlocked));
-  for (const id of order) {
-    if (countBuildings(state, id) === 0) {
+  // Forschung: die günstigste verfügbare zuerst.
+  for (const r of [...RESEARCH].sort((a, b) => a.cost - b.cost)) list.push({ type: 'research', id: r.id });
+
+  const locked = state.tiles.find(
+    (x) => !x.unlocked && inBounds(state, x) && neighbors(state, x).some((n) => n.unlocked),
+  );
+  for (const id of BUILD_ORDER) {
+    if (countBuildings(state, id) === 0 && buildingAvailable(state, id) === null) {
       const t = bestTile(state, id);
       if (t) list.push({ type: 'build', x: t.x, y: t.y, building: id });
-      // Kein Platz für ein fehlendes Gebäude? Dann zuerst roden – und bis dahin nichts anderes kaufen.
-      else if (locked) return [{ type: 'clearTile', x: locked.x, y: locked.y }];
+      // Kein Platz für ein fehlendes Gebäude? Dann ist Roden der nächste Wunsch.
+      else if (locked) list.push({ type: 'clearTile', x: locked.x, y: locked.y });
     }
   }
-  const recruits: ClassId[] = ['woodcutter', 'knight', 'peasant'];
-  for (const c of recruits) list.push({ type: 'recruit', classId: c });
+  for (const c of RECRUIT_ORDER) list.push({ type: 'recruit', classId: c });
 
   // Günstigstes Upgrade zuerst: Gebäude nach Level sortiert.
   const built = state.tiles.filter((t) => t.building).sort((a, b) => a.level - b.level);

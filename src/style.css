@@ -120,19 +120,6 @@ kbd {
   align-self: center;
 }
 
-.res-gold .res-dot {
-  background: var(--gold);
-}
-.res-wood .res-dot {
-  background: var(--wood);
-}
-.res-stone .res-dot {
-  background: var(--stone);
-}
-.res-scrap .res-dot {
-  background: var(--scrap);
-}
-
 .res-name {
   color: var(--ink-dim);
 }
@@ -262,6 +249,10 @@ kbd {
 
 .good {
   color: var(--good);
+}
+
+.bad {
+  color: var(--bad);
 }
 
 /* ---------- Schlacht ---------- */
@@ -402,18 +393,6 @@ kbd {
   gap: 2px 8px;
 }
 
-.cost.res-gold {
-  color: var(--gold);
-}
-.cost.res-wood {
-  color: var(--wood);
-}
-.cost.res-stone {
-  color: var(--stone);
-}
-.cost.res-scrap {
-  color: var(--scrap);
-}
 .cost.missing {
   color: var(--bad);
   text-decoration: underline dotted;
@@ -448,15 +427,16 @@ kbd {
 }
 
 .grid {
+  --tile: 46px;
   display: grid;
-  grid-template-columns: repeat(var(--cols), 56px);
-  gap: 3px;
+  grid-template-columns: repeat(var(--cols), var(--tile));
+  gap: 2px;
 }
 
 .tile {
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: var(--tile);
+  height: var(--tile);
   border: 2px solid transparent;
   padding: 0;
   cursor: pointer;
@@ -465,7 +445,7 @@ kbd {
 }
 
 .tile img {
-  width: 48px;
+  width: calc(var(--tile) - 8px);
   height: auto;
 }
 
@@ -493,6 +473,12 @@ kbd {
 .tile.locked.affordable {
   filter: brightness(0.6) saturate(0.6);
   border-color: var(--torch-dark);
+}
+
+/* Unvermessenes Land: kaum sichtbar, nicht anklickbar zum Roden. */
+.tile.fog {
+  filter: brightness(0.18) saturate(0.2);
+  cursor: default;
 }
 
 .tile .q {
@@ -801,4 +787,55 @@ kbd {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ---------- Forschung ---------- */
+.research-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.node {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  padding: 5px 6px;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  cursor: pointer;
+  min-height: 52px;
+}
+
+.node .name {
+  font-size: 0.82em;
+}
+
+.node .cost {
+  font-size: 0.75em;
+  color: var(--ink-dim);
+}
+
+.node.ready {
+  border-color: var(--torch);
+  box-shadow: 0 0 6px var(--torch-dark);
+}
+
+.node.pending .cost {
+  color: var(--bad);
+}
+
+.node.done {
+  border-color: var(--good);
+  opacity: 0.8;
+}
+
+.node.locked {
+  opacity: 0.4;
+}
+
+.node:disabled {
+  cursor: default;
 }

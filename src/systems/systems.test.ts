@@ -79,14 +79,14 @@ describe('Burg', () => {
   it('sperrt Bauen, bis die Burg freigeschaltet ist', () => {
     const s = newGame(1);
     s.resources.gold = new Decimal(100);
-    expect(dispatch(s, { type: 'build', x: 0, y: 1, building: 'lumberHut' })).toBe('reason.notYet');
+    expect(dispatch(s, { type: 'build', x: 2, y: 3, building: 'lumberHut' })).toBe('reason.notYet');
   });
 
   it('baut, produziert mit Geländebonus und schaltet Anwerben sofort frei', () => {
     const s = afterFirstBattle();
-    expect(dispatch(s, { type: 'build', x: 0, y: 1, building: 'lumberHut' })).toBeNull();
+    expect(dispatch(s, { type: 'build', x: 2, y: 3, building: 'lumberHut' })).toBeNull();
     expect(s.unlocked.recruit).toBe(true);
-    const p = tileProduction(s, tileAt(s, 0, 1)!)!;
+    const p = tileProduction(s, tileAt(s, 2, 3)!)!;
     // Wald: 0,15 × Level 1 × Meilenstein 1 × Gelände 1,5 × (1 + 0)
     expect(p.terrain).toBe(1.5);
     expect(p.total).toBeCloseTo(BUILDINGS.lumberHut.produces!.perLevel * 1.5);
@@ -96,11 +96,11 @@ describe('Burg', () => {
   it('verteuert weitere Gebäude desselben Typs und Ausbauten', () => {
     const s = afterFirstBattle();
     const first = buildCost(s, 'lumberHut').gold!.toNumber();
-    dispatch(s, { type: 'build', x: 0, y: 1, building: 'lumberHut' });
+    dispatch(s, { type: 'build', x: 2, y: 3, building: 'lumberHut' });
     expect(buildCost(s, 'lumberHut').gold!.toNumber()).toBeGreaterThan(first);
-    const tile = tileAt(s, 0, 1)!;
+    const tile = tileAt(s, 2, 3)!;
     const lv2 = upgradeCost(tile).gold!.toNumber();
-    dispatch(s, { type: 'upgrade', x: 0, y: 1 });
+    dispatch(s, { type: 'upgrade', x: 2, y: 3 });
     expect(upgradeCost(tile).gold!.toNumber()).toBeGreaterThan(lv2);
   });
 
@@ -112,16 +112,16 @@ describe('Burg', () => {
 
   it('rodet nur Felder neben freien Feldern', () => {
     const s = afterFirstBattle();
-    expect(dispatch(s, { type: 'clearTile', x: 3, y: 3 })).toBe('reason.notAdjacent');
-    expect(dispatch(s, { type: 'clearTile', x: 0, y: 0 })).toBeNull();
-    expect(tileAt(s, 0, 0)!.unlocked).toBe(true);
+    expect(dispatch(s, { type: 'clearTile', x: 5, y: 5 })).toBe('reason.notAdjacent');
+    expect(dispatch(s, { type: 'clearTile', x: 2, y: 2 })).toBeNull();
+    expect(tileAt(s, 2, 2)!.unlocked).toBe(true);
   });
 });
 
 describe('Einheiten', () => {
   it('Holzfäller brauchen eine Hütte und erhöhen die Produktion', () => {
     const s = afterFirstBattle();
-    dispatch(s, { type: 'build', x: 0, y: 1, building: 'lumberHut' });
+    dispatch(s, { type: 'build', x: 2, y: 3, building: 'lumberHut' });
     const before = productionRates(s).wood;
     expect(dispatch(s, { type: 'recruit', classId: 'woodcutter' })).toBeNull();
     expect(productionRates(s).wood).toBeGreaterThan(before);
@@ -130,7 +130,7 @@ describe('Einheiten', () => {
 
   it('Truppen sind ohne Kaserne auf 3 begrenzt', () => {
     const s = afterFirstBattle();
-    dispatch(s, { type: 'build', x: 0, y: 1, building: 'lumberHut' });
+    dispatch(s, { type: 'build', x: 2, y: 3, building: 'lumberHut' });
     expect(dispatch(s, { type: 'recruit', classId: 'peasant' })).toBe('reason.noTroopSlots');
   });
 

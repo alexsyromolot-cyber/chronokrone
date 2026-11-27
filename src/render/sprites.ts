@@ -8,13 +8,14 @@ import type { EnemyId } from '../data/enemies';
 import type { TerrainId } from '../data/map';
 import type { ClassId } from '../data/units';
 import type { PixelSprite } from './pixel';
+import { M3_BUILDING_SPRITES, M3_UNIT_SPRITES } from './sprites-m3';
 
 const SKIN = '#e8b98a';
 const DARK = '#2a1d1a';
 const STEEL = '#c8ccd8';
 const WOOD = '#a07a4a';
 
-export const UNIT_SPRITES: Record<ClassId, PixelSprite> = {
+const BASE_UNIT_SPRITES = {
   peasant: {
     rows: [
       '...hhhh..m.m',
@@ -125,7 +126,7 @@ export const ENEMY_SPRITES: Record<EnemyId, PixelSprite> = {
 const STONE = '#8d90a6';
 const STONE_DARK = '#5c5f78';
 
-export const BUILDING_SPRITES: Record<BuildingId, PixelSprite> = {
+const BASE_BUILDING_SPRITES = {
   keep: {
     rows: [
       '.......kff......',
@@ -240,3 +241,9 @@ export const TERRAIN_SPRITES: Partial<Record<TerrainId, PixelSprite>> = {
     palette: { b: '#7fc8e8' },
   },
 };
+
+export const UNIT_SPRITES = { ...BASE_UNIT_SPRITES, ...M3_UNIT_SPRITES } as Record<ClassId, PixelSprite>;
+export const BUILDING_SPRITES = { ...BASE_BUILDING_SPRITES, ...M3_BUILDING_SPRITES } as Record<
+  BuildingId,
+  PixelSprite
+>;

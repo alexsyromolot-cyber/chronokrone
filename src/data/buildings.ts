@@ -1,22 +1,53 @@
 /**
- * Gebäude von Epoche 1 (Vertical Slice: Bergfried + drei baubare Gebäude).
+ * Gebäude von Epoche 1.
  *
- * Kosten für den Schritt von Level L auf L+1:
- *   Kosten = Grundkosten × costGrowth^L          (L = 0 heißt: neu bauen)
- * Sanfte Kurven (~1,1) für Grundgebäude, steile (1,3+) für Spezialgebäude.
+ * Kosten Bau:      Grundkosten × buildCountGrowth^(Anzahl vorhandener Gebäude dieses Typs)
+ * Kosten Ausbau:   Ausbau-Grundkosten × costGrowth^(Level − 1)
+ * Sanfte Kurven (~1,15) für Grundgebäude, steile (1,3+) für Spezialgebäude.
  *
- * Produktion pro Sekunde:
- *   Basis × Level × Meilenstein-Faktor × Gelände × (1 + Nachbarschaft + Arbeiter + Skills)
+ * Produktion pro Sekunde (Erzeuger):
+ *   Basis × Level × Meilenstein × Gelände × (1 + Nachbarn + Arbeiter + Skills + Taverne)
+ *
+ * Rezepte (Umwandler): pro Sekunde laufen  cyclesPerLevel × Level × Meilenstein × (1 + Boni)
+ * Durchgänge; jeder Durchgang verbraucht `inputs` und liefert `outputs`. Fehlt eine Zutat,
+ * läuft nur so viel, wie vorhanden ist – die knappste Zutat ist der „Engpass“.
  */
+import type { ResearchId } from './research';
 import type { ResourceAmounts, ResourceId } from './resources';
 import type { TerrainId } from './map';
 
-export type BuildingId = 'keep' | 'lumberHut' | 'quarry' | 'barracks';
+export type BuildingId =
+  | 'keep'
+  | 'lumberHut'
+  | 'quarry'
+  | 'barracks'
+  | 'monastery'
+  | 'mine'
+  | 'herbGarden'
+  | 'storehouse'
+  | 'sawmill'
+  | 'smelter'
+  | 'alchemy'
+  | 'tavern'
+  | 'smithy'
+  | 'scriptorium'
+  | 'archeryRange'
+  | 'workshop'
+  | 'mageTower';
+
+export interface Recipe {
+  inputs: ResourceAmounts;
+  outputs: ResourceAmounts;
+  /** Durchgänge pro Sekunde je Level. */
+  cyclesPerLevel: number;
+}
 
 export interface BuildingDef {
   id: BuildingId;
   /** Darf der Spieler es auf ein freies Feld setzen? (Bergfried steht von Anfang an.) */
   buildable: boolean;
+  /** Forschung, die den Bau erlaubt. */
+  research?: ResearchId;
   /** Höchstanzahl auf dem Raster (undefined = beliebig viele). */
   maxCount?: number;
   /** Kosten für den Bau (Level 0 → 1). */
@@ -25,11 +56,12 @@ export interface BuildingDef {
   upgradeCost?: ResourceAmounts;
   costGrowth: number;
   produces?: { resource: ResourceId; perLevel: number };
+  recipe?: Recipe;
   /** Multiplikator, wenn das Gebäude auf diesem Gelände steht. */
   terrainBonus?: Partial<Record<TerrainId, number>>;
   /** +Anteil je angrenzendem Gebäude dieses Typs (oben/unten/links/rechts). */
   neighborBonus?: { building: BuildingId; bonus: number };
-  /** Plätze für Sammler einer Klasse, je Gebäude. */
+  /** Plätze für Sammler der zugehörigen Klasse, je Gebäude. */
   workerSlots?: number;
 }
 
@@ -76,6 +108,136 @@ export const BUILDINGS: Record<BuildingId, BuildingDef> = {
     upgradeCost: { gold: 25, wood: 20, stone: 20 },
     costGrowth: 1.35,
   },
+  monastery: {
+    id: 'monastery',
+    buildable: true,
+    baseCost: { gold: 40, wood: 25, stone: 25 },
+    upgradeCost: { gold: 20, stone: 20 },
+    costGrowth: 1.25,
+    produces: { resource: 'knowledge', perLevel: 0.12 },
+    // Stille am Bach fördert das Denken. Behauptet zumindest der Abt.
+    terrainBonus: { stream: 1.3 },
+    workerSlots: 2,
+  },
+  mine: {
+    id: 'mine',
+    buildable: true,
+    research: 'mining',
+    baseCost: { gold: 35, wood: 30 },
+    upgradeCost: { gold: 15, wood: 20, stone: 10 },
+    costGrowth: 1.2,
+    produces: { resource: 'ore', perLevel: 0.25 },
+    terrainBonus: { rock: 1.6 },
+    workerSlots: 2,
+  },
+  herbGarden: {
+    id: 'herbGarden',
+    buildable: true,
+    research: 'herbalism',
+    baseCost: { gold: 30, wood: 20 },
+    upgradeCost: { gold: 12, wood: 15 },
+    costGrowth: 1.2,
+    produces: { resource: 'herbs', perLevel: 0.25 },
+    terrainBonus: { stream: 1.5, grass: 1.2 },
+    workerSlots: 2,
+  },
+  storehouse: {
+    id: 'storehouse',
+    buildable: true,
+    research: 'storage',
+    maxCount: 1,
+    baseCost: { gold: 40, wood: 40, stone: 30 },
+    upgradeCost: { gold: 30, wood: 30, stone: 30 },
+    costGrowth: 1.45,
+  },
+  sawmill: {
+    id: 'sawmill',
+    buildable: true,
+    research: 'sawing',
+    baseCost: { gold: 40, wood: 30, stone: 20 },
+    upgradeCost: { gold: 20, stone: 20 },
+    costGrowth: 1.22,
+    recipe: { inputs: { wood: 2 }, outputs: { planks: 1 }, cyclesPerLevel: 0.25 },
+    // Laut Konzept: Sägewerk neben Holzfäller +15 %.
+    neighborBonus: { building: 'lumberHut', bonus: 0.15 },
+  },
+  smelter: {
+    id: 'smelter',
+    buildable: true,
+    research: 'smelting',
+    baseCost: { gold: 50, stone: 40, planks: 10 },
+    upgradeCost: { gold: 25, stone: 25, planks: 5 },
+    costGrowth: 1.22,
+    recipe: { inputs: { ore: 2 }, outputs: { iron: 1 }, cyclesPerLevel: 0.15 },
+    neighborBonus: { building: 'mine', bonus: 0.15 },
+  },
+  alchemy: {
+    id: 'alchemy',
+    buildable: true,
+    research: 'alchemy',
+    baseCost: { gold: 50, wood: 30, planks: 10 },
+    upgradeCost: { gold: 25, planks: 8 },
+    costGrowth: 1.22,
+    recipe: { inputs: { herbs: 3 }, outputs: { ink: 1 }, cyclesPerLevel: 0.1 },
+    neighborBonus: { building: 'herbGarden', bonus: 0.15 },
+  },
+  tavern: {
+    id: 'tavern',
+    buildable: true,
+    research: 'tavern',
+    baseCost: { gold: 60, planks: 20, stone: 20 },
+    upgradeCost: { gold: 40, planks: 15 },
+    costGrowth: 1.35,
+  },
+  smithy: {
+    id: 'smithy',
+    buildable: true,
+    research: 'smithing',
+    baseCost: { gold: 80, stone: 40, iron: 10 },
+    upgradeCost: { gold: 40, iron: 10 },
+    costGrowth: 1.25,
+    recipe: { inputs: { iron: 2, wood: 1 }, outputs: { steel: 1 }, cyclesPerLevel: 0.08 },
+    // Laut Konzept: Schmiede neben Mine +20 %.
+    neighborBonus: { building: 'mine', bonus: 0.2 },
+  },
+  scriptorium: {
+    id: 'scriptorium',
+    buildable: true,
+    research: 'writing',
+    baseCost: { gold: 80, planks: 25, ink: 5 },
+    upgradeCost: { gold: 40, planks: 15, ink: 3 },
+    costGrowth: 1.25,
+    recipe: { inputs: { ink: 2, knowledge: 1 }, outputs: { scrolls: 1 }, cyclesPerLevel: 0.05 },
+    neighborBonus: { building: 'monastery', bonus: 0.2 },
+  },
+  archeryRange: {
+    id: 'archeryRange',
+    buildable: true,
+    research: 'archery',
+    maxCount: 1,
+    baseCost: { gold: 70, planks: 30, stone: 20 },
+    upgradeCost: { gold: 40, planks: 20 },
+    costGrowth: 1.35,
+  },
+  workshop: {
+    id: 'workshop',
+    buildable: true,
+    research: 'scrapLore',
+    baseCost: { gold: 100, planks: 30, iron: 15 },
+    upgradeCost: { gold: 50, iron: 10 },
+    costGrowth: 1.3,
+    // Alien-Schrott sortieren: Aus drei Teilen wird ein Chip, der zumindest nicht mehr brennt.
+    recipe: { inputs: { scrap: 3 }, outputs: { chips: 1 }, cyclesPerLevel: 0.05 },
+  },
+  mageTower: {
+    id: 'mageTower',
+    buildable: true,
+    research: 'arcana',
+    maxCount: 1,
+    baseCost: { gold: 150, stone: 80, scrolls: 5 },
+    upgradeCost: { gold: 80, scrolls: 3 },
+    costGrowth: 1.4,
+  },
 };
 
 /**
@@ -88,9 +250,13 @@ export const BUILD_COUNT_GROWTH = 1.6;
 /** Ab diesen Gebäude-Leveln verdoppelt sich die Produktion (mit Bildschirm-Shake). */
 export const BUILDING_MILESTONES = [10, 25, 50, 100] as const;
 
-/** Kaserne: Truppenplätze und Schadensbonus pro Level. */
+/** Truppen-Gebäude: Plätze und Schadensbonus pro Level. */
 export const BARRACKS = {
   troopSlotsBase: 3,
+  /** Kaserne, Schießstand und Magierturm geben je Level diese Plätze. */
   troopSlotsPerLevel: 2,
   damageBonusPerLevel: 0.05,
 } as const;
+
+/** Taverne: angrenzende Sammler-Gebäude +Anteil je Tavernen-Level (Arbeitsmoral). */
+export const TAVERN_BONUS_PER_LEVEL = 0.1;

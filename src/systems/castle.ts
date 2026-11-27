@@ -1,13 +1,21 @@
 /**
- * Burg-Raster: bauen, ausbauen, roden, produzieren.
- * Die Produktion wird als Aufschlüsselung berechnet, damit Tooltips jede Zahl erklären können.
+ * Burg-Raster: bauen, ausbauen, roden, produzieren, umwandeln.
+ * Produktion und Rezepte werden als Aufschlüsselung berechnet, damit Tooltips jede Zahl
+ * erklären und den Engpass einer Kette zeigen können.
  */
-import { BUILD_COUNT_GROWTH, BUILDING_MILESTONES, BUILDINGS, type BuildingId } from '../data/buildings';
+import {
+  BUILD_COUNT_GROWTH,
+  BUILDING_MILESTONES,
+  BUILDINGS,
+  TAVERN_BONUS_PER_LEVEL,
+  type BuildingId,
+} from '../data/buildings';
 import { EPOCH1_MAP } from '../data/map';
 import { RESOURCE_IDS, type ResourceId } from '../data/resources';
 import { CLASSES, UNIT_FORMULAS, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
-import { canAfford, exceedsCap, gain, pay, scaledCost, type Cost } from './resources';
+import { hasResearch, surveyBounds } from './research';
+import { canAfford, exceedsCap, gain, pay, resourceCap, scaledCost, type Cost } from './resources';
 import { skillBonus } from './skills';
 import { addLog, type GameState, type Tile, type Unit } from './state';
 import { addXp, workPower } from './units';
@@ -30,6 +38,16 @@ export function countBuildings(state: GameState, id: BuildingId): number {
   return state.tiles.filter((t) => t.building === id).length;
 }
 
+/** Summe der Level aller Gebäude eines Typs. */
+export function buildingLevel(state: GameState, id: BuildingId): number {
+  return state.tiles.filter((t) => t.building === id).reduce((sum, t) => sum + t.level, 0);
+}
+
+export function inBounds(state: GameState, tile: Tile): boolean {
+  const b = surveyBounds(state);
+  return tile.x >= b.min && tile.x <= b.max && tile.y >= b.min && tile.y <= b.max;
+}
+
 /** Klasse, die in diesem Gebäude arbeitet (z. B. Holzfäller → Holzfällerhütte). */
 export function workerClassFor(building: BuildingId): ClassId | undefined {
   return (Object.keys(CLASSES) as ClassId[]).find(
@@ -37,10 +55,7 @@ export function workerClassFor(building: BuildingId): ClassId | undefined {
   );
 }
 
-/**
- * Sammler werden automatisch auf Gebäude ihres Typs verteilt (Raster-Reihenfolge).
- * Im Vertical Slice reicht das; manuelles Zuweisen kommt mit mehr Sammler-Klassen.
- */
+/** Sammler werden automatisch auf Gebäude ihres Typs verteilt (Raster-Reihenfolge). */
 export function workersAt(state: GameState, tile: Tile): Unit[] {
   if (!tile.building) return [];
   const cls = workerClassFor(tile.building);
@@ -56,6 +71,18 @@ export function milestoneMultiplier(level: number): number {
   return 2 ** BUILDING_MILESTONES.filter((m) => level >= m).length;
 }
 
+function neighborBonus(state: GameState, tile: Tile): number {
+  const nb = tile.building ? BUILDINGS[tile.building].neighborBonus : undefined;
+  return nb ? neighbors(state, tile).filter((n) => n.building === nb.building).length * nb.bonus : 0;
+}
+
+/** Taverne: Sammler in angrenzenden Gebäuden arbeiten fröhlicher. */
+function tavernBonus(state: GameState, tile: Tile): number {
+  return neighbors(state, tile)
+    .filter((n) => n.building === 'tavern')
+    .reduce((sum, n) => sum + n.level * TAVERN_BONUS_PER_LEVEL, 0);
+}
+
 export interface ProductionBreakdown {
   resource: ResourceId;
   perLevel: number;
@@ -65,7 +92,8 @@ export interface ProductionBreakdown {
   neighbor: number;
   workers: number;
   skills: number;
-  /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills) */
+  tavern: number;
+  /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern) */
   total: number;
 }
 
@@ -76,19 +104,17 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
 
   const cls = workerClassFor(tile.building);
   const terrainBase = def.terrainBonus?.[tile.terrain] ?? 1;
-  // Försterwissen verstärkt nur den Gelände-Anteil über 1 (1,5 → 2,0).
+  // Försterwissen & Co. verstärken nur den Gelände-Anteil über 1 (1,5 → 2,0).
   const terrainSkill = cls ? skillBonus(state, cls, 'terrainBonusMult') : 0;
   const terrain = 1 + (terrainBase - 1) * (1 + terrainSkill);
-
-  const nb = def.neighborBonus;
-  const neighbor = nb
-    ? neighbors(state, tile).filter((n) => n.building === nb.building).length * nb.bonus
-    : 0;
+  const neighbor = neighborBonus(state, tile);
   const workers = workersAt(state, tile).reduce((sum, u) => sum + workPower(u), 0);
   const skills = cls ? skillBonus(state, cls, 'productionMult') : 0;
+  const tavern = cls ? tavernBonus(state, tile) : 0;
   const milestone = milestoneMultiplier(tile.level);
 
-  const total = def.produces.perLevel * tile.level * milestone * terrain * (1 + neighbor + workers + skills);
+  const total =
+    def.produces.perLevel * tile.level * milestone * terrain * (1 + neighbor + workers + skills + tavern);
   return {
     resource: def.produces.resource,
     perLevel: def.produces.perLevel,
@@ -98,18 +124,85 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     neighbor,
     workers,
     skills,
+    tavern,
     total,
   };
 }
 
-/** Produktion pro Sekunde je Ressource, über alle Felder. */
-export function productionRates(state: GameState): Record<ResourceId, number> {
-  const rates = Object.fromEntries(RESOURCE_IDS.map((id) => [id, 0])) as Record<ResourceId, number>;
+/** Ideale Durchgänge pro Sekunde eines Rezept-Gebäudes (ohne Zutatenmangel). */
+export function recipeRate(state: GameState, tile: Tile): number {
+  if (!tile.building || tile.level < 1) return 0;
+  const recipe = BUILDINGS[tile.building].recipe;
+  if (!recipe) return 0;
+  return (
+    recipe.cyclesPerLevel * tile.level * milestoneMultiplier(tile.level) * (1 + neighborBonus(state, tile))
+  );
+}
+
+export interface Flows {
+  /** Was Erzeuger und Rezepte im Idealfall pro Sekunde liefern. */
+  produced: Record<ResourceId, number>;
+  /** Was Rezepte im Idealfall pro Sekunde verbrauchen. */
+  consumed: Record<ResourceId, number>;
+}
+
+const zero = () => Object.fromEntries(RESOURCE_IDS.map((id) => [id, 0])) as Record<ResourceId, number>;
+
+export function flows(state: GameState): Flows {
+  const produced = zero();
+  const consumed = zero();
   for (const tile of state.tiles) {
     const p = tileProduction(state, tile);
-    if (p) rates[p.resource] += p.total;
+    if (p) produced[p.resource] += p.total;
+    const rate = recipeRate(state, tile);
+    const recipe = tile.building ? BUILDINGS[tile.building].recipe : undefined;
+    if (recipe && rate > 0) {
+      for (const [id, n] of Object.entries(recipe.inputs) as [ResourceId, number][]) consumed[id] += n * rate;
+      for (const [id, n] of Object.entries(recipe.outputs) as [ResourceId, number][])
+        produced[id] += n * rate;
+    }
   }
-  return rates;
+  return { produced, consumed };
+}
+
+/** Netto-Fluss pro Sekunde (Produktion minus Rezeptverbrauch, ideal gerechnet). */
+export function productionRates(state: GameState): Record<ResourceId, number> {
+  const f = flows(state);
+  const net = zero();
+  for (const id of RESOURCE_IDS) net[id] = f.produced[id] - f.consumed[id];
+  return net;
+}
+
+export interface Bottleneck {
+  resource: ResourceId | 'outputFull';
+  supply: number;
+  demand: number;
+}
+
+/**
+ * Engpass eines Rezepts: die Zutat, deren Zufluss den Bedarf aller Rezepte am wenigsten
+ * deckt – sofern kein Vorrat puffert. Oder 'outputFull', wenn das Ergebnis nicht mehr
+ * ins Lager passt.
+ */
+export function recipeBottleneck(state: GameState, tile: Tile): Bottleneck | null {
+  const recipe = tile.building ? BUILDINGS[tile.building].recipe : undefined;
+  if (!recipe || tile.level < 1) return null;
+  for (const id of Object.keys(recipe.outputs) as ResourceId[]) {
+    if (state.resources[id].gte(resourceCap(state, id)))
+      return { resource: 'outputFull', supply: 0, demand: 0 };
+  }
+  const f = flows(state);
+  let worst: (Bottleneck & { ratio: number }) | null = null;
+  for (const [id, n] of Object.entries(recipe.inputs) as [ResourceId, number][]) {
+    const supply = f.produced[id];
+    const demand = f.consumed[id];
+    const ratio = demand > 0 ? supply / demand : Infinity;
+    // Ein Vorrat von mindestens 10 Durchgängen puffert den Engpass noch eine Weile ab.
+    const buffered = state.resources[id].gte(n * 10);
+    if (ratio < 1 && !buffered && (!worst || ratio < worst.ratio))
+      worst = { resource: id, supply, demand, ratio };
+  }
+  return worst ? { resource: worst.resource, supply: worst.supply, demand: worst.demand } : null;
 }
 
 export function buildCost(state: GameState, id: BuildingId): Cost {
@@ -130,13 +223,19 @@ function costBlocker(state: GameState, cost: Cost): MessageKey | null {
   return null;
 }
 
-export function buildBlocker(state: GameState, tile: Tile, id: BuildingId): MessageKey | null {
+/** Darf der Typ überhaupt gebaut werden (Forschung, Höchstzahl)? Unabhängig vom Feld. */
+export function buildingAvailable(state: GameState, id: BuildingId): MessageKey | null {
   const def = BUILDINGS[id];
+  if (!def.buildable) return 'reason.unknown';
+  if (def.research && !hasResearch(state, def.research)) return 'reason.requiresResearch';
+  if (def.maxCount !== undefined && countBuildings(state, id) >= def.maxCount) return 'reason.maxCount';
+  return null;
+}
+
+export function buildBlocker(state: GameState, tile: Tile, id: BuildingId): MessageKey | null {
   if (!tile.unlocked) return 'reason.tileLocked';
   if (tile.building) return 'reason.tileOccupied';
-  if (!def.buildable) return 'reason.unknown';
-  if (def.maxCount !== undefined && countBuildings(state, id) >= def.maxCount) return 'reason.maxCount';
-  return costBlocker(state, buildCost(state, id));
+  return buildingAvailable(state, id) ?? costBlocker(state, buildCost(state, id));
 }
 
 export function build(state: GameState, tile: Tile, id: BuildingId): MessageKey | null {
@@ -176,6 +275,7 @@ export function clearCost(state: GameState): Cost {
 
 export function clearBlocker(state: GameState, tile: Tile): MessageKey | null {
   if (tile.unlocked) return 'reason.unknown';
+  if (!inBounds(state, tile)) return 'reason.outOfBounds';
   if (!neighbors(state, tile).some((n) => n.unlocked)) return 'reason.notAdjacent';
   return costBlocker(state, clearCost(state));
 }
@@ -188,12 +288,34 @@ export function clearTile(state: GameState, tile: Tile): MessageKey | null {
   return null;
 }
 
-/** Ein Logik-Tick der Burg: Produktion gutschreiben, Sammler sammeln Erfahrung. */
+/** Ein Rezept-Gebäude so weit laufen lassen, wie Zutaten und Lagerplatz es erlauben. */
+function runRecipe(state: GameState, tile: Tile, dt: number): void {
+  const recipe = BUILDINGS[tile.building!].recipe!;
+  let cycles = recipeRate(state, tile) * dt;
+  for (const [id, n] of Object.entries(recipe.inputs) as [ResourceId, number][]) {
+    cycles = Math.min(cycles, state.resources[id].toNumber() / n);
+  }
+  for (const [id, n] of Object.entries(recipe.outputs) as [ResourceId, number][]) {
+    // Keine Zutaten verschwenden, wenn das Ergebnis nicht mehr ins Lager passt.
+    const space = resourceCap(state, id).sub(state.resources[id]).toNumber();
+    cycles = Math.min(cycles, Math.max(0, space) / n);
+  }
+  if (cycles <= 0) return;
+  for (const [id, n] of Object.entries(recipe.inputs) as [ResourceId, number][]) {
+    state.resources[id] = state.resources[id].sub(n * cycles);
+  }
+  for (const [id, n] of Object.entries(recipe.outputs) as [ResourceId, number][]) gain(state, id, n * cycles);
+}
+
+/** Ein Logik-Tick der Burg: Erzeuger produzieren, Rezepte wandeln um, Sammler lernen. */
 export function tickCastle(state: GameState, dt: number): void {
   for (const tile of state.tiles) {
+    if (!tile.building || tile.level < 1) continue;
     const p = tileProduction(state, tile);
-    if (!p) continue;
-    gain(state, p.resource, p.total * dt);
-    for (const worker of workersAt(state, tile)) addXp(state, worker, UNIT_FORMULAS.workXpPerSecond * dt);
+    if (p) {
+      gain(state, p.resource, p.total * dt);
+      for (const worker of workersAt(state, tile)) addXp(state, worker, UNIT_FORMULAS.workXpPerSecond * dt);
+    }
+    if (BUILDINGS[tile.building].recipe) runRecipe(state, tile, dt);
   }
 }

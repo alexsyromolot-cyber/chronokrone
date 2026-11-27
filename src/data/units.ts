@@ -27,7 +27,9 @@ export type ClassId =
   | 'herbalist'
   | 'monk'
   | 'stoker'
-  | 'steamKnight';
+  | 'steamKnight'
+  | 'lineman'
+  | 'teslaLancer';
 export type AttributeId = 'str' | 'dex' | 'mag' | 'end';
 export type Attributes = Record<AttributeId, number>;
 
@@ -211,10 +213,44 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     splash: 16,
     color: '#c08a50',
   },
+  // --- Epoche 3: Elektro-Lehnswesen ---
+  lineman: {
+    id: 'lineman',
+    role: 'gatherer',
+    requires: 'copperMine',
+    baseCost: { gold: 2000, copper: 50 },
+    costGrowth: 1.35,
+    baseAttributes: { str: 3, dex: 6, mag: 1, end: 4 },
+    attrPerLevel: { str: 0.5, dex: 1.2, mag: 0.3, end: 0.8 },
+    // Leitungsknechte klettern Masten hoch: Geschick zählt.
+    mainAttr: 'dex',
+    baseDamage: 3,
+    attackInterval: 1.1,
+    range: MELEE,
+    splash: 0,
+    color: '#d9774a',
+  },
+  teslaLancer: {
+    id: 'teslaLancer',
+    role: 'troop',
+    requires: 'teslaTower',
+    baseCost: { gold: 15000, wire: 30, gears: 20 },
+    costGrowth: 1.4,
+    baseAttributes: { str: 2, dex: 3, mag: 10, end: 5 },
+    attrPerLevel: { str: 0.3, dex: 0.6, mag: 1.8, end: 0.8 },
+    mainAttr: 'mag',
+    baseDamage: 30,
+    attackInterval: 1.6,
+    // Blitz springt über: große Reichweite, breiter Flächenschaden.
+    range: 140,
+    splash: 30,
+    color: '#ffe66d',
+  },
 };
 
 /** Reihenfolge in Listen und Panels. */
 export const CLASS_ORDER: ClassId[] = [
+  'teslaLancer',
   'steamKnight',
   'peasant',
   'knight',
@@ -225,10 +261,17 @@ export const CLASS_ORDER: ClassId[] = [
   'herbalist',
   'monk',
   'stoker',
+  'lineman',
 ];
 
 /** Gebäude, deren Level Truppenplätze und Truppenschaden geben. */
-export const TROOP_BUILDINGS: BuildingId[] = ['barracks', 'archeryRange', 'mageTower', 'steamFoundry'];
+export const TROOP_BUILDINGS: BuildingId[] = [
+  'barracks',
+  'archeryRange',
+  'mageTower',
+  'steamFoundry',
+  'teslaTower',
+];
 
 export const UNIT_FORMULAS = {
   damagePerAttr: 0.1,

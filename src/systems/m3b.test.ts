@@ -23,7 +23,9 @@ describe('Skilltrees', () => {
   it('jede Klasse hat 12 Knoten, Spezialisierungen auf beiden Wegen', () => {
     // Epoche-1-Klassen haben volle Bäume mit Spezialisierung; spätere Klassen starten kleiner.
     const classes = new Set(
-      SKILLS.map((s) => s.classId).filter((c) => c !== 'stoker' && c !== 'steamKnight'),
+      SKILLS.map((s) => s.classId).filter(
+        (c) => !['stoker', 'steamKnight', 'lineman', 'teslaLancer'].includes(c),
+      ),
     );
     for (const c of classes) {
       const nodes = SKILLS.filter((s) => s.classId === c);

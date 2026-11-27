@@ -40,6 +40,8 @@ import { BUILDING_SPRITES, TERRAIN_SPRITES } from '../render/sprites';
 import { costHtml, esc, num, pct, reasonText, tip } from './dom';
 import { diceHtml } from './events-panel';
 import { marketHtml } from './market-panel';
+import { gridHtml } from './cards-panel';
+import { powerBonus } from '../systems/power';
 import { action } from './panels-top';
 
 export interface CastleUi {
@@ -66,6 +68,7 @@ function tileHtml(state: GameState, tile: Tile, ui: CastleUi): string {
   const classes = ['tile', `terrain-${tile.terrain}`];
   if (!tile.unlocked) classes.push(fog ? 'fog' : 'locked');
   if (selected) classes.push('selected');
+  if (powerBonus(state, tile) > 0) classes.push('powered');
   if (clearable) classes.push('affordable');
   return `<button class="${classes.join(' ')}" data-select="${tile.x},${tile.y}" aria-label="${esc(label)}" ${tip(label)}>
     ${img}${tile.building ? `<span class="lvl">${tile.level}</span>` : ''}${!tile.unlocked && !fog ? '<span class="q">?</span>' : ''}
@@ -91,6 +94,7 @@ function productionHtml(state: GameState, tile: Tile): string {
     gear: num(p.gear, 2),
     chronicle: num(p.chronicle, 2),
     season: num(p.season, 2),
+    power: num(p.power, 2),
     total: num(p.total, 2),
   });
   return `<p class="prod" ${tip(formula)}>${esc(t('castle.produces', { value: num(p.total, 2), res: t(`res.${p.resource}`) }))} ⓘ</p>`;
@@ -140,6 +144,7 @@ function effectHtml(state: GameState, tile: Tile): string {
   if (id === 'tavern')
     return `<p>${esc(t('castle.tavernEffect', { pct: pct(TAVERN_BONUS_PER_LEVEL * tile.level) }))}</p>${diceHtml(state)}`;
   if (id === 'market') return marketHtml(state);
+  if (id === 'powerPlant' || id === 'pylon') return gridHtml(state);
   return '';
 }
 

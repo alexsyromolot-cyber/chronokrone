@@ -273,6 +273,14 @@ am letzten Elitegegner. Mit multiplikativen Waffen fließt die Wirtschaft wieder
 - Bot-Ergebnis: Epoche 2 dauert 69 Min. (vorher 2:16 h), keine Wartezeit über 60 s.
 - Offen: Heizer und Dampfritter haben erst 6 Skillknoten ohne Spezialisierung.
 
+### M7b – Epoche 3 „Elektro-Lehnswesen“
+
+- Neue Rohstoffe Kupfer und Draht; Gebäude Kupfermine, Drahtzieherei, Kraftwerk, Strommast, Teslaturm. Klassen Leitungsknecht (Sammler, Geschick) und Blitzlanzer (Reichweite 140, großer Flächenschaden).
+- **Stromnetz:** Kraftwerke verbrennen Kohle (0,5/s je Level) und liefern 3 Strom je Level × Meilenstein. Masten leiten weiter, wenn sie an ein Kraftwerk oder verbundenen Mast grenzen. Angrenzende Gebäude hängen am Netz, brauchen 1 Strom je Level und bekommen ×(1 + 100 % × Versorgung) auf Produktion bzw. Rezepte. Masten haben Höchstlevel 1.
+- **Karten:** 10 Karten, 3 Slots, nur zwischen Schlachten wechselbar. Einige Karten haben Nachteile (Glaskanone: +60 % Schaden, −30 % Mauer). 30 % Fundchance je Sieg, Glücksschutz nach 4 Siegen, bleiben bei jedem Sprung; volle Sammlung +10 % Schaden und Beute.
+- Gegner-LP ×160, Beute ×64: gleiches Verhältnis wie Epoche 2 (2,5). Mit ×400 kam der Bot nicht am letzten Elitegegner vorbei.
+- Bot-Ergebnis: Epoche 3 dauert 2:37 h.
+
 ## 20. Offene Fragen
 
 Keine. (Die Balancing-Frage aus M3 – zähe Phase vor dem letzten Elitegegner – ist mit den multiplikativen Waffen gelöst.)

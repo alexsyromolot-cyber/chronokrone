@@ -38,7 +38,13 @@ export type BuildingId =
   | 'coalMine'
   | 'gearWorks'
   | 'market'
-  | 'steamFoundry';
+  | 'steamFoundry'
+  // Epoche 3
+  | 'copperMine'
+  | 'wireWorks'
+  | 'powerPlant'
+  | 'pylon'
+  | 'teslaTower';
 
 export interface Recipe {
   inputs: ResourceAmounts;
@@ -55,6 +61,8 @@ export interface BuildingDef {
   research?: ResearchId;
   /** Höchstanzahl auf dem Raster (undefined = beliebig viele). */
   maxCount?: number;
+  /** Höchstes Level; z. B. Strommasten, deren Level nichts bewirken würde. */
+  maxLevel?: number;
   /** Kosten für den Bau (Level 0 → 1). */
   baseCost: ResourceAmounts;
   /** Grundkosten für Ausbauten (Level 1 → 2 usw.); fehlt es, gilt baseCost. */
@@ -282,6 +290,56 @@ export const BUILDINGS: Record<BuildingId, BuildingDef> = {
     maxCount: 1,
     baseCost: { gold: 1500, steel: 80, gears: 20 },
     upgradeCost: { gold: 500, gears: 10 },
+    costGrowth: 1.4,
+  },
+  // --- Epoche 3: Elektro-Lehnswesen ---
+  copperMine: {
+    id: 'copperMine',
+    buildable: true,
+    research: 'copperCraft',
+    baseCost: { gold: 3000, wood: 2000, gears: 20 },
+    upgradeCost: { gold: 800, gears: 4 },
+    costGrowth: 1.2,
+    produces: { resource: 'copper', perLevel: 0.8 },
+    terrainBonus: { rock: 1.5 },
+    workerSlots: 2,
+  },
+  wireWorks: {
+    id: 'wireWorks',
+    buildable: true,
+    research: 'wiring',
+    baseCost: { gold: 5000, stone: 2000, copper: 200 },
+    upgradeCost: { gold: 1200, copper: 60 },
+    costGrowth: 1.25,
+    // Draht ziehen: 2 Kupfer werden zu 1 Draht.
+    recipe: { inputs: { copper: 2 }, outputs: { wire: 1 }, cyclesPerLevel: 0.15 },
+    neighborBonus: { building: 'copperMine', bonus: 0.2 },
+  },
+  powerPlant: {
+    id: 'powerPlant',
+    buildable: true,
+    research: 'electricity',
+    baseCost: { gold: 4000, steel: 200, gears: 40 },
+    upgradeCost: { gold: 1000, gears: 8, coal: 100 },
+    costGrowth: 1.3,
+  },
+  pylon: {
+    id: 'pylon',
+    buildable: true,
+    research: 'electricity',
+    // Billig, damit das Verlegen von Leitungen eine Raster-Frage ist und keine Geldfrage.
+    baseCost: { gold: 500, wire: 5 },
+    upgradeCost: { gold: 100 },
+    maxLevel: 1,
+    costGrowth: 1.15,
+  },
+  teslaTower: {
+    id: 'teslaTower',
+    buildable: true,
+    research: 'teslaCoil',
+    maxCount: 1,
+    baseCost: { gold: 12000, wire: 80, gears: 60 },
+    upgradeCost: { gold: 3000, wire: 20 },
     costGrowth: 1.4,
   },
 };

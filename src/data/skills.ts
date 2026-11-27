@@ -225,6 +225,23 @@ export const SKILLS: SkillDef[] = [
     ['pressureLance', 'rangeAdd', 20, 2, 1, 1, 'boiler'],
     ['overdrive', 'splashMult', 0.2, 3, 2, 1, 'valves'],
   ]),
+  // --- Epoche 3 ---
+  ...tree('lineman', [
+    ['climbingIrons', 'productionMult', 0.2, 5, 0, 0],
+    ['insulatedGloves', 'xpMult', 0.2, 3, 1, 0],
+    ['wireDrawing', 'recipeMult', 0.15, 3, 2, 0, undefined, 'wireWorks'],
+    ['copperNose', 'terrainBonusMult', 0.3, 3, 0, 1, 'climbingIrons'],
+    ['highVoltage', 'recipeMult', 0.25, 3, 1, 1, 'wireDrawing', 'wireWorks'],
+    ['nightShift', 'productionMult', 0.1, 5, 2, 1, 'insulatedGloves'],
+  ]),
+  ...tree('teslaLancer', [
+    ['arcFocus', 'damageMult', 0.4, 5, 0, 0],
+    ['capacitor', 'attackSpeed', 0.08, 3, 1, 0],
+    ['groundingRod', 'wallHpMult', 0.1, 3, 2, 0],
+    ['chainSpark', 'splashMult', 0.25, 3, 0, 1, 'arcFocus'],
+    ['longArc', 'rangeAdd', 20, 2, 1, 1, 'capacitor'],
+    ['overload', 'critChance', 0.06, 3, 2, 1, 'chainSpark'],
+  ]),
 ];
 
 export const SKILLS_BY_ID: Record<string, SkillDef> = Object.fromEntries(SKILLS.map((s) => [s.id, s]));

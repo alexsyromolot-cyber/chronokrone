@@ -45,7 +45,7 @@ export const de = {
   'castle.workers': 'Holzfäller: {n}/{max}',
   'castle.milestone': 'Nächster Meilenstein: Level {level} (Produktion ×2)',
   'castle.prodTip':
-    '{perLevel} × Level {level} × Meilenstein {milestone} × Gelände {terrain} × (1 + Nachbarn {neighbor} % + Arbeiter {workers} % + Skills {skills} % + Taverne {tavern} %) × Ausrüstung {gear} × Chronik & Erfolge {chronicle} × Jahreszeit/Ereignis {season} = {total}/s',
+    '{perLevel} × Level {level} × Meilenstein {milestone} × Gelände {terrain} × (1 + Nachbarn {neighbor} % + Arbeiter {workers} % + Skills {skills} % + Taverne {tavern} %) × Ausrüstung {gear} × Chronik & Erfolge {chronicle} × Strom {power} × Jahreszeit/Ereignis {season} = {total}/s',
   'castle.costTip': 'Kosten = Grundkosten × {growth}^Level',
   'castle.buildCostTip': 'Baukosten = Grundkosten × {growth}^(vorhandene Gebäude dieses Typs)',
   'castle.keepEffect': 'Lagerlimits ×{cap} · Steuern · Klickschaden {click}',
@@ -889,6 +889,84 @@ export const de = {
   'market.buyTip': '{n} kaufen für {gold} Gold.',
   'market.priceTip':
     'Preis in Gold je Einheit. Grundpreis {base} – grün = gerade teuer, rot = gerade billig.',
+
+  // --- M7b: Epoche 3 ---
+  'res.copper': 'Kupfer',
+  'res.wire': 'Draht',
+  'building.copperMine': 'Kupfermine',
+  'building.copperMine.desc': 'Fördert Kupfer. Auf Fels besonders ergiebig. Leitungsknechte arbeiten hier.',
+  'building.wireWorks': 'Drahtzieherei',
+  'building.wireWorks.desc': 'Zieht aus 2 Kupfer 1 Draht. Neben einer Kupfermine +20 %.',
+  'building.powerPlant': 'Kraftwerk',
+  'building.powerPlant.desc':
+    'Verbrennt Kohle und erzeugt Strom. Angrenzende Gebäude hängen am Netz und produzieren bis zu doppelt so viel.',
+  'building.pylon': 'Strommast',
+  'building.pylon.desc':
+    'Leitet Strom weiter, wenn er an ein Kraftwerk oder einen verbundenen Mast grenzt. Alles daneben hängt am Netz.',
+  'building.teslaTower': 'Teslaturm',
+  'building.teslaTower.desc': 'Bildet Blitzlanzer aus. Mehr Level = mehr Truppenplätze und Schaden.',
+  'class.lineman': 'Leitungsknecht',
+  'class.lineman.desc': 'Arbeitet in der Kupfermine. Geschick erhöht die Förderung.',
+  'class.teslaLancer': 'Blitzlanzer',
+  'class.teslaLancer.desc': 'Schleudert Blitze weit übers Feld. Großer Flächenschaden, Magie zählt.',
+  'research.copperCraft': 'Kupferkunde',
+  'research.copperCraft.desc':
+    'Das rötliche Metall, das alles leitet außer Gespräche. Schaltet die Kupfermine frei.',
+  'research.wiring': 'Drahtziehen',
+  'research.wiring.desc': 'Lange, dünne Gedanken aus Kupfer. Schaltet die Drahtzieherei frei.',
+  'research.electricity': 'Elektrizität',
+  'research.electricity.desc':
+    'Der Lehnsherr nennt es „gezähmten Blitz“. Schaltet Kraftwerk und Strommast frei.',
+  'research.teslaCoil': 'Teslaspule',
+  'research.teslaCoil.desc': 'Wenn Blitze Lehnseide schwören. Schaltet den Teslaturm frei.',
+  'reason.slotsFull': 'Alle Slots sind belegt.',
+  'skill.climbingIrons': 'Steigeisen',
+  'skill.insulatedGloves': 'Isolierhandschuhe',
+  'skill.wireDrawing': 'Feinzug',
+  'skill.copperNose': 'Kupfernase',
+  'skill.highVoltage': 'Hochspannung',
+  'skill.nightShift': 'Nachtschicht',
+  'skill.arcFocus': 'Lichtbogen-Fokus',
+  'skill.capacitor': 'Kondensator',
+  'skill.groundingRod': 'Erdungsstab',
+  'skill.chainSpark': 'Kettenfunke',
+  'skill.longArc': 'Weiter Bogen',
+  'skill.overload': 'Überlast',
+  'power.status':
+    'Netz: {supply} Strom für {demand} Bedarf ({sat} % versorgt) · {count} Gebäude angeschlossen · Bonus +{bonus} %',
+  'power.tip':
+    'Kraftwerk: {supply} Strom je Level × Meilenstein, verbrennt {coal} Kohle/s je Level. Jedes angeschlossene Gebäude braucht {demand} Strom je Level. Bonus = {bonus} % × Versorgung, wirkt als Faktor auf Produktion und Rezepte.',
+  'power.noCoal': 'Zu wenig Kohle – Kraftwerke laufen nur zu {pct} %.',
+  'card.sharpSteel': 'Scharfer Stahl',
+  'card.thickWalls': 'Dicke Mauern',
+  'card.tollCollector': 'Zöllner',
+  'card.royalFinger': 'Königlicher Zeigefinger',
+  'card.luckyCharm': 'Glücksbringer',
+  'card.glassCannon': 'Glaskanone',
+  'card.miserKing': 'Geizkragen-König',
+  'card.fortress': 'Festung',
+  'card.overcharge': 'Überladung',
+  'card.jester': 'Hofnarr',
+  'cardfx.damage': '{sign}{pct} % Schaden',
+  'cardfx.wallHp': '{sign}{pct} % Mauer-LP',
+  'cardfx.gold': '{sign}{pct} % Beute',
+  'cardfx.click': '{sign}{pct} % Klickschaden',
+  'cardfx.crit': '{sign}{pct} % Kritchance',
+  'cards.title': 'Karten',
+  'cards.intro':
+    '{found}/{total} gefunden. Jeder Sieg hat {chance} % Chance auf eine neue Karte, spätestens nach {pity} Siegen kommt eine. Lege bis zu drei Karten vor der Schlacht.',
+  'cards.emptySlot': 'Leerer Slot',
+  'cards.equip': 'Legen',
+  'cards.remove': 'Entfernen',
+  'cards.lockedInBattle': 'Während einer Schlacht bleiben die Karten liegen.',
+  'cards.set': 'Ganze Sammlung: +{pct} % Schaden und Beute.',
+  'narrator.card': 'Neue Karte gefunden: {name}. Der König mischt sie sorgfältig unter.',
+
+  // --- Epoche 3 Name ---
+  'epoch.3': 'Elektro-Lehnswesen',
+
+  // --- Höchstlevel ---
+  'reason.maxLevel': 'Höchstes Level erreicht.',
 } as const;
 
 export type MessageKey = keyof typeof de;

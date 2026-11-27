@@ -31,7 +31,12 @@ export type ResearchId =
   | 'steamPower'
   | 'gearCraft'
   | 'trade'
-  | 'steamFoundry';
+  | 'steamFoundry'
+  // Epoche 3
+  | 'electricity'
+  | 'copperCraft'
+  | 'wiring'
+  | 'teslaCoil';
 
 export interface ResearchDef {
   id: ResearchId;
@@ -77,6 +82,25 @@ export const RESEARCH: ResearchDef[] = [
     buildings: ['steamFoundry'],
     pos: [1, 6],
     epoch: 2,
+  },
+  // --- Epoche 3: Elektro-Lehnswesen ---
+  { id: 'copperCraft', cost: 1500, requires: [], buildings: ['copperMine'], pos: [0, 7], epoch: 3 },
+  { id: 'wiring', cost: 2500, requires: ['copperCraft'], buildings: ['wireWorks'], pos: [1, 7], epoch: 3 },
+  {
+    id: 'electricity',
+    cost: 3500,
+    requires: ['wiring'],
+    buildings: ['powerPlant', 'pylon'],
+    pos: [0, 8],
+    epoch: 3,
+  },
+  {
+    id: 'teslaCoil',
+    cost: 6000,
+    requires: ['electricity'],
+    buildings: ['teslaTower'],
+    pos: [1, 8],
+    epoch: 3,
   },
 ];
 

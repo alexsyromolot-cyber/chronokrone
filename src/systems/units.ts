@@ -9,6 +9,7 @@ import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
 import { achievementMultiplier } from './achievements';
 import { chronicleBonus } from './chronicle';
 import { companionBonus, companionSetMultiplier } from './trade';
+import { cardBonus } from './power';
 import { isRested, RECAP } from './recap';
 import { armorEndurance, talismanXp, weaponMultiplier } from './gear';
 import { skillBonus } from './skills';
@@ -54,13 +55,14 @@ export function damageBonus(state: GameState, unit: Unit): number {
   return (
     skillBonus(state, unit.classId, 'damageMult') +
     BARRACKS.damageBonusPerLevel * trainingLevel(state, unit.classId) +
-    companionBonus(state, unit.classId, 'damage')
+    companionBonus(state, unit.classId, 'damage') +
+    cardBonus(state, 'damage')
   );
 }
 
 /** Chance auf kritischen Treffer (doppelter Schaden). */
 export function critChance(state: GameState, unit: Unit): number {
-  return skillBonus(state, unit.classId, 'critChance');
+  return skillBonus(state, unit.classId, 'critChance') + cardBonus(state, 'crit');
 }
 
 /** Schaden = baseDamage × (1 + 0,10 × Hauptattribut) × (1 + Skill- und Gebäude-Bonus) × Waffe × Chronik */

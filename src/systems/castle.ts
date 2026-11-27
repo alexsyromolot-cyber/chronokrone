@@ -17,6 +17,7 @@ import type { MessageKey } from '../i18n/de';
 import { hasResearch, surveyBounds } from './research';
 import { canAfford, exceedsCap, gain, pay, resourceCap, scaledCost, type Cost } from './resources';
 import { chronicleBonus } from './chronicle';
+import { productionModifier } from './events';
 import { weaponMultiplier } from './gear';
 import { globalBonus, skillBonus } from './skills';
 import { addLog, type GameState, type Tile, type Unit } from './state';
@@ -98,6 +99,8 @@ export interface ProductionBreakdown {
   gear: number;
   /** Chronik-Multiplikator (Produktion, bei Wissen zusätzlich „Stipendium“). */
   chronicle: number;
+  /** Jahreszeit und Ereignis-Boni (Regen, gute Ernte …). */
+  season: number;
   /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern) × gear × chronicle */
   total: number;
 }
@@ -122,7 +125,9 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
   const chronicle =
     (1 + chronicleBonus(state, 'production')) *
     (def.produces.resource === 'knowledge' ? 1 + chronicleBonus(state, 'knowledge') : 1);
+  const season = productionModifier(state, def.produces.resource);
   const total =
+    season *
     def.produces.perLevel *
     tile.level *
     milestone *
@@ -142,6 +147,7 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     tavern,
     gear,
     chronicle,
+    season,
     total,
   };
 }

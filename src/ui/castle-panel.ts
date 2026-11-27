@@ -38,6 +38,7 @@ import { troopCapacity } from '../systems/units';
 import { spriteUrl } from '../render/pixel';
 import { BUILDING_SPRITES, TERRAIN_SPRITES } from '../render/sprites';
 import { costHtml, esc, num, pct, reasonText, tip } from './dom';
+import { diceHtml } from './events-panel';
 import { action } from './panels-top';
 
 export interface CastleUi {
@@ -88,6 +89,7 @@ function productionHtml(state: GameState, tile: Tile): string {
     tavern: pct(p.tavern),
     gear: num(p.gear, 2),
     chronicle: num(p.chronicle, 2),
+    season: num(p.season, 2),
     total: num(p.total, 2),
   });
   return `<p class="prod" ${tip(formula)}>${esc(t('castle.produces', { value: num(p.total, 2), res: t(`res.${p.resource}`) }))} ⓘ</p>`;
@@ -135,7 +137,7 @@ function effectHtml(state: GameState, tile: Tile): string {
   if (id === 'storehouse')
     return `<p>${esc(t('castle.storehouseEffect', { pct: pct(STOREHOUSE_CAP_BONUS * tile.level) }))}</p>`;
   if (id === 'tavern')
-    return `<p>${esc(t('castle.tavernEffect', { pct: pct(TAVERN_BONUS_PER_LEVEL * tile.level) }))}</p>`;
+    return `<p>${esc(t('castle.tavernEffect', { pct: pct(TAVERN_BONUS_PER_LEVEL * tile.level) }))}</p>${diceHtml(state)}`;
   return '';
 }
 

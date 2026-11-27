@@ -57,6 +57,7 @@ export function resourcesHtml(state: GameState): string {
 export function battleHudHtml(state: GameState): string {
   const b = state.battle;
   const parts: string[] = [];
+  if (state.events.drone) parts.push(`<div class="hint drone-hint">${esc(t('drone.hint'))}</div>`);
 
   if (b) {
     const wallPct = Math.max(0, b.wallHp / b.wallMaxHp);

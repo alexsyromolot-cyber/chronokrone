@@ -156,6 +156,22 @@ export class Bot {
       if (top) dispatch(state, { type: 'useToken', classId: top[0] });
     }
 
+    // Ereignisse: die „aktive“ Antwort wählen; Drohnen fangen.
+    const ev = state.events.active;
+    if (ev) {
+      const choice = {
+        stableFire: 'extinguish',
+        merchant: 'trade',
+        defector: 'buy',
+        rain: 'ok',
+        harvest: 'ok',
+        bard: 'listen',
+      }[ev.id];
+      if (dispatch(state, { type: 'eventChoice', option: choice }) !== null)
+        dispatch(state, { type: 'eventChoice', option: 'decline' });
+    }
+    if (state.events.drone) dispatch(state, { type: 'catchDrone' });
+
     // Einkaufen einmal pro Sekunde reicht – Menschen klicken auch nicht schneller.
     this.shopTimer -= dt;
     if (this.shopTimer > 0) return;

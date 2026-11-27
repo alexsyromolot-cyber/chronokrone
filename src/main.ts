@@ -28,6 +28,7 @@ import { researchHtml } from './ui/research-panel';
 import { timeMachineHtml } from './ui/timemachine-panel';
 import { installTooltips } from './ui/tooltip';
 import { chronicleHtml } from './ui/chronicle-panel';
+import { eventHtml, seasonHtml } from './ui/events-panel';
 import { ordersHtml, ordersLogHtml, rulesAfterButton, rulesAfterChange } from './ui/orders-panel';
 import { showModal } from './ui/modal';
 import { EPOCHS, epochDef } from './data/epochs';
@@ -75,6 +76,7 @@ const panels = {
   timemachine: el('#timemachine'),
   chronicle: el('#chronicle'),
   orders: el('#orders'),
+  event: el('#event'),
   bestiary: el('#bestiary'),
 };
 
@@ -114,6 +116,9 @@ function renderPanels(): void {
     setHtml(el('#orders-body'), ordersHtml(state));
     setHtml(el('#orders-log'), ordersLogHtml(state));
   }
+  reveal(panels.event, !!state.events.active);
+  if (state.events.active) setHtml(el('#event-body'), eventHtml(state));
+  setHtml(el('#season-label'), state.unlocked.castle ? seasonHtml(state) : '');
   applyEpoch();
   if (state.unlocked.timeMachine) setHtml(el('#timemachine-body'), timeMachineHtml(state));
   const anySpell = SPELL_IDS.some((id) => spellLevel(state, id) > 0);
@@ -351,6 +356,7 @@ async function start(): Promise<void> {
 
   const scene = await BattleScene.create(el('#stage'), el('#fx-layer'), {
     onEnemyClick: (enemyId) => run({ type: 'clickEnemy', enemyId }),
+    onDroneClick: () => run({ type: 'catchDrone' }),
     reducedMotion,
   });
 

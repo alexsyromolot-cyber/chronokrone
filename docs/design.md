@@ -301,6 +301,15 @@ Alex' Vorgabe (27.11.2026): „bau einmal komplett alles zu Ende und dann teste 
 - **Mutterschiff-Finale:** In der letzten Epoche führt die fertige Zeitmaschine nicht weiter, sondern zur Finalschlacht (höchste Belagerungsstufe, 8 Wellen). In der letzten Welle kommt das Mutterschiff (dreifach groß, Endgegner); bei 66 % und 33 % LP ruft es je 6 Begleiter. Sieg → Abspann (Geschichte, Zahlen, Epochenzeiten, Mitwirkende). Das Mutterschiff lässt sich danach erneut herausfordern.
 - Gegner-LP ×80 000, Beute ×32 000 (Verhältnis 2,5).
 
+### M7e – Zeitschleife und Fluch-Siegel
+
+Ebenfalls ohne Rückfrage entschieden (siehe M7d), zum Anpassen gedacht.
+
+- **Zeitschleife:** Nach dem Sieg über das Mutterschiff startet ein Knopf (auch im Abspann) die nächste Schleife: zurück in Epoche 1. Bleibt: Chronik, Zeitsplitter, alle Sammlungen, Erfolge, Hofbefehle, Statistik. Zurück: zusätzlich zur normalen Epochen-Rücksetzung auch Forschung und Zauber, sonst wäre Epoche 1 ein Spaziergang.
+- **Schleifen-Siegel:** Jede abgeschlossene Schleife gibt 1 Siegel (+0,5 je aktivem Fluch). Jedes Siegel: +25 % Produktion und Schaden, für immer. Dazu Zeitsplitter wie bei einem Sprung (+25 % je Fluch).
+- **Schleifenregeln** (reihum, „jede Schleife ändert die Regeln leicht“): 1 Spiegelwelt (Karten gespiegelt), 2 Flinke Aliens (+25 % Tempo, +20 % Gold), 3 Andere Startaufstellung (Ritter, Bogenschützin, Bauer), 4 Gepanzerte Aliens (+20 % Nahkampf-Panzer), dann von vorn.
+- **Fluch-Siegel:** Vor dem Start einer Schleife frei kombinierbar (bis zu 5): Mürbe Mauern (Mauer 50 %), Zähe Aliens (×2 LP), Lahmer Finger (Klick 25 %), Magere Jahre (Produktion 70 %), Kurze Lunte (Wut 60 s früher). Bestzeiten bis zum Mutterschiff werden je Fluch-Kombination gespeichert.
+
 ## 20. Offene Fragen
 
 Keine. (Die Balancing-Frage aus M3 – zähe Phase vor dem letzten Elitegegner – ist mit den multiplikativen Waffen gelöst.)

@@ -9,9 +9,10 @@
  */
 import Decimal from 'break_eternity.js';
 import { epochDef, EPOCHS, SHARDS } from '../data/epochs';
-import { CLASSES, START_UNITS, type ClassId } from '../data/units';
+import { CLASSES, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { addTimeline } from './achievements';
+import { loopMap, startUnits } from './loop';
 import { chronicleBonus } from './chronicle';
 import { totalSkillRanks } from './skills';
 import { addLog, buildTiles, emptyResources, type GameState } from './state';
@@ -64,7 +65,7 @@ export function performJump(state: GameState): MessageKey | null {
 
 /** Neue Epoche aufbauen und die Start-Boni der Chronik anwenden. */
 export function resetForEpoch(state: GameState): void {
-  const map = epochDef(state.epoch).map;
+  const map = loopMap(state, epochDef(state.epoch).map);
   state.tiles = buildTiles(map);
   state.resources = emptyResources();
   state.skills = {};
@@ -85,8 +86,9 @@ export function resetForEpoch(state: GameState): void {
 
   // Chronik: Veteranen starten auf höherem Level, der Bergfried größer, Vorräte im Lager.
   const startLevel = 1 + chronicleBonus(state, 'startLevel');
-  state.units = START_UNITS.map((classId, i) => ({ id: i + 1, classId, level: startLevel, xp: 0 }));
-  state.nextUnitId = START_UNITS.length + 1;
+  const lineup = startUnits(state);
+  state.units = lineup.map((classId, i) => ({ id: i + 1, classId, level: startLevel, xp: 0 }));
+  state.nextUnitId = lineup.length + 1;
   const keep = state.tiles.find((t) => t.building === 'keep');
   if (keep) keep.level += chronicleBonus(state, 'startKeep');
   const supplies = chronicleBonus(state, 'startResources');

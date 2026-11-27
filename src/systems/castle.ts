@@ -23,6 +23,7 @@ import { powerBonus } from './power';
 import { reactorBonus } from './reactor';
 import { relicSetBonus } from './relics';
 import { completionBonus, shipFactor } from './starship';
+import { loopProductionFactor } from './loop';
 import { productionModifier } from './events';
 import { weaponMultiplier } from './gear';
 import { globalBonus, skillBonus } from './skills';
@@ -141,7 +142,8 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     achievementMultiplier(state) *
     companionSetMultiplier(state) *
     (1 + chronicleBonus(state, 'production')) *
-    (def.produces.resource === 'knowledge' ? 1 + chronicleBonus(state, 'knowledge') : 1);
+    (def.produces.resource === 'knowledge' ? 1 + chronicleBonus(state, 'knowledge') : 1) *
+    loopProductionFactor(state);
   const season = productionModifier(state, def.produces.resource);
   const power = 1 + powerBonus(state, tile);
   const reactor = (1 + reactorBonus(state)) * (1 + relicSetBonus(state));
@@ -193,7 +195,8 @@ export function recipeRate(state: GameState, tile: Tile): number {
     (1 + reactorBonus(state)) *
     (1 + relicSetBonus(state)) *
     shipFactor(state, tile) *
-    (1 + completionBonus(state))
+    (1 + completionBonus(state)) *
+    loopProductionFactor(state)
   );
 }
 

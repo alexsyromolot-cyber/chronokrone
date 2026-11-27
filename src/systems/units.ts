@@ -12,6 +12,7 @@ import { companionBonus, companionSetMultiplier } from './trade';
 import { cardBonus } from './power';
 import { relicSetBonus } from './relics';
 import { completionBonus } from './starship';
+import { sealBonus } from './loop';
 import { isRested, RECAP } from './recap';
 import { armorEndurance, talismanXp, weaponMultiplier } from './gear';
 import { skillBonus } from './skills';
@@ -60,7 +61,8 @@ export function damageBonus(state: GameState, unit: Unit): number {
     companionBonus(state, unit.classId, 'damage') +
     cardBonus(state, 'damage') +
     relicSetBonus(state) +
-    completionBonus(state)
+    completionBonus(state) +
+    sealBonus(state)
   );
 }
 

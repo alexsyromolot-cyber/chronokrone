@@ -7,7 +7,7 @@
  */
 import { FixedStepLoop } from '../core/loop';
 import { formatNumber } from '../core/format';
-import { de } from '../i18n/de';
+import { t } from '../i18n';
 import { newGame, tick } from '../systems/game';
 import { productionRates } from '../systems/castle';
 import { Bot } from './bot';
@@ -39,8 +39,7 @@ for (let second = 1; second <= minutes * 60; second++) {
   loop.fastForward(1);
   while (logSeen < state.log.length) {
     const entry = state.log[logSeen++]!;
-    let text: string = de[entry.key];
-    for (const [k, v] of Object.entries(entry.params ?? {})) text = text.replaceAll(`{${k}}`, String(v));
+    const text = t(entry.key, entry.params);
     timeline.push(`${mmss(entry.time)}  [Erzähler] ${text.slice(0, 70)}`);
   }
   if (state.stats.battles > battlesSeen && state.lastBattle) {

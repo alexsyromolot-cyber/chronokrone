@@ -20,6 +20,7 @@ import { castleHtml, type CastleUi } from './ui/castle-panel';
 import { el, setHtml } from './ui/dom';
 import { battleHudHtml, logHtml, resourcesHtml } from './ui/panels-top';
 import { bestiaryHtml, skillsHtml, unitsHtml } from './ui/people-panels';
+import { researchHtml } from './ui/research-panel';
 import { installTooltips } from './ui/tooltip';
 
 const saves = new SaveManager(new LocalStorageBackend());
@@ -39,7 +40,7 @@ let state = loadOrCreate();
 setLocale(state.settings.locale);
 
 const loop = new FixedStepLoop((dt) => tick(state, dt));
-const castleUi: CastleUi = { selected: { x: 0, y: 1 } };
+const castleUi: CastleUi = { selected: { x: 2, y: 3 } };
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const reducedMotion = () => state.settings.reducedMotion || prefersReducedMotion.matches;
 
@@ -59,6 +60,7 @@ const panels = {
   castle: el('#castle'),
   units: el('#units'),
   skills: el('#skills'),
+  research: el('#research'),
   bestiary: el('#bestiary'),
 };
 
@@ -88,10 +90,12 @@ function renderPanels(): void {
   reveal(panels.castle, !!state.unlocked.castle);
   reveal(panels.units, !!state.unlocked.castle);
   reveal(panels.skills, !!state.unlocked.skills);
+  reveal(panels.research, !!state.unlocked.research);
   reveal(panels.bestiary, !!state.unlocked.bestiary);
   if (state.unlocked.castle) setHtml(el('#castle-body'), castleHtml(state, castleUi));
   if (state.unlocked.castle) setHtml(el('#units-body'), unitsHtml(state));
   if (state.unlocked.skills) setHtml(el('#skills-body'), skillsHtml(state));
+  if (state.unlocked.research) setHtml(el('#research-body'), researchHtml(state));
   if (state.unlocked.bestiary) setHtml(el('#bestiary-body'), bestiaryHtml(state));
 }
 

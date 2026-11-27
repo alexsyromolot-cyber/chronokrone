@@ -3,16 +3,15 @@
  */
 import { ENEMIES, type EnemyId } from '../data/enemies';
 import { SKILLS } from '../data/skills';
-import { CLASSES, type ClassId } from '../data/units';
+import { CLASS_ORDER, CLASSES, type ClassId } from '../data/units';
 import { t } from '../i18n';
 import type { MessageKey } from '../i18n/de';
-import { skillBlocker, skillBonus, skillRank } from '../systems/skills';
+import { skillBlocker, skillRank } from '../systems/skills';
 import type { GameState, Unit } from '../systems/state';
-import { BARRACKS } from '../data/buildings';
 import {
   attackInterval,
   attributesOf,
-  barracksLevel,
+  damageBonus,
   recruitBlocker,
   recruitCost,
   troopCapacity,
@@ -26,8 +25,6 @@ import { ENEMY_SPRITES, UNIT_SPRITES } from '../render/sprites';
 import { costHtml, esc, num, pct, reasonText, tip } from './dom';
 import { action, xpFormulaParams } from './panels-top';
 
-const CLASS_ORDER: ClassId[] = ['peasant', 'knight', 'woodcutter'];
-
 function unitRow(state: GameState, unit: Unit, index: number): string {
   const def = CLASSES[unit.classId];
   const attrs = attributesOf(unit);
@@ -38,19 +35,18 @@ function unitRow(state: GameState, unit: Unit, index: number): string {
   let role: string;
   let roleTip: string;
   if (def.role === 'troop') {
-    const bonus =
-      skillBonus(state, unit.classId, 'damageMult') + BARRACKS.damageBonusPerLevel * barracksLevel(state);
     role = t('units.damage', { dmg: num(unitDamage(state, unit), 1), sec: num(attackInterval(unit), 2) });
     roleTip = t('units.damageTip', {
       base: def.baseDamage,
-      str: num(attrs.str, 1),
-      bonus: pct(bonus),
+      attr: t(`attr.${def.mainAttr}`),
+      str: num(attrs[def.mainAttr], 1),
+      bonus: pct(damageBonus(state, unit)),
       interval: def.attackInterval,
       dex: num(attrs.dex, 1),
     });
   } else {
     role = t('units.work', { pct: pct(workPower(unit)) });
-    roleTip = t('class.woodcutter.desc');
+    roleTip = t('units.workTip', { attr: t(`attr.${def.mainAttr}`), value: num(attrs[def.mainAttr], 1) });
   }
   return `<li class="unit">
     <img src="${spriteUrl(UNIT_SPRITES[unit.classId])}" alt="">

@@ -42,7 +42,7 @@ export function resourcesHtml(state: GameState): string {
         growth: num(def.capGrowth, 2),
       });
       return `<div class="res res-${id} ${full ? 'full' : ''}" ${tip(tipText)}>
-        <span class="res-dot"></span><span class="res-name">${esc(t(`res.${id}`))}</span>
+        <span class="res-dot" style="background:${def.color}"></span><span class="res-name">${esc(t(`res.${id}`))}</span>
         <span class="res-val">${num(value)}</span><span class="res-cap">/${num(cap)}</span>
         ${rates[id] > 0 ? `<span class="res-rate">+${num(rates[id], 1)}/s</span>` : ''}
       </div>`;

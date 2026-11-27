@@ -3,7 +3,13 @@
  * Kosten sind immer `Cost` (Decimal je Ressource), weil Kostenkurven exponentiell wachsen.
  */
 import Decimal, { type DecimalSource } from 'break_eternity.js';
-import { RESOURCES, RESOURCE_IDS, type ResourceAmounts, type ResourceId } from '../data/resources';
+import {
+  RESOURCES,
+  RESOURCE_IDS,
+  STOREHOUSE_CAP_BONUS,
+  type ResourceAmounts,
+  type ResourceId,
+} from '../data/resources';
 import type { GameState } from './state';
 
 export type Cost = Partial<Record<ResourceId, Decimal>>;
@@ -12,10 +18,14 @@ export function keepLevel(state: GameState): number {
   return state.tiles.find((t) => t.building === 'keep')?.level ?? 1;
 }
 
-/** Limit = baseCap × capGrowth^(Bergfried-Level − 1) */
+/** Limit = baseCap × capGrowth^(Bergfried-Level − 1) × (1 + 0,25 × Lagerhaus-Level) */
 export function resourceCap(state: GameState, id: ResourceId): Decimal {
   const def = RESOURCES[id];
-  return new Decimal(def.baseCap).mul(Decimal.pow(def.capGrowth, keepLevel(state) - 1)).floor();
+  const storehouse = state.tiles.find((t) => t.building === 'storehouse')?.level ?? 0;
+  return new Decimal(def.baseCap)
+    .mul(Decimal.pow(def.capGrowth, keepLevel(state) - 1))
+    .mul(1 + STOREHOUSE_CAP_BONUS * storehouse)
+    .floor();
 }
 
 /** Gutschrift bis zum Lagerlimit. Gibt zurück, wie viel tatsächlich ankam. */

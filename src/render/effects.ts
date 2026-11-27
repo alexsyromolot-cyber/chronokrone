@@ -18,6 +18,8 @@ interface Particle {
   vx: number;
   vy: number;
   life: number;
+  /** Partikel fallen, Geschosse fliegen gerade. */
+  gravity: number;
 }
 
 const PARTICLES = 96;
@@ -34,7 +36,7 @@ export class Effects {
       const g = new Graphics().rect(0, 0, 2, 2).fill('#ffffff');
       g.visible = false;
       layer.addChild(g);
-      this.particles.push({ g, vx: 0, vy: 0, life: 0 });
+      this.particles.push({ g, vx: 0, vy: 0, life: 0, gravity: 0 });
     }
     for (let i = 0; i < FLOATERS; i++) {
       const span = document.createElement('span');
@@ -58,14 +60,30 @@ export class Effects {
       p.vx = Math.cos(angle) * speed;
       p.vy = Math.sin(angle) * speed - 30;
       p.life = 0.4 + Math.random() * 0.3;
+      p.gravity = 140;
     }
+  }
+
+  /** Pfeil oder Zauberblitz: fliegt in FLIGHT Sekunden vom Schützen zum Ziel. */
+  projectile(x0: number, y0: number, x1: number, y1: number, color: string): void {
+    const FLIGHT = 0.16;
+    const p = this.particles[this.nextParticle]!;
+    this.nextParticle = (this.nextParticle + 1) % PARTICLES;
+    p.g.tint = color;
+    p.g.alpha = 1;
+    p.g.position.set(x0, y0);
+    p.g.visible = true;
+    p.vx = (x1 - x0) / FLIGHT;
+    p.vy = (y1 - y0) / FLIGHT;
+    p.life = FLIGHT;
+    p.gravity = 0;
   }
 
   update(dt: number): void {
     for (const p of this.particles) {
       if (p.life <= 0) continue;
       p.life -= dt;
-      p.vy += 140 * dt;
+      p.vy += p.gravity * dt;
       p.g.x += p.vx * dt;
       p.g.y += p.vy * dt;
       p.g.alpha = Math.min(1, p.life * 3);

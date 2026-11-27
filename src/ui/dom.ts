@@ -6,7 +6,7 @@
  */
 import type Decimal from 'break_eternity.js';
 import { formatNumber } from '../core/format';
-import { RESOURCE_IDS } from '../data/resources';
+import { RESOURCES, RESOURCE_IDS } from '../data/resources';
 import { decimalSeparator, t } from '../i18n';
 import type { MessageKey } from '../i18n/de';
 import { productionRates } from '../systems/castle';
@@ -52,7 +52,9 @@ export function costHtml(state: GameState, cost: Cost): string {
     const c = cost[id];
     if (!c) continue;
     const ok = state.resources[id].gte(c);
-    parts.push(`<span class="cost res-${id} ${ok ? '' : 'missing'}">${num(c)} ${esc(t(`res.${id}`))}</span>`);
+    parts.push(
+      `<span class="cost ${ok ? '' : 'missing'}" style="${ok ? `color:${RESOURCES[id].color}` : ''}">${num(c)} ${esc(t(`res.${id}`))}</span>`,
+    );
   }
   const wait = secondsUntilAffordable(state, cost, productionRates(state));
   // Schlacht-Beute ist hier nicht eingerechnet – die Angabe ist also eine Obergrenze.

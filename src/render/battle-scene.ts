@@ -180,17 +180,19 @@ export class BattleScene {
         this.defenders.set(unit.id, sprite);
         this.defenderLayer.addChild(sprite);
       }
-      // Die ersten vier stehen auf dem Wehrgang, der Rest wartet dahinter.
-      const onWall = i < 4;
-      const baseX = onWall ? WALL_LEFT + 1 + i * 8 : 34 - ((i - 4) % 4) * 9;
-      const baseY = onWall
-        ? WALL_TOP - sprite.height
-        : GROUND_Y - sprite.height - Math.floor((i - 4) / 4) * 5;
+      const pos = this.defenderPos(i, sprite.height);
       // Kurzer Ausfallschritt direkt nach einem Schlag.
       const cd = state.battle?.cooldowns[unit.id] ?? 0;
       const lunge = !this.options.reducedMotion() && cd > attackInterval(unit) * 0.8 ? 2 : 0;
-      sprite.position.set(baseX + lunge, baseY);
+      sprite.position.set(pos.x + lunge, pos.y);
     });
+  }
+
+  /** Platz der i-ten Truppe: die ersten vier auf dem Wehrgang, der Rest dahinter in Reihen. */
+  private defenderPos(i: number, height: number): { x: number; y: number } {
+    if (i < 4) return { x: WALL_LEFT + 1 + i * 8, y: WALL_TOP - height };
+    const j = i - 4;
+    return { x: 34 - (j % 4) * 9, y: GROUND_Y - height - Math.floor(j / 4) * 5 };
   }
 
   private syncEnemies(state: GameState, alpha: number): void {
@@ -242,6 +244,11 @@ export class BattleScene {
     const reduced = this.options.reducedMotion();
     for (const fx of state.fx) {
       switch (fx.kind) {
+        case 'shot': {
+          const from = this.defenderPos(fx.slot, 12);
+          this.effects.projectile(from.x + 8, from.y + 4, fx.toX + 6, this.enemyY(fx.lane, 8), fx.color);
+          break;
+        }
         case 'hit':
           this.effects.number(
             fx.x + 6,

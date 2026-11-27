@@ -8,12 +8,14 @@
 import { BATTLE } from '../data/enemies';
 import type { BuildingId } from '../data/buildings';
 import type { UnlockId } from '../data/progression';
+import type { ResearchId } from '../data/research';
 import type { ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { clickEnemy, endBattle, startBattle } from './battle';
 import { build, clearTile, tileAt, upgrade } from './castle';
 import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
 import { checkUnlocks } from './progression';
+import { doResearch } from './research';
 import { buySkill } from './skills';
 import type { GameState } from './state';
 import { recruit } from './units';
@@ -27,7 +29,8 @@ export type Action =
   | { type: 'clearTile'; x: number; y: number }
   | { type: 'recruit'; classId: ClassId }
   | { type: 'buySkill'; skillId: string }
-  | { type: 'upgradeWall' };
+  | { type: 'upgradeWall' }
+  | { type: 'research'; id: ResearchId };
 
 /** Kosten der nächsten Mauerverstärkung = wallUpgradeCost × wallUpgradeGrowth^Stufe */
 export function wallUpgradeCost(state: GameState): Cost {
@@ -50,6 +53,7 @@ const REQUIRED_UNLOCK: Partial<Record<Action['type'], UnlockId>> = {
   recruit: 'recruit',
   buySkill: 'skills',
   upgradeWall: 'wall',
+  research: 'research',
 };
 
 /**
@@ -88,6 +92,8 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return recruit(state, action.classId);
     case 'buySkill':
       return buySkill(state, action.skillId);
+    case 'research':
+      return doResearch(state, action.id);
     case 'upgradeWall': {
       const blocker = wallUpgradeBlocker(state);
       if (blocker) return blocker;

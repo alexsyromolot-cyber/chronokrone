@@ -111,7 +111,11 @@ export function startBattle(state: GameState, siege = state.siegeLevel): Message
     militiaLeft: 0,
     militiaTimer: 0,
     pendingElite: null,
+    xpEarned: 0,
+    newEnemies: [],
+    part: null,
   };
+  state.scene.countdown = null;
   return null;
 }
 
@@ -237,6 +241,7 @@ export function damageEnemy(
 
   if (def.elite && !def.boss && !state.timeParts[enemy.type]) {
     state.timeParts[enemy.type] = true;
+    b.part = enemy.type;
     addTimeline(state, `elite.${enemy.type}.${state.epoch}`, {
       name: `@enemy.${enemy.type}`,
       epoch: state.epoch,
@@ -251,7 +256,11 @@ export function damageEnemy(
 
   const seen = state.bestiary[enemy.type] ?? 0;
   state.bestiary[enemy.type] = seen + 1;
-  if (seen === 0) addLog(state, `narrator.enemy.${enemy.type}` as MessageKey);
+  if (seen === 0) {
+    addLog(state, `narrator.enemy.${enemy.type}` as MessageKey);
+    (b.newEnemies ??= []).push(enemy.type);
+  }
+  b.xpEarned = (b.xpEarned ?? 0) + def.xp;
 
   // XP wird gleichmäßig auf alle Truppen verteilt – auch Klick-Abschüsse zählen.
   const team = troops(state);
@@ -272,7 +281,7 @@ export function clickEnemy(state: GameState, enemyId: number): boolean {
   return true;
 }
 
-export function endBattle(state: GameState, result: 'won' | 'lost'): void {
+export function endBattle(state: GameState, result: 'won' | 'lost', retreat = false): void {
   const b = state.battle;
   if (!b) return;
   state.battle = null;
@@ -287,6 +296,15 @@ export function endBattle(state: GameState, result: 'won' | 'lost'): void {
     seconds: b.elapsed,
   };
   state.fx.push({ kind: 'battleEnd', result });
+  // Das Ergebnisfenster hält die Kampfphase offen, bis der Spieler es schließt.
+  state.scene.result = {
+    ...state.lastBattle,
+    xp: Math.round(b.xpEarned ?? 0),
+    newEnemies: b.newEnemies ?? [],
+    part: b.part ?? null,
+    retreat,
+    final: !!b.final,
+  };
   if (result === 'won' && b.final) winFinale(state);
 
   if (result === 'won') {

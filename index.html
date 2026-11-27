@@ -14,7 +14,12 @@
     <title>Chronokrone</title>
   </head>
   <body>
-    <main id="app">
+    <!--
+      Zwei Szenen statt einer langen Seite (UI-Umbau, Etappe 1):
+      Arena (Kampfphase) und Dorf (Dorfphase, ein Raum pro Reiter). Welche sichtbar ist,
+      entscheidet systems/scene.ts; ui/shell.ts spielt beim Wechsel den Tor-Übergang.
+    -->
+    <main id="app" data-phase="battle">
       <header class="topbar">
         <h1 data-i18n="app.title">Chronokrone</h1>
         <span id="epoch-label" class="epoch-label"></span>
@@ -24,105 +29,141 @@
           <button id="save" class="btn small" type="button" data-i18n="save.save"></button>
           <button id="lang" class="btn small" type="button" data-i18n="lang.switch"></button>
           <button id="settings-toggle" class="btn small" type="button" data-i18n="settings.button"></button>
+          <button id="fullscreen" class="btn small icon-btn" type="button" aria-label="Vollbild">⛶</button>
         </div>
       </header>
 
-      <div class="layout">
-        <div class="col-left">
-          <section id="battle" class="panel">
-            <h2 data-i18n="battle.title"></h2>
-            <div class="stage-wrap">
-              <div id="stage"><div id="fx-layer" aria-hidden="true"></div></div>
+      <div class="scenes">
+        <section id="arena" class="scene">
+          <div class="stage-wrap">
+            <div id="stage"><div id="fx-layer" aria-hidden="true"></div></div>
+          </div>
+          <div id="battle-hud" class="float hud-card"></div>
+          <aside id="troop-list" class="float troop-list"></aside>
+          <div id="spell-bar" class="float spell-bar"></div>
+        </section>
+
+        <section id="village" class="scene" hidden>
+          <div class="village-bar">
+            <div id="prep" class="prep"></div>
+            <nav id="room-tabs" class="float room-tabs"></nav>
+          </div>
+          <h2 id="room-title" class="room-title"></h2>
+          <div id="rooms" class="rooms">
+            <div class="room" data-room="bau" hidden>
+              <section id="castle" class="panel">
+                <h2 data-i18n="castle.title"></h2>
+                <div id="castle-body"></div>
+              </section>
+              <section id="wall-panel" class="panel" hidden>
+                <h2 data-i18n="village.wallTitle"></h2>
+                <div id="wall-body"></div>
+              </section>
             </div>
-            <div id="battle-hud" class="battle-hud"></div>
-          </section>
-          <section id="event" class="panel event-card" hidden>
-            <div id="event-body"></div>
-          </section>
-          <section id="spells" class="panel" hidden>
-            <h2 data-i18n="spells.title"></h2>
-            <div id="spells-body"></div>
-          </section>
-          <section id="log" class="panel">
-            <h2 data-i18n="log.title"></h2>
-            <div id="log-body"></div>
-          </section>
-        </div>
-
-        <div class="col-right">
-          <section id="castle" class="panel" hidden>
-            <h2 data-i18n="castle.title"></h2>
-            <div id="castle-body"></div>
-          </section>
-          <section id="units" class="panel" hidden>
-            <h2 data-i18n="units.title"></h2>
-            <div id="units-body"></div>
-          </section>
-          <section id="orders" class="panel" hidden>
-            <h2 data-i18n="orders.title"></h2>
-            <div id="orders-body"></div>
-            <div id="orders-log"></div>
-          </section>
-          <section id="chronicle" class="panel" hidden>
-            <h2 data-i18n="chronicle.title"></h2>
-            <div id="chronicle-body"></div>
-          </section>
-          <section id="timemachine" class="panel" hidden>
-            <h2 data-i18n="tm.title"></h2>
-            <div id="timemachine-body"></div>
-          </section>
-          <section id="research" class="panel" hidden>
-            <h2 data-i18n="research.title"></h2>
-            <div id="research-body"></div>
-          </section>
-          <section id="skills" class="panel" hidden>
-            <h2 data-i18n="skills.title"></h2>
-            <div id="skills-body"></div>
-          </section>
-          <section id="achievements" class="panel" hidden>
-            <h2 data-i18n="ach.title"></h2>
-            <div id="achievements-body"></div>
-          </section>
-          <section id="companions" class="panel" hidden>
-            <h2 data-i18n="companion.title"></h2>
-            <div id="companions-body"></div>
-          </section>
-          <section id="cards" class="panel" hidden>
-            <h2 data-i18n="cards.title"></h2>
-            <div id="cards-body"></div>
-          </section>
-          <section id="relics" class="panel" hidden>
-            <h2 data-i18n="relics.title"></h2>
-            <div id="relics-body"></div>
-          </section>
-          <section id="loop" class="panel" hidden>
-            <h2 data-i18n="loop.title"></h2>
-            <div id="loop-body"></div>
-          </section>
-          <section id="completion" class="panel" hidden>
-            <h2 data-i18n="completion.title"></h2>
-            <div id="completion-body"></div>
-          </section>
-          <section id="stats" class="panel" hidden>
-            <h2 data-i18n="stats.title"></h2>
-            <div id="stats-body"></div>
-          </section>
-          <section id="bestiary" class="panel" hidden>
-            <h2 data-i18n="bestiary.title"></h2>
-            <ul id="bestiary-body" class="bestiary-list"></ul>
-          </section>
-        </div>
+            <div class="room" data-room="kaserne" hidden>
+              <section id="units" class="panel">
+                <h2 data-i18n="units.title"></h2>
+                <div id="units-body"></div>
+              </section>
+            </div>
+            <div class="room" data-room="uebung" hidden>
+              <section id="skills" class="panel">
+                <h2 data-i18n="skills.title"></h2>
+                <div id="skills-body"></div>
+              </section>
+            </div>
+            <div class="room" data-room="bibliothek" hidden>
+              <section id="research" class="panel">
+                <h2 data-i18n="research.title"></h2>
+                <div id="research-body"></div>
+              </section>
+            </div>
+            <div class="room" data-room="werkstatt" hidden>
+              <section id="timemachine" class="panel">
+                <h2 data-i18n="tm.title"></h2>
+                <div id="timemachine-body"></div>
+              </section>
+            </div>
+            <div class="room" data-room="thronsaal" hidden>
+              <section id="orders" class="panel" hidden>
+                <h2 data-i18n="orders.title"></h2>
+                <div id="orders-body"></div>
+                <div id="orders-log"></div>
+              </section>
+              <section id="spells" class="panel" hidden>
+                <h2 data-i18n="spells.title"></h2>
+                <div id="spells-body"></div>
+              </section>
+            </div>
+            <div class="room" data-room="markt" hidden>
+              <section id="market" class="panel">
+                <h2 data-i18n="room.markt"></h2>
+                <div id="market-body"></div>
+              </section>
+            </div>
+            <div class="room" data-room="schatzkammer" hidden>
+              <section id="bestiary" class="panel" hidden>
+                <h2 data-i18n="bestiary.title"></h2>
+                <ul id="bestiary-body" class="bestiary-list"></ul>
+              </section>
+              <section id="companions" class="panel" hidden>
+                <h2 data-i18n="companion.title"></h2>
+                <div id="companions-body"></div>
+              </section>
+              <section id="relics" class="panel" hidden>
+                <h2 data-i18n="relics.title"></h2>
+                <div id="relics-body"></div>
+              </section>
+              <section id="completion" class="panel" hidden>
+                <h2 data-i18n="completion.title"></h2>
+                <div id="completion-body"></div>
+              </section>
+              <section id="achievements" class="panel" hidden>
+                <h2 data-i18n="ach.title"></h2>
+                <div id="achievements-body"></div>
+              </section>
+            </div>
+            <div class="room" data-room="chronik" hidden>
+              <section id="chronicle" class="panel" hidden>
+                <h2 data-i18n="chronicle.title"></h2>
+                <div id="chronicle-body"></div>
+              </section>
+              <section id="loop" class="panel" hidden>
+                <h2 data-i18n="loop.title"></h2>
+                <div id="loop-body"></div>
+              </section>
+            </div>
+            <div class="room" data-room="archiv" hidden>
+              <section id="stats" class="panel">
+                <h2 data-i18n="stats.title"></h2>
+                <div id="stats-body"></div>
+              </section>
+              <section id="save-tools" class="panel">
+                <h2 data-i18n="save.title"></h2>
+                <div class="hud-row">
+                  <button id="export" class="btn small" type="button" data-i18n="save.export"></button>
+                  <button id="import" class="btn small" type="button" data-i18n="save.import"></button>
+                </div>
+                <p class="hint" data-i18n="help.shortcuts"></p>
+              </section>
+            </div>
+          </div>
+        </section>
       </div>
-
-      <footer class="footer">
-        <button id="export" class="btn small" type="button" data-i18n="save.export"></button>
-        <button id="import" class="btn small" type="button" data-i18n="save.import"></button>
-        <span class="hint" data-i18n="help.shortcuts"></span>
-        <button id="debug-toggle" class="btn small" type="button" hidden>Debug</button>
-      </footer>
     </main>
+
+    <div id="narrator" class="narrator"></div>
+    <div id="narrator-log" class="narrator-log" hidden></div>
+    <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+    <div id="countdown" class="countdown-card" hidden></div>
+    <div id="overlay" class="overlay" hidden></div>
+    <div id="gate" class="gate" aria-hidden="true">
+      <div class="gate-door left"></div>
+      <div class="gate-door right"></div>
+      <div class="gate-text"></div>
+    </div>
     <div id="tooltip" class="tooltip" hidden></div>
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <button id="debug-toggle" class="btn small debug-toggle" type="button" hidden>Debug</button>
     <aside id="debug" class="debug" hidden></aside>
     <aside id="settings" class="settings" hidden></aside>
     <script type="module" src="/src/main.ts"></script>

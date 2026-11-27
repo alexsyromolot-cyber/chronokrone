@@ -2,7 +2,7 @@
  * Reaktor (Epoche 4). Formeln in data/reactor.ts.
  */
 import { chance } from '../core/rng';
-import { EVENT_TIMEOUT } from '../data/events';
+
 import { MELTDOWN, REACTOR, RELIC_NUMBERS } from '../data/reactor';
 import type { MessageKey } from '../i18n/de';
 import { hasRelic } from './relics';
@@ -80,7 +80,7 @@ export function meltdown(state: GameState): void {
     return;
   }
   // Die Kernschmelze verdrängt ein laufendes, harmloseres Ereignis.
-  state.events.active = { id: 'meltdown', expiresAt: state.time + EVENT_TIMEOUT, params: {} };
+  state.events.active = { id: 'meltdown', expiresAt: state.time, params: {} };
   state.stats.eventsSeen++;
   addLog(state, 'event.meltdown.log');
 }

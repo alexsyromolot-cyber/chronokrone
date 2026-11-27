@@ -33,7 +33,8 @@ export function conditionMet(state: GameState, c: OrderCondition): boolean {
     case 'resourceFull':
       return state.resources[c.resource].gte(resourceCap(state, c.resource).mul(c.percent / 100));
     case 'noBattle':
-      return !b;
+      // Läuft schon ein Aufbruch-Countdown oder ist das Ergebnis noch offen, gilt das nicht als „keine Schlacht“.
+      return !b && state.scene.countdown === null && !state.scene.result;
     case 'inBattle':
       return !!b;
     case 'wallBelow':
@@ -55,7 +56,8 @@ export function ruleMet(state: GameState, rule: OrderRule): boolean {
 export function toAction(state: GameState, a: OrderAction): Action | null {
   switch (a.kind) {
     case 'startBattle':
-      return { type: 'startBattle' };
+      // Keine Schlacht im Hintergrund: Der Hofbefehl ruft zum Aufbruch, mit sichtbarem Countdown.
+      return { type: 'requestBattle' };
     case 'castSpell':
       return { type: 'castSpell', spell: a.spell };
     case 'recruit':

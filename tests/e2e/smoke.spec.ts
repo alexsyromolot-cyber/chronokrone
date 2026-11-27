@@ -5,6 +5,17 @@ async function game<T>(page: Page, fn: string): Promise<T> {
   return page.evaluate(`(() => { const g = window.__chronokrone; return (${fn}); })()`) as Promise<T>;
 }
 
+/** Erste Schlacht vorspulen und das Ergebnisfenster schließen: Wir stehen im Dorf. */
+async function toVillage(page: Page): Promise<void> {
+  await game(page, 'g.loop.fastForward(120)');
+  await game(page, `g.run({ type: 'dismissResult' })`);
+  await expect(page.locator('#village')).toBeVisible();
+}
+
+async function openRoom(page: Page, room: string): Promise<void> {
+  await page.locator(`[data-room-tab="${room}"]`).click();
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
@@ -12,19 +23,18 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('body')).toHaveAttribute('data-ready', 'true');
 });
 
-test('Erste Schlacht, Burg, Bauen, Speichern und Laden', async ({ page }) => {
+test('Erste Schlacht, Ergebnis, Dorf, Bauen, Speichern und Laden', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
 
-  // Kein Intro: Die erste Schlacht läuft sofort, nur die Schlacht ist sichtbar.
+  // Kein Intro: Die erste Schlacht läuft sofort, nur die Arena ist sichtbar.
   await expect(page.locator('#stage canvas')).toBeVisible();
   await expect(page.locator('#battle-hud')).toContainText('Welle');
-  await expect(page.locator('#castle')).toBeHidden();
-  await page.screenshot({ path: 'test-results/01-erste-schlacht.png' });
+  await expect(page.locator('#village')).toBeHidden();
+  await page.screenshot({ path: 'test-results/01-arena.png' });
 
   // Ein Alien anklicken (Koordinaten aus dem Spielzustand berechnet).
   await game(page, 'g.loop.fastForward(12)');
-  // Einen Frame abwarten, damit die Szene die neuen Positionen gezeichnet hat.
   await page.waitForTimeout(150);
   const clicked = await game<boolean>(
     page,
@@ -38,11 +48,14 @@ test('Erste Schlacht, Burg, Bauen, Speichern und Laden', async ({ page }) => {
   );
   expect(clicked).toBe(true);
 
-  // Bis zum Ende der (absichtlich verlorenen) ersten Schlacht vorspulen.
+  // Bis zum Ende der (absichtlich verlorenen) ersten Schlacht: Ergebnisfenster, das man wegklicken muss.
   await game(page, 'g.loop.fastForward(120)');
   expect(await game(page, 'g.state.lastBattle.result')).toBe('lost');
+  await expect(page.locator('.result-modal')).toContainText('Die Mauer ist gefallen');
+  await page.screenshot({ path: 'test-results/02-ergebnis.png' });
+  await page.getByRole('button', { name: 'Ins Dorf zurückkehren' }).click();
   await expect(page.locator('#castle')).toBeVisible();
-  await expect(page.locator('#log-body')).toContainText('Das war zu erwarten');
+  await expect(page.locator('#arena')).toBeHidden();
 
   // Holzfällerhütte auf das freie Waldfeld bauen – über die echte Oberfläche.
   await page.locator('.tile[data-select="2,3"]').click();
@@ -51,22 +64,42 @@ test('Erste Schlacht, Burg, Bauen, Speichern und Laden', async ({ page }) => {
     .getByRole('button', { name: 'Bauen' })
     .click();
   expect(await game(page, `g.state.tiles.find(t => t.x === 2 && t.y === 3).building`)).toBe('lumberHut');
+  await page.screenshot({ path: 'test-results/03-dorf-bauplatz.png' });
+
+  // Die Kaserne ist ein eigener Raum.
+  await openRoom(page, 'kaserne');
   await expect(page.locator('#units')).toBeVisible();
-  await page.screenshot({ path: 'test-results/02-burg.png', fullPage: true });
+  await expect(page.locator('#castle')).toBeHidden();
+
+  // Verlauf des Erzählers: Klick auf die Figur.
+  // Die Figur wippt (nie „stabil“ für Playwright) – die Sprechblase öffnet den Verlauf genauso.
+  await page.locator('.narrator .bubble').click();
+  await expect(page.locator('#log-body')).toContainText('Das war zu erwarten');
+  await page.keyboard.press('Escape');
 
   // Speichern per Taste S, neu laden, Gebäude ist noch da.
   await page.keyboard.press('s');
-  await expect(page.locator('#toast')).toContainText('Gespeichert');
+  await expect(page.locator('#toasts')).toContainText('Gespeichert');
   await page.reload();
   await expect(page.locator('body')).toHaveAttribute('data-ready', 'true');
   expect(await game(page, `g.state.tiles.find(t => t.x === 2 && t.y === 3).building`)).toBe('lumberHut');
-  await expect(page.locator('#log-body')).toContainText('Willkommen zurück');
+  await expect(page.locator('.narrator .bubble')).toContainText('Willkommen zurück');
 
   expect(errors).toEqual([]);
 });
 
+test('Zur Mauer: Tor-Übergang in die Arena und zurück', async ({ page }) => {
+  await toVillage(page);
+  await page.locator('#start-battle').click();
+  await expect(page.locator('#gate')).toHaveClass(/closing|opening/);
+  await expect(page.locator('#arena')).toBeVisible();
+  await expect(page.locator('#battle-hud')).toContainText('Beute');
+  await game(page, `g.run({ type: 'retreat' })`);
+  await expect(page.locator('.result-modal')).toContainText('Rückzug');
+});
+
 test('Zeitsprung: Dialog, Feier, Epoche 2 mit Chronik', async ({ page }) => {
-  await game(page, 'g.loop.fastForward(120)');
+  await toVillage(page);
   await game(
     page,
     `(() => {
@@ -77,6 +110,7 @@ test('Zeitsprung: Dialog, Feier, Epoche 2 mit Chronik', async ({ page }) => {
     })()`,
   );
   await page.waitForTimeout(400);
+  await openRoom(page, 'werkstatt');
   await page.locator('[data-jump]').click();
   await expect(page.locator('.modal')).toContainText('Zeitsprung');
   await page.getByRole('button', { name: 'Springen' }).click();
@@ -86,42 +120,52 @@ test('Zeitsprung: Dialog, Feier, Epoche 2 mit Chronik', async ({ page }) => {
   await page.getByRole('button', { name: 'Los geht’s' }).click();
   expect(await game(page, 'g.state.epoch')).toBe(2);
   await expect(page.locator('#epoch-label')).toContainText('Epoche 2');
+  await openRoom(page, 'chronik');
   await expect(page.locator('#chronicle')).toBeVisible();
-  await page.screenshot({ path: 'test-results/05-epoche2.png', fullPage: true });
+  await page.screenshot({ path: 'test-results/05-chronik-turm.png' });
 });
 
-test('Hofbefehle: Regel zusammenklicken und automatisch ausführen lassen', async ({ page }) => {
-  await game(page, 'g.loop.fastForward(120)');
+test('Hofbefehle: Regel zusammenklicken, Countdown im Dorf, dann zur Mauer', async ({ page }) => {
+  await toVillage(page);
   await game(page, `(() => { g.state.unlocked.orders = true; g.state.unlocked.recruit = true; })()`);
+  await openRoom(page, 'thronsaal');
   await page.locator('[data-order-btn="add"]').click();
   await expect(page.locator('.rule')).toHaveCount(1);
   // Aktion umstellen und wieder zurück – über die echten Auswahllisten.
   await page.locator('select[data-order="0.action.kind"]').selectOption('notify');
   expect(await game(page, 'g.state.orders.rules[0].action.kind')).toBe('notify');
   await page.locator('select[data-order="0.action.kind"]').selectOption('startBattle');
-  // Der Schreiber-Mönch startet die Schlacht selbst.
+  // Der Schreiber-Mönch ruft zur Mauer: erst ein sichtbarer Countdown, keine Schlacht im Hintergrund.
   await game(page, 'g.loop.fastForward(2)');
-  expect(await game(page, '!!g.state.battle')).toBe(true);
-  await page.waitForTimeout(300);
+  expect(await game(page, '!!g.state.battle')).toBe(false);
+  await expect(page.locator('#countdown')).toContainText('Aufbruch in');
   await expect(page.locator('#orders-log')).toContainText('Regel 1 ausgeführt');
-  await page.locator('#orders').screenshot({ path: 'test-results/06-hofbefehle.png' });
+  await page.screenshot({ path: 'test-results/06-hofbefehl-countdown.png' });
+  await game(page, 'g.loop.fastForward(11)');
+  expect(await game(page, '!!g.state.battle')).toBe(true);
+  await expect(page.locator('#arena')).toBeVisible();
 });
 
-test('Ereignis beantworten und Drohne anklicken', async ({ page }) => {
-  await game(page, 'g.loop.fastForward(120)');
+test('Ereignis pausiert das Spiel; Drohne anklicken', async ({ page }) => {
+  await toVillage(page);
   await game(
     page,
-    `(() => {
-      g.state.events.active = { id: 'bard', expiresAt: g.state.time + 60, params: {} };
-      g.state.events.drone = { left: 7.9, lane: 0 };
-    })()`,
+    `(() => { g.state.events.active = { id: 'bard', expiresAt: g.state.time, params: {} }; })()`,
   );
-  await expect(page.locator('#event')).toBeVisible();
+  await expect(page.locator('.event-modal')).toContainText('Spiel pausiert');
+  const t0 = await game<number>(page, 'g.state.time');
+  await game(page, 'g.loop.fastForward(30)');
+  expect(await game<number>(page, 'g.state.time')).toBe(t0);
   await page.screenshot({ path: 'test-results/07-ereignis.png' });
   await page.getByRole('button', { name: /Verjagen/ }).click();
   expect(await game(page, 'g.state.events.active')).toBeNull();
-  await expect(page.locator('#log-body')).toContainText('Verjagt');
-  // Drohne: Position aus der Szene, dann ins Canvas klicken.
+  await expect(page.locator('.narrator .bubble')).toContainText('Verjagt');
+
+  // Drohne fliegt über das Schlachtfeld – also zur Mauer.
+  await page.locator('#start-battle').click();
+  await expect(page.locator('#arena')).toBeVisible();
+  await page.waitForTimeout(1500);
+  await game(page, `(() => { g.state.events.drone = { left: 7.9, lane: 0 }; })()`);
   await page.waitForTimeout(100);
   const caught = await game<boolean>(
     page,
@@ -137,7 +181,7 @@ test('Ereignis beantworten und Drohne anklicken', async ({ page }) => {
 });
 
 test('Rückblick nach langer Pause mit Ausgeruht-Bonus', async ({ page }) => {
-  await game(page, 'g.loop.fastForward(120)');
+  await toVillage(page);
   // Speichern und so tun, als sei das zwei Stunden her.
   await game(page, 'g.save()');
   await page.evaluate(() => {
@@ -155,6 +199,7 @@ test('Rückblick nach langer Pause mit Ausgeruht-Bonus', async ({ page }) => {
   await page.waitForTimeout(1700);
   await page.screenshot({ path: 'test-results/08-rueckblick.png' });
   await page.getByRole('button', { name: 'Weiter' }).click();
+  await page.locator('#start-battle').click();
   await expect(page.locator('.rested')).toContainText('Ausgeruht');
 });
 
@@ -180,26 +225,27 @@ test('Sprache lässt sich umschalten', async ({ page }) => {
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.locator('h1')).toHaveText('Chronocrown');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page.locator('#battle h2')).toHaveText('Defence');
+  await expect(page.locator('#battle-hud')).toContainText('Wave');
 });
 
-test('Nach 15 Minuten Spielzeit mit voller Burg sieht alles ordentlich aus', async ({ page }) => {
-  // Zustand für den Screenshot: Debug-Werte setzen statt 15 Minuten zu spielen.
+test('Nach 15 Minuten Spielzeit: Räume sehen ordentlich aus', async ({ page }) => {
   await game(
     page,
     `(() => {
       g.loop.fastForward(120);
+      g.run({ type: 'dismissResult' });
       for (const k of ['gold','wood','stone']) g.state.resources[k] = g.state.resources[k].add(150);
       g.run({ type: 'build', x: 2, y: 3, building: 'lumberHut' });
       g.run({ type: 'recruit', classId: 'woodcutter' });
       g.run({ type: 'clearTile', x: 2, y: 2 });
       g.run({ type: 'build', x: 2, y: 2, building: 'lumberHut' });
       g.state.skillPoints.peasant = 2; g.state.stats.skillPointsEarned = 2;
-      g.run({ type: 'startBattle' });
-      g.loop.fastForward(25);
     })()`,
   );
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: 'test-results/03-mitte.png', fullPage: true });
+  await expect(page.locator('#village')).toBeVisible();
+  await openRoom(page, 'uebung');
   await expect(page.locator('#skills')).toBeVisible();
+  await page.screenshot({ path: 'test-results/10-uebungsplatz.png' });
+  await openRoom(page, 'kaserne');
+  await page.screenshot({ path: 'test-results/11-kaserne.png' });
 });

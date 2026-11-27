@@ -16,6 +16,7 @@ export const isLastEpoch = (state: GameState) => state.epoch >= EPOCHS.length;
 export function finaleBlocker(state: GameState): MessageKey | null {
   if (!isLastEpoch(state)) return 'reason.unknown';
   if (state.timeMachineAt === null) return 'reason.noTimeMachine';
+  if (state.scene.result) return 'reason.resultOpen';
   return startBattleBlocker(state, FINALE.siege);
 }
 

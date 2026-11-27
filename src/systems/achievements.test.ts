@@ -23,6 +23,7 @@ describe('Achievements', () => {
   it('die erste Schlacht schaltet die ersten Erfolge frei, jeder gibt +1 %', () => {
     const s = newGame(71);
     while (s.battle) tick(s, 0.05);
+    s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
     for (let i = 0; i < 40; i++) tick(s, 0.05);
     expect(s.achievements['secret.firstDefeat']).toBeDefined();
     expect(s.achievements['kills.1']).toBeDefined();
@@ -33,6 +34,7 @@ describe('Achievements', () => {
   it('der Bonus wirkt auf die Produktion', () => {
     const s = newGame(72);
     while (s.battle) tick(s, 0.05);
+    s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
     s.achievements = {};
     const base = productionRates(s).gold;
     s.achievements = { a: 1, b: 1, c: 1, d: 1, e: 1, f: 1, g: 1, h: 1, i: 1, j: 1 };
@@ -42,6 +44,7 @@ describe('Achievements', () => {
   it('geheim: Sieg ohne einen einzigen Klick', () => {
     const s = newGame(73);
     while (s.battle) tick(s, 0.05);
+    s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
     dispatch(s, { type: 'startBattle' });
     // Über eine Funktion lesen: TypeScript hält s.battle nach der while-Schleife sonst für immer null.
     const battle = () => s.battle;
@@ -60,6 +63,7 @@ describe('Achievements', () => {
   it('bleiben beim Zeitsprung erhalten, der Zeitstrahl wächst mit', () => {
     const s = newGame(74);
     while (s.battle) tick(s, 0.05);
+    s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
     for (let i = 0; i < 40; i++) tick(s, 0.05);
     const before = Object.keys(s.achievements).length;
     Object.assign(s.unlocked, { timeMachine: true });

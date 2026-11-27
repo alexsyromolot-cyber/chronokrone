@@ -14,11 +14,15 @@ import { tickPower } from './power';
 import { tickReactor } from './reactor';
 import { checkAchievements } from './achievements';
 import { addLog, createInitialState, type GameState } from './state';
+import { isPaused, tickScene } from './scene';
 
 const MAX_FX = 200;
 
 export function tick(state: GameState, dt: number): void {
+  // Ein Ereignis mit Entscheidung hält die Welt an, bis der Spieler gewählt hat.
+  if (isPaused(state)) return;
   state.time += dt;
+  tickScene(state, dt);
   tickCastle(state, dt);
   tickBattle(state, dt);
   tickSpells(state, dt);

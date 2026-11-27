@@ -94,7 +94,9 @@ export class BattleScene {
 
   /** Größtes ganzzahliges Vielfaches von 320×180, das in den Container passt. */
   resize(): void {
-    const scale = Math.max(1, Math.floor(this.sizer.clientWidth / VIEW_W));
+    // Ganzzahlig skalieren (scharfe Pixel) – passend in Breite UND Höhe der Arena.
+    const byHeight = this.sizer.clientHeight > 0 ? this.sizer.clientHeight / VIEW_H : Infinity;
+    const scale = Math.max(1, Math.floor(Math.min(this.sizer.clientWidth / VIEW_W, byHeight)));
     const style = this.app.canvas.style;
     style.width = `${VIEW_W * scale}px`;
     style.height = `${VIEW_H * scale}px`;

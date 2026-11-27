@@ -30,9 +30,12 @@ function resourceVisible(state: GameState, id: ResourceId, rate: number): boolea
   return (id === 'wood' || id === 'stone') && !!state.unlocked.castle;
 }
 
-export function resourcesHtml(state: GameState): string {
+/** `only`: nur diese Ressourcen zeigen (Raum bzw. Kampfphase); 'all' = alle, die schon eine Rolle spielen. */
+export function resourcesHtml(state: GameState, only: ResourceId[] | 'all' = 'all'): string {
   const rates = productionRates(state);
-  return RESOURCE_IDS.filter((id) => resourceVisible(state, id, rates[id]))
+  return RESOURCE_IDS.filter(
+    (id) => (only === 'all' || only.includes(id)) && resourceVisible(state, id, rates[id]),
+  )
     .map((id) => {
       const cap = resourceCap(state, id);
       const value = state.resources[id];
@@ -102,38 +105,12 @@ export function battleHudHtml(state: GameState): string {
     return parts.join('');
   }
 
-  const last = state.lastBattle;
-  if (last) {
-    const head =
-      last.result === 'won'
-        ? t('battle.won', { total: BATTLE.wavesPerBattle })
-        : t('battle.lost', { wave: last.wave });
-    parts.push(`<div class="result ${last.result}"><strong>${esc(head)}</strong>
-      <span>${esc(t('battle.summary', { kills: last.kills, gold: num(last.goldEarned), seconds: Math.round(last.seconds) }))}</span></div>`);
-  } else {
-    parts.push(`<div class="hint">${esc(t('battle.idle'))}</div>`);
-  }
+  return parts.join('');
+}
 
-  const startLabel = state.stats.battles > 0 ? t('battle.again') : t('battle.start');
-  const siegeButtons: string[] = [];
-  if (state.unlocked.siege) {
-    const siegeTip = t('battle.siegeTip', {
-      hp: num(BATTLE.hpGrowthPerSiege, 1),
-      gold: num(BATTLE.goldGrowthPerSiege, 1),
-    });
-    for (let s = 0; s <= state.siegeLevel; s++) {
-      siegeButtons.push(
-        `<button class="btn small ${s === state.siegeLevel ? 'primary' : ''}" ${action({ type: 'startBattle', siege: s })} ${tip(siegeTip)}>${esc(
-          t('battle.siege', { siege: s + 1 }),
-        )}</button>`,
-      );
-    }
-  }
-  parts.push(`<div class="hud-row">
-    <button class="btn primary" id="start-battle" ${action({ type: 'startBattle' })}>${esc(startLabel)} <kbd>␣</kbd></button>
-    ${siegeButtons.join('')}
-  </div>`);
-
+/** Mauer verstärken – lebt jetzt im Bauplatz statt unter dem Schlachtfeld. */
+export function wallUpgradeHtml(state: GameState): string {
+  const parts: string[] = [];
   if (state.unlocked.wall) {
     const blocker = wallUpgradeBlocker(state);
     parts.push(`<div class="hud-row">

@@ -207,6 +207,8 @@ export class Bot {
       if (state.battle && b.wallHp < b.wallMaxHp * 0.6)
         dispatch(state, { type: 'castSpell', spell: 'blessing' });
     } else {
+      // Ergebnisfenster sofort wegklicken – ein Mensch braucht dafür die Pause zwischen den Schlachten.
+      if (state.scene.result) dispatch(state, { type: 'dismissResult' });
       // Zeitmaschine fertig? Sofort springen – zwischen zwei Schlachten.
       // Letzte Epoche: statt zu springen das Mutterschiff angreifen (bis es fällt).
       const finale = isLastEpoch(state) && state.timeMachineAt !== null && state.finale.wonAt === null;

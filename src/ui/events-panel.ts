@@ -13,8 +13,6 @@ export function eventHtml(state: GameState): string {
   const ev = state.events.active;
   if (!ev) return '';
   const def = EVENTS.find((e) => e.id === ev.id)!;
-  const left = Math.max(0, Math.ceil(ev.expiresAt - state.time));
-  const fallback = tk(`eventopt.${ev.id}.${def.options[0]}`);
   const buttons = def.options
     .map(
       (o, i) =>
@@ -25,8 +23,7 @@ export function eventHtml(state: GameState): string {
     .join('');
   return `<h3>${esc(tk(`event.${ev.id}.title`))}</h3>
     <p>${esc(tk(`event.${ev.id}.log`, ev.params))}</p>
-    <div class="hud-row">${buttons}</div>
-    <p class="hint">${esc(t('event.expires', { s: left, fallback }))}</p>`;
+    <div class="event-choices">${buttons}</div>`;
 }
 
 export function seasonHtml(state: GameState): string {

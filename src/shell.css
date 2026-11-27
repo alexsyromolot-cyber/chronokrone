@@ -1,0 +1,706 @@
+/*
+ * UI-Umbau Etappe 1: Szenen statt einer langen Seite.
+ * Arena und Dorf füllen den Bildschirm; Inhalte schweben als halbtransparente Flächen
+ * ohne graue Kastenrahmen darüber. Die alten Panel-Styles (style.css) bleiben für den
+ * Inhalt der Räume vorerst bestehen und werden hier nur weicher gemacht.
+ */
+
+body {
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 70% -10%, rgba(90, 110, 170, 0.18), transparent 60%),
+    linear-gradient(180deg, #0b0f1a 0%, var(--bg) 70%);
+}
+
+#app {
+  max-width: none;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  margin: 0;
+  padding: 10px 16px;
+  background: rgba(6, 8, 16, 0.45);
+  backdrop-filter: blur(6px);
+  position: relative;
+  z-index: 20;
+}
+
+.res {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.icon-btn {
+  min-width: 32px;
+}
+
+.scenes {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+}
+
+/* Schwebende Fläche: halbtransparent, unscharfer Hintergrund, runde Ecken, kein Rahmen. */
+.float {
+  background: rgba(14, 18, 32, 0.72);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Arena ---------- */
+#arena .stage-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#battle-hud {
+  position: absolute;
+  left: 16px;
+  top: 12px;
+  width: min(440px, 42vw);
+  display: grid;
+  gap: 8px;
+}
+
+#battle-hud:empty,
+.spell-bar:empty {
+  display: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
+.chip.loot {
+  background: var(--torch);
+  color: #1a1206;
+}
+
+.chip.warn {
+  background: rgba(255, 122, 107, 0.18);
+  color: #ffb3a8;
+}
+
+.troop-list {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  width: 230px;
+  max-height: calc(100% - 120px);
+  overflow: auto;
+}
+
+.troop-list h3 {
+  font-size: 0.8em;
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+
+.troop-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.troop-list li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.troop-list img {
+  width: 28px;
+  height: 28px;
+}
+
+.troop-info {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 6px;
+  font-size: 0.85em;
+}
+
+.troop-info small {
+  opacity: 0.7;
+}
+
+.bar-mini {
+  grid-column: 1 / -1;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.bar-mini span {
+  display: block;
+  height: 100%;
+}
+
+.spell-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  border-radius: 22px;
+}
+
+.spell-bar .hud-row {
+  margin: 0;
+}
+
+/* ---------- Dorf ---------- */
+#village {
+  display: flex;
+  flex-direction: column;
+}
+
+.village-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px 4px;
+  flex-wrap: wrap;
+}
+
+.prep {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.to-wall {
+  font-size: 1.05em;
+  padding: 10px 16px;
+  border-radius: 14px;
+}
+
+.siege-select {
+  font: inherit;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.cards-pop {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: min(560px, 90vw);
+  z-index: 15;
+}
+
+.room-tabs {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 18px;
+}
+
+.tab {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    background 0.15s;
+}
+
+.tab:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tab.active {
+  background: color-mix(in srgb, var(--torch) 35%, transparent);
+  box-shadow: inset 0 0 0 2px var(--torch);
+}
+
+.tab img {
+  width: 28px;
+  height: 28px;
+}
+
+.tab.locked img {
+  filter: grayscale(1) brightness(0.5);
+}
+
+.tab .lock {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  font-size: 12px;
+}
+
+.room-title {
+  text-align: center;
+  margin: 6px 0 8px;
+}
+
+.rooms {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 16px 130px;
+}
+
+.room {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr));
+  gap: 12px;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.room .panel {
+  border: 0;
+  border-radius: 16px;
+  background: rgba(20, 26, 44, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+.room-enter {
+  animation: room-enter 0.25s ease-out;
+}
+
+@keyframes room-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ---------- Erzähler ---------- */
+.narrator {
+  position: fixed;
+  left: 16px;
+  bottom: 14px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  z-index: 30;
+  max-width: min(480px, 70vw);
+}
+
+.narrator-figure {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  animation: bob 3s ease-in-out infinite;
+}
+
+.narrator-figure img {
+  width: 64px;
+  height: auto;
+}
+
+.narrator .bubble {
+  padding: 10px 14px;
+  border-radius: 14px 14px 14px 4px;
+  background: #f3ead7;
+  color: #1c1a24;
+  font-size: 0.92em;
+  line-height: 1.45;
+  margin-bottom: 28px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.narrator-log {
+  position: fixed;
+  left: 16px;
+  bottom: 110px;
+  width: min(440px, 90vw);
+  max-height: 55vh;
+  overflow: auto;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(14, 18, 32, 0.96);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  z-index: 31;
+}
+
+.narrator-log-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* ---------- Meldungen und Countdown ---------- */
+.toasts {
+  position: fixed;
+  right: 16px;
+  top: 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.countdown-card:not([hidden]) ~ .toasts,
+.toasts {
+  top: 70px;
+}
+
+.toast-card {
+  max-width: 320px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(14, 18, 32, 0.92);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  animation: toast-in 0.25s ease-out;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}
+
+.toast-card.achievement {
+  border-left: 4px solid var(--torch);
+}
+
+.toast-card.good {
+  border-left: 4px solid var(--good);
+}
+
+.toast-card.bad {
+  border-left: 4px solid var(--bad);
+}
+
+.toast-card.leaving {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
+.countdown-card {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(14, 18, 32, 0.92);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  border-left: 4px solid var(--torch);
+  z-index: 41;
+}
+
+/* ---------- Fenster in der Mitte ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 6, 14, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.overlay .modal {
+  width: min(540px, 92vw);
+  padding: 26px;
+  border-radius: 24px;
+  border: 0;
+  display: grid;
+  gap: 12px;
+  animation: fade-in 0.3s ease-out;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.result-head,
+.event-label {
+  font-size: 0.85em;
+  font-weight: 800;
+}
+
+.result-modal.won .result-head {
+  color: var(--good);
+}
+
+.result-modal.lost .result-head {
+  color: var(--bad);
+}
+
+.result-modal h2 {
+  font-size: 1.9em;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin: 0;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.result-grid > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.result-note {
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--torch);
+  font-size: 0.9em;
+}
+
+.result-note.big {
+  font-weight: 800;
+  color: var(--torch);
+}
+
+.btn.big {
+  padding: 12px;
+  font-size: 1.05em;
+}
+
+.event-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ff8a5c;
+}
+
+.event-choices {
+  display: grid;
+  gap: 8px;
+}
+
+.event-choices .btn {
+  text-align: left;
+  padding: 10px 12px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+/* ---------- Tor-Übergang ---------- */
+.gate {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.gate-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.5%;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 18%,
+      #2d2f38 18%,
+      #2d2f38 21%,
+      transparent 21%,
+      transparent 79%,
+      #2d2f38 79%,
+      #2d2f38 82%,
+      transparent 82%
+    ),
+    repeating-linear-gradient(90deg, #4a2e1a 0 58px, #3a2414 58px 64px);
+}
+
+.gate-door.left {
+  left: 0;
+  transform: translateX(-101%);
+  box-shadow: inset -10px 0 0 #2a190e;
+}
+
+.gate-door.right {
+  right: 0;
+  transform: translateX(101%);
+  box-shadow: inset 10px 0 0 #2a190e;
+}
+
+.gate.closing .gate-door,
+.gate.opening .gate-door {
+  pointer-events: auto;
+}
+
+.gate.closing .gate-door.left {
+  animation: gate-close-l 0.65s ease-in forwards;
+}
+
+.gate.closing .gate-door.right {
+  animation: gate-close-r 0.65s ease-in forwards;
+}
+
+.gate.opening .gate-door.left {
+  animation: gate-open-l 0.65s ease-out forwards;
+}
+
+.gate.opening .gate-door.right {
+  animation: gate-open-r 0.65s ease-out forwards;
+}
+
+.gate-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.2em;
+  font-weight: 800;
+  color: var(--torch);
+  text-shadow: 0 3px 0 #000;
+  opacity: 0;
+}
+
+.gate.closing .gate-text {
+  animation: gate-text-in 0.65s ease-in forwards;
+}
+
+.gate.opening .gate-text {
+  animation: gate-text-out 0.4s ease-out forwards;
+}
+
+@keyframes gate-close-l {
+  from {
+    transform: translateX(-101%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes gate-close-r {
+  from {
+    transform: translateX(101%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes gate-open-l {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-101%);
+  }
+}
+
+@keyframes gate-open-r {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(101%);
+  }
+}
+
+@keyframes gate-text-in {
+  60% {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gate-text-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.debug-toggle {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 70;
+  opacity: 0.5;
+}
+
+@media (max-width: 760px) {
+  .troop-list {
+    display: none;
+  }
+  #battle-hud {
+    width: calc(100% - 32px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .narrator-figure,
+  .room-enter,
+  .toast-card,
+  .overlay .modal {
+    animation: none;
+  }
+}

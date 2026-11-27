@@ -1293,4 +1293,18 @@ export const en: Messages = {
 
   // --- Kampf-Overlay ---
   'hud.rageIn': 'Rage in {s} s',
+
+  // --- Isometrischer Bauplatz ---
+  'castle.milestoneBar': 'Level {level} – next milestone at {next} (production ×2)',
+  'castle.bonus.terrain': 'Terrain',
+  'castle.bonus.neighbor': 'Neighbours',
+  'castle.bonus.workers': 'Workers',
+  'castle.bonus.skills': 'Skills & companions',
+  'castle.bonus.tavern': 'Tavern',
+  'castle.bonus.milestone': 'Milestones',
+  'iso.tavern': 'Tavern',
+  'iso.bottleneck': 'Bottleneck: ingredients missing or storage full – details in the sidebar.',
+  'iso.catalog': 'Build:',
+  'iso.buildMode': 'Pick a tile – green = bonus (Esc ends)',
+  'reason.buildModeTile': 'Nothing can be built here: the tile is taken or not cleared yet.',
 };

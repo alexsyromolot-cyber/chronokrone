@@ -21,7 +21,6 @@ import {
   buildingAvailable,
   clearBlocker,
   clearCost,
-  inBounds,
   milestoneMultiplier,
   recipeBottleneck,
   recipeRate,
@@ -38,46 +37,19 @@ import { troopCapacity } from '../systems/units';
 import { isConnected, rosetteBonus, shipActive } from '../systems/starship';
 import { STARSHIP } from '../data/starship';
 import { spriteUrl } from '../render/pixel';
-import { BUILDING_SPRITES, TERRAIN_SPRITES } from '../render/sprites';
+import { BUILDING_SPRITES } from '../render/sprites';
 import { costHtml, esc, num, pct, reasonText, tip } from './dom';
 import { diceHtml } from './events-panel';
 import { marketHtml } from './market-panel';
 import { gridHtml } from './cards-panel';
 import { reactorHtml } from './reactor-panel';
-import { powerBonus } from '../systems/power';
 import { action } from './panels-top';
+import { catalogHtml, isoGridHtml } from './iso-castle';
 
 export interface CastleUi {
   selected: { x: number; y: number } | null;
-}
-
-function tileHtml(state: GameState, tile: Tile, ui: CastleUi): string {
-  const selected = ui.selected?.x === tile.x && ui.selected.y === tile.y;
-  const fog = !tile.unlocked && !inBounds(state, tile);
-  const terrainSprite = TERRAIN_SPRITES[tile.terrain];
-  const img = tile.building
-    ? `<img src="${spriteUrl(BUILDING_SPRITES[tile.building])}" alt="">`
-    : terrainSprite && tile.unlocked
-      ? `<img class="deco" src="${spriteUrl(terrainSprite)}" alt="">`
-      : '';
-  const label = tile.building
-    ? t(`building.${tile.building}`)
-    : tile.unlocked
-      ? t(`terrain.${tile.terrain}`)
-      : fog
-        ? t('castle.fog')
-        : t('castle.locked');
-  const clearable = !tile.unlocked && clearBlocker(state, tile) === null;
-  const classes = ['tile', `terrain-${tile.terrain}`];
-  if (!tile.unlocked) classes.push(fog ? 'fog' : 'locked');
-  if (selected) classes.push('selected');
-  if (powerBonus(state, tile) > 0) classes.push('powered');
-  if (tile.building && !isConnected(state, tile)) classes.push('adrift');
-  else if (tile.building && rosetteBonus(state, tile) > 0) classes.push('lit');
-  if (clearable) classes.push('affordable');
-  return `<button class="${classes.join(' ')}" data-select="${tile.x},${tile.y}" aria-label="${esc(label)}" ${tip(label)}>
-    ${img}${tile.building ? `<span class="lvl">${tile.level}</span>` : ''}${!tile.unlocked && !fog ? '<span class="q">?</span>' : ''}
-  </button>`;
+  /** Bau-Modus: im Katalog gewähltes Gebäude (null = aus). */
+  build: BuildingId | null;
 }
 
 function amountsText(a: ResourceAmounts): string {
@@ -188,8 +160,15 @@ function buildingDetail(state: GameState, tile: Tile): string {
     );
   }
   const next = BUILDING_MILESTONES.find((m) => m > tile.level);
-  if ((def.produces || def.recipe) && next)
-    lines.push(`<p class="hint">${esc(t('castle.milestone', { level: next }))}</p>`);
+  if ((def.produces || def.recipe) && next) {
+    // Meilenstein-Balken: Fortschritt vom letzten zum nächsten Meilenstein (Produktion ×2).
+    const prev = [...BUILDING_MILESTONES].reverse().find((m) => m <= tile.level) ?? 1;
+    const share = (tile.level - prev) / (next - prev);
+    lines.push(`<div class="milestone" ${tip(t('castle.milestone', { level: next }))}>
+      <span class="milestone-bar"><span style="width:${(share * 100).toFixed(0)}%"></span></span>
+      <small>${esc(t('castle.milestoneBar', { level: tile.level, next }))}</small></div>`);
+  }
+  lines.push(bonusListHtml(state, tile));
 
   const blocker = upgradeBlocker(state, tile);
   lines.push(`<div class="buy">
@@ -199,6 +178,21 @@ function buildingDetail(state: GameState, tile: Tile): string {
     ${costHtml(state, upgradeCost(tile))}
   </div>`);
   return lines.join('');
+}
+
+/** Boni-Liste in der Seitenleiste: woher die Produktion ihre Zuschläge bekommt. */
+function bonusListHtml(state: GameState, tile: Tile): string {
+  const p = tileProduction(state, tile);
+  if (!p) return '';
+  const rows: [string, string][] = [];
+  if (p.terrain !== 1) rows.push([t('castle.bonus.terrain'), `×${num(p.terrain, 2)}`]);
+  if (p.neighbor > 0) rows.push([t('castle.bonus.neighbor'), `+${pct(p.neighbor)} %`]);
+  if (p.workers > 0) rows.push([t('castle.bonus.workers'), `+${pct(p.workers)} %`]);
+  if (p.skills > 0) rows.push([t('castle.bonus.skills'), `+${pct(p.skills)} %`]);
+  if (p.tavern > 0) rows.push([t('castle.bonus.tavern'), `+${pct(p.tavern)} %`]);
+  if (p.milestone > 1) rows.push([t('castle.bonus.milestone'), `×${p.milestone}`]);
+  if (rows.length === 0) return '';
+  return `<ul class="bonus-list">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><b>${esc(v)}</b></li>`).join('')}</ul>`;
 }
 
 function buildOptions(state: GameState, tile: Tile): string {
@@ -239,10 +233,10 @@ function detailHtml(state: GameState, ui: CastleUi): string {
   return `<h3>${esc(t('castle.empty'))} · ${esc(tk(`terrain.${tile.terrain}`))}</h3>${buildOptions(state, tile)}`;
 }
 
+/** Bauplatz: isometrisches Raster, Seitenleiste mit dem gewählten Feld, Bau-Katalog darunter. */
 export function castleHtml(state: GameState, ui: CastleUi): string {
-  const grid = state.tiles.map((tile) => tileHtml(state, tile, ui)).join('');
-  return `<div class="castle-layout">
-    <div class="grid" style="--cols:${epochDef(state.epoch).map.width}">${grid}</div>
-    <div class="detail">${detailHtml(state, ui)}</div>
-  </div>`;
+  return `<div class="castle-layout iso">
+    <div class="iso-wrap">${isoGridHtml(state, ui)}</div>
+    <aside class="detail">${detailHtml(state, ui)}</aside>
+  </div>${catalogHtml(state, ui)}`;
 }

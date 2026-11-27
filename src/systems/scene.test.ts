@@ -135,3 +135,23 @@ describe('Römische Level-Zahlen im Kampf-Overlay', () => {
     expect([1, 4, 9, 14, 40, 99, 2026].map(roman)).toEqual(['I', 'IV', 'IX', 'XIV', 'XL', 'XCIX', 'MMXXVI']);
   });
 });
+
+describe('Bau-Vorschau', () => {
+  it('zeigt Gelände- und Nachbarschaftsbonus eines Gebäudes auf einem Feld', async () => {
+    const { placementPreview, tileAt } = await import('./castle');
+    const s = createInitialState(9);
+    const forest = s.tiles.find((t) => t.terrain === 'forest' && !t.building)!;
+    const p = placementPreview(s, forest, 'lumberHut');
+    expect(p.terrain).toBeGreaterThan(1);
+    // Eine Hütte daneben: +15 % Nachbarschaft für die nächste Hütte.
+    const nb = [tileAt(s, forest.x + 1, forest.y), tileAt(s, forest.x - 1, forest.y)].find(
+      (t) => t && !t.building,
+    )!;
+    nb.building = 'lumberHut';
+    nb.level = 1;
+    expect(placementPreview(s, forest, 'lumberHut').neighbor).toBeCloseTo(0.15);
+    // Gebäude ohne passenden Bonus: score 0.
+    const grass = s.tiles.find((t) => t.terrain === 'grass' && !t.building)!;
+    expect(placementPreview(s, grass, 'barracks').score).toBe(0);
+  });
+});

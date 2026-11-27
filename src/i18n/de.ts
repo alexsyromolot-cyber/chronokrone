@@ -1314,6 +1314,20 @@ export const de = {
 
   // --- Kampf-Overlay ---
   'hud.rageIn': 'Wut in {s} s',
+
+  // --- Isometrischer Bauplatz ---
+  'castle.milestoneBar': 'Level {level} – nächster Meilenstein bei {next} (Produktion ×2)',
+  'castle.bonus.terrain': 'Gelände',
+  'castle.bonus.neighbor': 'Nachbarn',
+  'castle.bonus.workers': 'Arbeiter',
+  'castle.bonus.skills': 'Skills & Begleiter',
+  'castle.bonus.tavern': 'Taverne',
+  'castle.bonus.milestone': 'Meilensteine',
+  'iso.tavern': 'Taverne',
+  'iso.bottleneck': 'Engpass: Zutaten fehlen oder das Lager ist voll – Details in der Seitenleiste.',
+  'iso.catalog': 'Bauen:',
+  'iso.buildMode': 'Feld wählen – grün = Bonus (Esc beendet)',
+  'reason.buildModeTile': 'Hier lässt sich nichts bauen: Feld ist belegt oder noch nicht gerodet.',
 } as const;
 
 export type MessageKey = keyof typeof de;

@@ -3,7 +3,14 @@
  * Reine Logik – wo etwas auf dem Bildschirm landet, entscheidet render/battle-scene.ts.
  */
 import { chance, nextRandom, randomInt } from '../core/rng';
-import { BATTLE as B, ENEMIES, type EnemyId } from '../data/enemies';
+import {
+  BATTLE as B,
+  BESTIARY_BONUS_PER_TIER,
+  BESTIARY_TIERS,
+  ELITES,
+  ENEMIES,
+  type EnemyId,
+} from '../data/enemies';
 import { CLASSES, UNIT_FORMULAS } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { gain, keepLevel } from './resources';
@@ -71,12 +78,30 @@ export function startBattle(state: GameState, siege = state.siegeLevel): Message
     spellCooldowns: {},
     militiaLeft: 0,
     militiaTimer: 0,
+    pendingElite: null,
   };
   return null;
 }
 
+/** Bestiarium-Bonus: +5 % Schaden je erreichter Abschuss-Stufe (Elite: sofort voll). */
+export function bestiaryBonus(state: GameState, type: EnemyId): number {
+  const kills = state.bestiary[type] ?? 0;
+  if (ENEMIES[type].elite) return kills > 0 ? BESTIARY_TIERS.length * BESTIARY_BONUS_PER_TIER : 0;
+  return BESTIARY_TIERS.filter((tier) => kills >= tier).length * BESTIARY_BONUS_PER_TIER;
+}
+
+/** Wut-Faktor auf den Mauerschaden: verdoppelt sich alle enrageDoubling s nach enrageAfter s. */
+export function enrageFactor(elapsed: number): number {
+  return elapsed <= B.enrageAfter ? 1 : 2 ** ((elapsed - B.enrageAfter) / B.enrageDoubling);
+}
+
+/** Elitegegner dieser Belagerungsstufe, falls es einen gibt. */
+export function eliteForSiege(siege: number): EnemyId | null {
+  return ELITES.find((e) => e.siege === siege)?.enemy ?? null;
+}
+
 function pickEnemyType(state: GameState, wave: number): EnemyId {
-  const allowed = Object.values(ENEMIES).filter((e) => e.fromWave <= wave);
+  const allowed = Object.values(ENEMIES).filter((e) => e.fromWave <= wave && e.weight > 0);
   const total = allowed.reduce((s, e) => s + e.weight, 0);
   let roll = nextRandom(state.rng) * total;
   for (const e of allowed) {
@@ -87,7 +112,13 @@ function pickEnemyType(state: GameState, wave: number): EnemyId {
 }
 
 function spawn(state: GameState, b: BattleState): void {
-  const type = pickEnemyType(state, b.wave);
+  // Der Elitegegner kommt als allerletzter Gegner der letzten Welle.
+  const elite = b.pendingElite && b.toSpawn === 1 ? b.pendingElite : null;
+  if (elite) {
+    b.pendingElite = null;
+    if (!state.bestiary[elite]) addLog(state, 'narrator.eliteArrives', { name: `@enemy.${elite}` });
+  }
+  const type = elite ?? pickEnemyType(state, b.wave);
   const hp = ENEMIES[type].hp * enemyHpMultiplier(b.wave, b.siege);
   b.enemies.push({
     id: b.nextEnemyId++,
@@ -101,9 +132,19 @@ function spawn(state: GameState, b: BattleState): void {
 }
 
 /** Schaden zufügen; bei Tod Beute, XP und Bestiarium. */
-export function damageEnemy(state: GameState, enemy: Enemy, amount: number, byClick: boolean): void {
+export function damageEnemy(
+  state: GameState,
+  enemy: Enemy,
+  raw: number,
+  byClick: boolean,
+  melee = false,
+): void {
   const b = state.battle;
   if (!b || enemy.hp <= 0) return;
+  const def0 = ENEMIES[enemy.type];
+  // Panzerung gilt nur gegen Nahkampf; das Bestiarium hilft gegen bekannte Typen.
+  const armor = melee ? (def0.meleeArmor ?? 0) : 0;
+  const amount = raw * (1 - armor) * (1 + bestiaryBonus(state, enemy.type));
   enemy.hp -= amount;
   state.fx.push({ kind: 'hit', x: enemy.x, lane: enemy.lane, amount, byClick });
   if (enemy.hp > 0) return;
@@ -128,6 +169,16 @@ export function damageEnemy(state: GameState, enemy: Enemy, amount: number, byCl
     if (first) addLog(state, 'narrator.firstScrap');
   }
   state.fx.push({ kind: 'kill', x: enemy.x, lane: enemy.lane, enemy: enemy.type, gold, scrap });
+
+  if (def.elite && !state.timeParts[enemy.type]) {
+    state.timeParts[enemy.type] = true;
+    state.fx.push({ kind: 'milestone' });
+    addLog(state, 'narrator.partFound', {
+      name: `@enemy.${enemy.type}`,
+      n: Object.keys(state.timeParts).length,
+      total: ELITES.length,
+    });
+  }
 
   const seen = state.bestiary[enemy.type] ?? 0;
   state.bestiary[enemy.type] = seen + 1;
@@ -197,6 +248,10 @@ export function tickBattle(state: GameState, dt: number): void {
   if (b.waveTimer <= 0 && b.wave < B.wavesPerBattle) {
     b.wave++;
     b.toSpawn += waveSize(b.wave);
+    if (b.wave === B.wavesPerBattle) {
+      b.pendingElite = eliteForSiege(b.siege);
+      if (b.pendingElite) b.toSpawn += 1;
+    }
     b.waveTimer = B.waveInterval;
   }
 
@@ -211,12 +266,13 @@ export function tickBattle(state: GameState, dt: number): void {
 
   // Bewegung. Lautes Fluchen der Bauern verlangsamt die Aliens.
   const slow = 1 / (1 + globalBonus(state, 'enemySlow'));
+  const enrage = enrageFactor(b.elapsed);
   for (const e of b.enemies) {
     e.prevX = e.x;
     if (e.x > B.wallX) {
       e.x = Math.max(B.wallX, e.x - ENEMIES[e.type].speed * slow * dt);
     } else {
-      const dmg = ENEMIES[e.type].wallDps * dt;
+      const dmg = ENEMIES[e.type].wallDps * enrage * dt;
       b.wallHp -= dmg;
       b.wallDamageAcc += dmg;
     }
@@ -255,9 +311,10 @@ export function tickBattle(state: GameState, dt: number): void {
       // ausgewählt, damit ein sterbendes Ziel die Liste nicht verändert).
       const splashed =
         def.splash > 0 ? b.enemies.filter((e) => e !== target && Math.abs(e.x - target.x) <= def.splash) : [];
-      damageEnemy(state, target, dmg, false);
+      const melee = range <= MELEE_REACH;
+      damageEnemy(state, target, dmg, false, melee);
       const splashShare = SPLASH_FACTOR * (1 + skillBonus(state, unit.classId, 'splashMult'));
-      for (const e of splashed) damageEnemy(state, e, dmg * splashShare, false);
+      for (const e of splashed) damageEnemy(state, e, dmg * splashShare, false, melee);
       b.cooldowns[unit.id] = attackInterval(state, unit);
     } else {
       b.cooldowns[unit.id] = 0;

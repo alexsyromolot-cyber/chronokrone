@@ -1,7 +1,8 @@
 /**
  * Leute (Einheiten + Anwerben), Skilltrees und Bestiarium.
  */
-import { ENEMIES, type EnemyId } from '../data/enemies';
+import { BESTIARY_TIERS, ENEMIES, type EnemyId } from '../data/enemies';
+import { bestiaryBonus } from '../systems/battle';
 import { GEAR, GEAR_EFFECTS, GEAR_SLOTS } from '../data/gear';
 import { CLASS_ORDER, CLASSES, type ClassId } from '../data/units';
 import { t, tk } from '../i18n';
@@ -134,7 +135,11 @@ export function bestiaryHtml(state: GameState): string {
         return `<li class="beast unknown"><span class="silhouette"></span>${esc(t('bestiary.unknown'))}</li>`;
       return `<li class="beast">
         <img src="${spriteUrl(ENEMY_SPRITES[id])}" alt="">
-        <div><strong>${esc(t(`enemy.${id}`))}</strong> <span class="lv">${esc(t('bestiary.kills', { n: kills }))}</span>
+        <div><strong>${esc(t(`enemy.${id}`))}</strong>${ENEMIES[id].elite ? ` <span class="tag elite">${esc(t('bestiary.elite'))}</span>` : ''}
+        <span class="lv">${esc(t('bestiary.kills', { n: kills }))}</span>
+        <span class="good" ${tip(t('bestiary.bonusTip', { tiers: BESTIARY_TIERS.join(' / ') }))}>${esc(
+          t('bestiary.bonus', { pct: pct(bestiaryBonus(state, id)) }),
+        )}</span>
         <p class="desc">${esc(t(`enemy.${id}.desc`))}</p></div>
       </li>`;
     })

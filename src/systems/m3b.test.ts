@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { RESOURCE_IDS } from '../data/resources';
 import { SKILLS } from '../data/skills';
 import { dispatch } from './actions';
-import { wallMaxHp } from './battle';
+import { bestiaryBonus, wallMaxHp } from './battle';
 import { flows, tileAt, tileProduction } from './castle';
 import { newGame, tick } from './game';
 import { spellPower, troopDps } from './spells';
@@ -109,7 +109,8 @@ describe('Zauber', () => {
     b.enemies.push({ id: 1, type: 'saugling', x: 300, prevX: 300, lane: 0, hp: 100, maxHp: 100 });
     b.enemies.push({ id: 2, type: 'saugling', x: 310, prevX: 310, lane: 1, hp: 1000, maxHp: 1000 });
     expect(dispatch(s, { type: 'castSpell', spell: 'stoneRain' })).toBeNull();
-    const hit = 3 * troopDps(s);
+    // Bestiarium-Bonus gegen Sauglinge (nach der ersten Schlacht schon ≥ 10 Abschüsse) zählt mit.
+    const hit = 3 * troopDps(s) * (1 + bestiaryBonus(s, 'saugling'));
     expect(b.enemies.find((e) => e.id === 1)!.hp).toBeCloseTo(100 - hit);
     expect(b.enemies.find((e) => e.id === 2)!.hp).toBeCloseTo(1000 - hit);
     expect(dispatch(s, { type: 'castSpell', spell: 'stoneRain' })).toBe('reason.cooldown');

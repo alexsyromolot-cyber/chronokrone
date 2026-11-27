@@ -209,6 +209,7 @@ export class BattleScene {
       let view = this.enemies.get(e.id);
       if (!view) {
         const sprite = new Sprite(spriteTexture(ENEMY_SPRITES[e.type]));
+        if (ENEMIES[e.type].elite) sprite.scale.set(2);
         const hpBar = new Graphics();
         this.enemyLayer.addChild(sprite, hpBar);
         view = { sprite, hpBar, lastHp: e.hp, flash: 0 };

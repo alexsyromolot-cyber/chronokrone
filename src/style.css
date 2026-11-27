@@ -413,17 +413,17 @@ kbd {
 }
 
 /* ---------- Burg ---------- */
+/* Raster links, Details rechts – reicht der Platz nicht, rutschen die Details darunter. */
 .castle-layout {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  align-items: start;
+  align-items: flex-start;
 }
 
-@media (max-width: 560px) {
-  .castle-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.castle-layout .detail {
+  flex: 1 1 260px;
+  min-width: 240px;
 }
 
 .grid {
@@ -951,4 +951,52 @@ h3.sub {
   width: 16px;
   height: 16px;
   display: inline-block;
+}
+
+/* ---------- Elite & Zeitmaschine (M3c) ---------- */
+.tag.elite {
+  color: var(--bad);
+  font-size: 0.75em;
+  padding: 0 6px;
+}
+
+.tag.bad {
+  color: var(--bad);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.elite-hint {
+  color: var(--bad);
+}
+
+.parts {
+  list-style: none;
+  display: flex;
+  gap: 10px;
+  padding: 0;
+  margin: 4px 0 8px;
+}
+
+.part {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.45;
+}
+
+.part.have {
+  opacity: 1;
+}
+
+.part img {
+  width: 28px;
+}
+
+#timemachine p {
+  margin: 4px 0;
+}
+
+/* Noch nie gesehene Elitegegner nur als Schatten – Neugier statt Spoiler. */
+.part:not(.seen) img {
+  filter: brightness(0);
 }

@@ -25,6 +25,7 @@ import { spellbookHtml, spellButtonsHtml } from './ui/spells-panel';
 import { SPELL_IDS, SPELLS } from './data/spells';
 import { spellLevel } from './systems/spells';
 import { researchHtml } from './ui/research-panel';
+import { timeMachineHtml } from './ui/timemachine-panel';
 import { installTooltips } from './ui/tooltip';
 
 const saves = new SaveManager(new LocalStorageBackend());
@@ -66,6 +67,7 @@ const panels = {
   skills: el('#skills'),
   research: el('#research'),
   spells: el('#spells'),
+  timemachine: el('#timemachine'),
   bestiary: el('#bestiary'),
 };
 
@@ -96,6 +98,8 @@ function renderPanels(): void {
   reveal(panels.units, !!state.unlocked.castle);
   reveal(panels.skills, !!state.unlocked.skills);
   reveal(panels.research, !!state.unlocked.research);
+  reveal(panels.timemachine, !!state.unlocked.timeMachine);
+  if (state.unlocked.timeMachine) setHtml(el('#timemachine-body'), timeMachineHtml(state));
   const anySpell = SPELL_IDS.some((id) => spellLevel(state, id) > 0);
   reveal(panels.spells, anySpell);
   if (anySpell) setHtml(el('#spells-body'), spellbookHtml(state));

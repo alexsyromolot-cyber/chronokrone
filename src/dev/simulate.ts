@@ -86,6 +86,10 @@ if (minutes * 60 - last > 60) gaps.push(`${mmss(last)} → Ende (${Math.round(mi
 console.log('\n--- Minutenstände ---');
 for (const s of snapshots) console.log(s);
 
+const tm = state.timeMachineAt === null ? 'nicht fertig' : mmss(state.timeMachineAt);
+console.log(
+  `\nZeitmaschine: ${tm} · Teile: ${Object.keys(state.timeParts).length}/4 · Orakel: ${state.oracle ? 'ja' : 'nein'}`,
+);
 console.log('\n--- Wartezeiten über 60 s ---');
 console.log(gaps.length ? gaps.join('\n') : 'keine 🎉');
 console.log(

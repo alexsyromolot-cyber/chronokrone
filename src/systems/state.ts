@@ -73,6 +73,8 @@ export interface BattleState {
   /** Restdauer der Bauernmiliz und Zeit bis zu ihrem nächsten Schlag. */
   militiaLeft: number;
   militiaTimer: number;
+  /** Elitegegner, der als letzter Gegner dieser Schlacht noch erscheinen soll. */
+  pendingElite: EnemyId | null;
 }
 
 export interface BattleSummary {
@@ -135,6 +137,12 @@ export interface GameState {
   gear: Partial<Record<ClassId, Partial<Record<GearSlot, number>>>>;
   /** Zauberstufen (0 bzw. fehlend = nicht gelernt). */
   spells: Partial<Record<SpellId, number>>;
+  /** Erbeutete Zeitmaschinenteile (je Elitegegner eines). */
+  timeParts: Partial<Record<EnemyId, boolean>>;
+  /** Rechenorakel gebaut? */
+  oracle: boolean;
+  /** Spielzeit, zu der die Zeitmaschine fertig wurde (null = noch nicht). */
+  timeMachineAt: number | null;
   /** Abgeschlossene Forschung. */
   research: Partial<Record<ResearchId, boolean>>;
   wallUpgrades: number;
@@ -191,6 +199,9 @@ export function createInitialState(seed = Date.now()): GameState {
     skillPoints,
     skills: {},
     research: {},
+    timeParts: {},
+    oracle: false,
+    timeMachineAt: null,
     specs: {},
     gear: {},
     spells: {},

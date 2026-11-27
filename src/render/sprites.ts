@@ -8,7 +8,7 @@ import type { EnemyId } from '../data/enemies';
 import type { TerrainId } from '../data/map';
 import type { ClassId } from '../data/units';
 import type { PixelSprite } from './pixel';
-import { M3_BUILDING_SPRITES, M3_UNIT_SPRITES } from './sprites-m3';
+import { eliteSprites, M3_BUILDING_SPRITES, M3_UNIT_SPRITES, SCHILDLING_SPRITE } from './sprites-m3';
 
 const SKIN = '#e8b98a';
 const DARK = '#2a1d1a';
@@ -80,7 +80,7 @@ const BASE_UNIT_SPRITES = {
   },
 };
 
-export const ENEMY_SPRITES: Record<EnemyId, PixelSprite> = {
+const BASE_ENEMY_SPRITES = {
   saugling: {
     rows: [
       '....oooooo....',
@@ -247,3 +247,8 @@ export const BUILDING_SPRITES = { ...BASE_BUILDING_SPRITES, ...M3_BUILDING_SPRIT
   BuildingId,
   PixelSprite
 >;
+export const ENEMY_SPRITES = {
+  ...BASE_ENEMY_SPRITES,
+  schildling: SCHILDLING_SPRITE,
+  ...eliteSprites(BASE_ENEMY_SPRITES),
+} as Record<EnemyId, PixelSprite>;

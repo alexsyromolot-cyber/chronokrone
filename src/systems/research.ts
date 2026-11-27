@@ -16,6 +16,7 @@ export function hasResearch(state: GameState, id: ResearchId): boolean {
 export function researchBlocker(state: GameState, id: ResearchId): MessageKey | null {
   const def = RESEARCH_BY_ID[id];
   if (hasResearch(state, id)) return 'reason.done';
+  if (def.epoch && state.epoch < def.epoch) return 'reason.laterEpoch';
   if (!def.requires.every((r) => hasResearch(state, r))) return 'reason.requiresResearch';
   if (state.resources.knowledge.lt(def.cost)) return 'reason.tooExpensive';
   return null;

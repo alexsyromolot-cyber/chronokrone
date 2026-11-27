@@ -103,6 +103,48 @@ export const M3_UNIT_SPRITES: Partial<Record<ClassId, PixelSprite>> = {
     ],
     palette: { h: '#6b4a2a', s: SKIN, k: DARK, l: '#7ed37e', g: '#4f8a5a' },
   },
+  stoker: {
+    rows: [
+      '...kkkk.....',
+      '..kkkkkk....',
+      '...ssss..ww.',
+      '...sksk..wwm',
+      '...ssss...w.',
+      '..aaaaaa..w.',
+      '.saaaaaass..',
+      '..aaddaa....',
+      '..aaaaaa....',
+      '...pppp.....',
+      '...p..p.....',
+      '..kk..kk....',
+    ],
+    palette: { k: '#2a2a30', s: SKIN, a: '#7a5a3a', d: '#3a3a40', p: PANTS, w: '#8a5a33', m: '#6a6a72' },
+  },
+  steamKnight: {
+    rows: [
+      '...cc.......',
+      '..aaaa..g...',
+      '.aaaaaa.gg..',
+      '.akyyka..m..',
+      '.aaaaaa..m..',
+      'baaaaaaab.m.',
+      'baaaaaaabmm.',
+      '.aagga....m.',
+      '.aaaaaa.....',
+      '..aa..aa....',
+      '..aa..aa....',
+      '.kkk..kkk...',
+    ],
+    palette: {
+      c: '#d8dde8',
+      a: '#c08a50',
+      k: '#3a2a1a',
+      y: '#ffe66d',
+      g: '#8a5a2a',
+      b: '#6a4a2a',
+      m: '#b8bccb',
+    },
+  },
   monk: {
     rows: [
       '...bbbb.....',
@@ -137,6 +179,8 @@ const GLYPHS: Record<string, string[]> = {
   bow: ['.EE..', 'E..E.', 'E...E', 'E..E.', '.EE..'],
   gear: ['.E.E.', 'EEEEE', '.E.E.', 'EEEEE', '.E.E.'],
   star: ['..E..', 'EEEEE', '.EEE.', '.E.E.', 'E...E'],
+  coin: ['.EEE.', 'E.E.E', 'EEEEE', 'E.E.E', '.EEE.'],
+  coal: ['..E..', '.EEE.', 'EEEEE', 'EEEEE', '.EEE.'],
 };
 
 function building(roof: string, wall: string, emblem: string, glyph: keyof typeof GLYPHS): PixelSprite {
@@ -174,6 +218,10 @@ export const M3_BUILDING_SPRITES: Partial<Record<BuildingId, PixelSprite>> = {
   archeryRange: building('#3f6b2f', TIMBER, '#a8c060', 'bow'),
   workshop: building('#2f4a4a', STONE, '#5fe0a0', 'gear'),
   mageTower: building('#5a2f8a', '#6b6f88', '#ffe66d', 'star'),
+  coalMine: building('#3a3a40', '#6a6a72', '#2a2a30', 'coal'),
+  gearWorks: building('#8a5a2a', '#a08060', '#d9a15a', 'gear'),
+  market: building('#b0433a', '#d8c09a', '#f2b33d', 'coin'),
+  steamFoundry: building('#5a4a3a', '#8d7a6a', '#ff8a3d', 'anvil'),
 };
 
 /** Gleiche Form, andere Farben – so entstehen die Elitegegner aus ihren normalen Verwandten. */

@@ -233,6 +233,15 @@ export interface GameState {
   /** Sekunden bis zur nächsten Achievement-Prüfung. */
   achievementTimer: number;
   session: SessionState;
+  /** Markt (Epoche 2): aktuelle Preise, Verlauf für die Mini-Kurve, Takt. */
+  market: {
+    prices: Partial<Record<ResourceId, number>>;
+    history: Partial<Record<ResourceId, number[]>>;
+    timer: number;
+  };
+  /** Sammlung „Begleiter“ (bleibt bei jedem Sprung) und Glücksschutz-Zähler. */
+  companions: Record<string, boolean>;
+  companionPity: number;
   /** Ereignisse, Drohne, Würfel. */
   events: EventsState;
   /** Hofbefehle (bleiben beim Sprung erhalten). */
@@ -312,6 +321,9 @@ export function createInitialState(seed = Date.now()): GameState {
     orders: emptyOrders(),
     achievements: {},
     session: { start: null, lastSeenAt: 0, lastSummary: null, restedUntil: 0 },
+    market: { prices: {}, history: {}, timer: 0 },
+    companions: {},
+    companionPity: 0,
     timeline: [],
     achievementTimer: 0,
     // Erstes Ereignis nach 3 Minuten, erste Drohne nach 2 Minuten – nicht schon in der ersten Schlacht.

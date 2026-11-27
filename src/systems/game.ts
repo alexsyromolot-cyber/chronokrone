@@ -9,6 +9,7 @@ import { checkUnlocks } from './progression';
 import { tickSpells } from './spells';
 import { tickOrders } from './orders';
 import { tickEvents } from './events';
+import { tickMarket } from './trade';
 import { checkAchievements } from './achievements';
 import { addLog, createInitialState, type GameState } from './state';
 
@@ -21,6 +22,7 @@ export function tick(state: GameState, dt: number): void {
   tickSpells(state, dt);
   tickOrders(state, dt);
   tickEvents(state, dt);
+  tickMarket(state, dt);
   state.achievementTimer -= dt;
   if (state.achievementTimer <= 0) {
     state.achievementTimer = 1;

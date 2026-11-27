@@ -8,6 +8,9 @@ import { BATTLE } from '../data/enemies';
 import { GEAR_SLOTS } from '../data/gear';
 import { CHRONICLE } from '../data/chronicle';
 import { RESEARCH } from '../data/research';
+import { BASE_PRICES } from '../data/market';
+import { price, TRADABLE } from '../systems/trade';
+import { resourceCap } from '../systems/resources';
 import { SPELL_IDS } from '../data/spells';
 import { SKILLS } from '../data/skills';
 import type { ClassId } from '../data/units';
@@ -55,6 +58,10 @@ const BUILD_ORDER: BuildingId[] = [
   'scriptorium',
   'workshop',
   'mageTower',
+  'coalMine',
+  'market',
+  'gearWorks',
+  'steamFoundry',
 ];
 
 const RECRUIT_ORDER: ClassId[] = [
@@ -65,6 +72,8 @@ const RECRUIT_ORDER: ClassId[] = [
   'knight',
   'archer',
   'warlock',
+  'stoker',
+  'steamKnight',
   'peasant',
 ];
 
@@ -76,6 +85,13 @@ function wishes(state: GameState): Action[] {
 
   // Forschung: die günstigste verfügbare zuerst.
   for (const r of [...RESEARCH].sort((a, b) => a.cost - b.cost)) list.push({ type: 'research', id: r.id });
+
+  // Markt: volle Lager zu guten Preisen verkaufen – wie ein Spieler, der auf grüne Kurse wartet.
+  for (const id of TRADABLE) {
+    const full = state.resources[id].gte(resourceCap(state, id).mul(0.8));
+    if (full && price(state, id) >= (BASE_PRICES[id] ?? 1) * 1.05)
+      list.push({ type: 'marketSell', resource: id });
+  }
 
   const locked = state.tiles.find(
     (x) => !x.unlocked && inBounds(state, x) && neighbors(state, x).some((n) => n.unlocked),

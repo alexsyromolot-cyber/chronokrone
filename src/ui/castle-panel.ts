@@ -39,6 +39,7 @@ import { spriteUrl } from '../render/pixel';
 import { BUILDING_SPRITES, TERRAIN_SPRITES } from '../render/sprites';
 import { costHtml, esc, num, pct, reasonText, tip } from './dom';
 import { diceHtml } from './events-panel';
+import { marketHtml } from './market-panel';
 import { action } from './panels-top';
 
 export interface CastleUi {
@@ -138,6 +139,7 @@ function effectHtml(state: GameState, tile: Tile): string {
     return `<p>${esc(t('castle.storehouseEffect', { pct: pct(STOREHOUSE_CAP_BONUS * tile.level) }))}</p>`;
   if (id === 'tavern')
     return `<p>${esc(t('castle.tavernEffect', { pct: pct(TAVERN_BONUS_PER_LEVEL * tile.level) }))}</p>${diceHtml(state)}`;
+  if (id === 'market') return marketHtml(state);
   return '';
 }
 

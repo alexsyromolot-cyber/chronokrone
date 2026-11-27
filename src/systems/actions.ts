@@ -12,6 +12,7 @@ import type { ChronicleId } from '../data/chronicle';
 import type { GearSlot } from '../data/gear';
 import type { OrderRule } from '../data/orders';
 import type { DiceBet } from '../data/events';
+import type { ResourceId } from '../data/resources';
 import type { ResearchId } from '../data/research';
 import type { SpellId } from '../data/spells';
 import type { ClassId } from '../data/units';
@@ -28,6 +29,7 @@ import { buyChronicle } from './chronicle';
 import { performJump, useToken } from './prestige';
 import { setOrders } from './orders';
 import { catchDrone, resolveEvent, rollDice } from './events';
+import { buy, sell } from './trade';
 import { buySkill } from './skills';
 import type { GameState } from './state';
 import { recruit } from './units';
@@ -54,7 +56,9 @@ export type Action =
   | { type: 'setOrders'; rules: OrderRule[] }
   | { type: 'eventChoice'; option: string }
   | { type: 'catchDrone' }
-  | { type: 'rollDice'; bet: DiceBet };
+  | { type: 'rollDice'; bet: DiceBet }
+  | { type: 'marketSell'; resource: ResourceId }
+  | { type: 'marketBuy'; resource: ResourceId };
 
 /** Kosten der nächsten Mauerverstärkung = wallUpgradeCost × wallUpgradeGrowth^Stufe */
 export function wallUpgradeCost(state: GameState): Cost {
@@ -87,6 +91,8 @@ const REQUIRED_UNLOCK: Partial<Record<Action['type'], UnlockId>> = {
   eventChoice: 'castle',
   catchDrone: 'castle',
   rollDice: 'castle',
+  marketSell: 'castle',
+  marketBuy: 'castle',
 };
 
 /**
@@ -152,6 +158,10 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return catchDrone(state);
     case 'rollDice':
       return rollDice(state, action.bet);
+    case 'marketSell':
+      return sell(state, action.resource);
+    case 'marketBuy':
+      return buy(state, action.resource);
     case 'upgradeWall': {
       const blocker = wallUpgradeBlocker(state);
       if (blocker) return blocker;

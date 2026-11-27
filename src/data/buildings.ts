@@ -33,7 +33,12 @@ export type BuildingId =
   | 'scriptorium'
   | 'archeryRange'
   | 'workshop'
-  | 'mageTower';
+  | 'mageTower'
+  // Epoche 2
+  | 'coalMine'
+  | 'gearWorks'
+  | 'market'
+  | 'steamFoundry';
 
 export interface Recipe {
   inputs: ResourceAmounts;
@@ -238,6 +243,47 @@ export const BUILDINGS: Record<BuildingId, BuildingDef> = {
     upgradeCost: { gold: 80, scrolls: 3 },
     costGrowth: 1.4,
   },
+  // --- Epoche 2: Dampf & Zahnrad ---
+  coalMine: {
+    id: 'coalMine',
+    buildable: true,
+    research: 'steamPower',
+    baseCost: { gold: 400, wood: 300, iron: 40 },
+    upgradeCost: { gold: 120, wood: 80, iron: 10 },
+    costGrowth: 1.2,
+    produces: { resource: 'coal', perLevel: 0.6 },
+    terrainBonus: { rock: 1.5 },
+    workerSlots: 2,
+  },
+  gearWorks: {
+    id: 'gearWorks',
+    buildable: true,
+    research: 'gearCraft',
+    baseCost: { gold: 700, stone: 300, iron: 60 },
+    upgradeCost: { gold: 200, iron: 20, coal: 30 },
+    costGrowth: 1.25,
+    // Zahnräder: Eisen in Form gießen, mit Kohle befeuert.
+    recipe: { inputs: { iron: 1, coal: 2 }, outputs: { gears: 1 }, cyclesPerLevel: 0.1 },
+    neighborBonus: { building: 'coalMine', bonus: 0.2 },
+  },
+  market: {
+    id: 'market',
+    buildable: true,
+    research: 'trade',
+    maxCount: 1,
+    baseCost: { gold: 600, planks: 150, stone: 150 },
+    upgradeCost: { gold: 300, planks: 60 },
+    costGrowth: 1.4,
+  },
+  steamFoundry: {
+    id: 'steamFoundry',
+    buildable: true,
+    research: 'steamFoundry',
+    maxCount: 1,
+    baseCost: { gold: 1500, steel: 80, gears: 20 },
+    upgradeCost: { gold: 500, gears: 10 },
+    costGrowth: 1.4,
+  },
 };
 
 /**
@@ -257,6 +303,9 @@ export const BARRACKS = {
   troopSlotsPerLevel: 2,
   damageBonusPerLevel: 0.05,
 } as const;
+
+/** Markt: jedes Level verringert die Handelsspanne um diesen Anteil (siehe data/market.ts). */
+export const MARKET_SPREAD_PER_LEVEL = 0.01;
 
 /** Taverne: angrenzende Sammler-Gebäude +Anteil je Tavernen-Level (Arbeitsmoral). */
 export const TAVERN_BONUS_PER_LEVEL = 0.1;

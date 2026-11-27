@@ -18,6 +18,7 @@ import { chronicleBonus } from './chronicle';
 import { gain, keepLevel } from './resources';
 import { globalBonus, skillBonus } from './skills';
 import { addTimeline } from './achievements';
+import { rollCompanion } from './trade';
 import { addLog, type BattleState, type Enemy, type GameState } from './state';
 import { addXp, attackInterval, attributesOf, critChance, troops, unitDamage } from './units';
 
@@ -234,6 +235,7 @@ export function endBattle(state: GameState, result: 'won' | 'lost'): void {
     state.stats.highestSiege = Math.max(state.stats.highestSiege, b.siege + 1);
     if (b.clicks === 0) state.stats.noClickWins++;
     if (state.stats.wins === 1) addTimeline(state, 'firstWin');
+    rollCompanion(state);
     if (b.siege === state.siegeLevel) {
       state.siegeLevel++;
       addLog(state, 'narrator.siegeUp', { siege: state.siegeLevel + 1 });

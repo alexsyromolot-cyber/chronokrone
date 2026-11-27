@@ -208,6 +208,23 @@ export const SKILLS: SkillDef[] = [
     ['calligraphy', 'recipeMult', 0.2, 3, 2, 3, 'scribe', 'scriptorium'],
     ['copyists', 'spellPower', 0.1, 3, 3, 3, 'scribe'],
   ]),
+  // --- Epoche 2 ---
+  ...tree('stoker', [
+    ['shovelWork', 'productionMult', 0.2, 5, 0, 0],
+    ['stamina', 'xpMult', 0.2, 3, 1, 0],
+    ['bellowsBlast', 'recipeMult', 0.15, 3, 2, 0, undefined, 'gearWorks'],
+    ['coalDust', 'goldPerSecond', 0.1, 3, 0, 1, 'shovelWork'],
+    ['hotFurnace', 'recipeMult', 0.25, 3, 1, 1, 'bellowsBlast', 'gearWorks'],
+    ['overtime', 'productionMult', 0.1, 5, 2, 1, 'stamina'],
+  ]),
+  ...tree('steamKnight', [
+    ['pistonArm', 'damageMult', 0.4, 5, 0, 0],
+    ['boiler', 'attackSpeed', 0.08, 3, 1, 0],
+    ['steamArmor', 'wallHpMult', 0.1, 3, 2, 0],
+    ['valves', 'critChance', 0.06, 3, 0, 1, 'pistonArm'],
+    ['pressureLance', 'rangeAdd', 20, 2, 1, 1, 'boiler'],
+    ['overdrive', 'splashMult', 0.2, 3, 2, 1, 'valves'],
+  ]),
 ];
 
 export const SKILLS_BY_ID: Record<string, SkillDef> = Object.fromEntries(SKILLS.map((s) => [s.id, s]));

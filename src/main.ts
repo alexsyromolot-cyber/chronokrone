@@ -33,6 +33,7 @@ import { applySetting, settingsHtml } from './ui/settings-panel';
 import { showRecap } from './ui/recap';
 import { welcomeBack } from './systems/recap';
 import { chronicleHtml } from './ui/chronicle-panel';
+import { companionsHtml } from './ui/market-panel';
 import { eventHtml, seasonHtml } from './ui/events-panel';
 import { achievementsHtml, achievementTitle, statsHtml } from './ui/achievements-panel';
 import { ACHIEVEMENTS } from './data/achievements';
@@ -93,6 +94,7 @@ const panels = {
   orders: el('#orders'),
   event: el('#event'),
   achievements: el('#achievements'),
+  companions: el('#companions'),
   stats: el('#stats'),
   bestiary: el('#bestiary'),
 };
@@ -136,6 +138,10 @@ function renderPanels(): void {
   const anyAchievement = Object.keys(state.achievements).length > 0;
   reveal(panels.achievements, anyAchievement);
   if (anyAchievement) setHtml(el('#achievements-body'), achievementsHtml(state));
+  // Begleiter gibt es ab Epoche 2; einmal gefunden, bleibt die Sammlung sichtbar.
+  const companionsVisible = state.epoch >= 2 || Object.keys(state.companions).length > 0;
+  reveal(panels.companions, companionsVisible);
+  if (companionsVisible) setHtml(el('#companions-body'), companionsHtml(state));
   reveal(panels.stats, !!state.unlocked.castle);
   if (state.unlocked.castle) setHtml(el('#stats-body'), statsHtml(state));
   reveal(panels.event, !!state.events.active);

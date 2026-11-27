@@ -1329,3 +1329,55 @@ body {
   border: 1px solid var(--line);
   padding: 0 4px;
 }
+
+/* --- Markt und Begleiter (Epoche 2) --- */
+.market {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+.market td {
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+.market td.good {
+  color: var(--good, #6ad36a);
+}
+.market td.bad {
+  color: var(--bad, #e06060);
+}
+.spark {
+  width: 60px;
+  height: 16px;
+  vertical-align: middle;
+}
+.spark polyline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+.spark .spark-base {
+  stroke: currentColor;
+  stroke-opacity: 0.3;
+  stroke-dasharray: 2 2;
+}
+.companion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.4em 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px;
+}
+.companion-list li {
+  padding: 3px 6px;
+  border: 1px solid var(--line, #444);
+  border-radius: 4px;
+}
+.companion-list li.locked {
+  opacity: 0.5;
+}
+.companion-list small {
+  display: block;
+  opacity: 0.8;
+}

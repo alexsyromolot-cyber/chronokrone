@@ -30,6 +30,7 @@ import { performJump, useToken } from './prestige';
 import { setOrders } from './orders';
 import { catchDrone, resolveEvent, rollDice } from './events';
 import { buy, sell } from './trade';
+import { equipCard, unequipCard } from './power';
 import { buySkill } from './skills';
 import type { GameState } from './state';
 import { recruit } from './units';
@@ -58,7 +59,9 @@ export type Action =
   | { type: 'catchDrone' }
   | { type: 'rollDice'; bet: DiceBet }
   | { type: 'marketSell'; resource: ResourceId }
-  | { type: 'marketBuy'; resource: ResourceId };
+  | { type: 'marketBuy'; resource: ResourceId }
+  | { type: 'equipCard'; cardId: string }
+  | { type: 'unequipCard'; cardId: string };
 
 /** Kosten der nächsten Mauerverstärkung = wallUpgradeCost × wallUpgradeGrowth^Stufe */
 export function wallUpgradeCost(state: GameState): Cost {
@@ -93,6 +96,8 @@ const REQUIRED_UNLOCK: Partial<Record<Action['type'], UnlockId>> = {
   rollDice: 'castle',
   marketSell: 'castle',
   marketBuy: 'castle',
+  equipCard: 'castle',
+  unequipCard: 'castle',
 };
 
 /**
@@ -162,6 +167,10 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return sell(state, action.resource);
     case 'marketBuy':
       return buy(state, action.resource);
+    case 'equipCard':
+      return equipCard(state, action.cardId);
+    case 'unequipCard':
+      return unequipCard(state, action.cardId);
     case 'upgradeWall': {
       const blocker = wallUpgradeBlocker(state);
       if (blocker) return blocker;

@@ -10,6 +10,7 @@ import { CHRONICLE } from '../data/chronicle';
 import { RESEARCH } from '../data/research';
 import { BASE_PRICES } from '../data/market';
 import { price, TRADABLE } from '../systems/trade';
+import { powerNetwork } from '../systems/power';
 import { resourceCap } from '../systems/resources';
 import { SPELL_IDS } from '../data/spells';
 import { SKILLS } from '../data/skills';
@@ -37,6 +38,18 @@ function bestTile(state: GameState, id: BuildingId): Tile | undefined {
   const score = (t: Tile) =>
     (def.terrainBonus?.[t.terrain] ?? 1) +
     (nb ? neighbors(state, t).filter((n) => n.building === nb.building).length * nb.bonus : 0);
+  // Strom: dorthin, wo möglichst viele noch nicht angeschlossene Erzeuger angrenzen.
+  if (id === 'powerPlant' || id === 'pylon') {
+    const net = powerNetwork(state);
+    const gridTiles = state.tiles.filter((t) => t.building === 'powerPlant' || t.building === 'pylon');
+    const gain = (t: Tile) =>
+      neighbors(state, t).filter(
+        (n) => n.building && !net.connected.has(n) && !gridTiles.includes(n) && n.level > 0,
+      ).length;
+    const candidates =
+      id === 'pylon' ? free.filter((t) => neighbors(state, t).some((n) => gridTiles.includes(n))) : free;
+    return candidates.sort((a, b) => gain(b) - gain(a)).find((t) => gain(t) >= (id === 'pylon' ? 1 : 0));
+  }
   return free.sort((a, b) => score(b) - score(a))[0];
 }
 
@@ -62,6 +75,10 @@ const BUILD_ORDER: BuildingId[] = [
   'market',
   'gearWorks',
   'steamFoundry',
+  'copperMine',
+  'wireWorks',
+  'powerPlant',
+  'teslaTower',
 ];
 
 const RECRUIT_ORDER: ClassId[] = [
@@ -74,6 +91,8 @@ const RECRUIT_ORDER: ClassId[] = [
   'warlock',
   'stoker',
   'steamKnight',
+  'lineman',
+  'teslaLancer',
   'peasant',
 ];
 
@@ -113,6 +132,9 @@ function wishes(state: GameState): Action[] {
   // Günstigstes Upgrade zuerst: Gebäude nach Level sortiert.
   const built = state.tiles.filter((t) => t.building).sort((a, b) => a.level - b.level);
   for (const t of built) list.push({ type: 'upgrade', x: t.x, y: t.y });
+
+  const pylonTile = buildingAvailable(state, 'pylon') === null ? bestTile(state, 'pylon') : undefined;
+  if (pylonTile) list.unshift({ type: 'build', x: pylonTile.x, y: pylonTile.y, building: 'pylon' });
 
   const t = bestTile(state, 'lumberHut');
   if (t) list.push({ type: 'build', x: t.x, y: t.y, building: 'lumberHut' });

@@ -19,6 +19,7 @@ import { gain, keepLevel } from './resources';
 import { globalBonus, skillBonus } from './skills';
 import { addTimeline } from './achievements';
 import { rollCompanion } from './trade';
+import { cardBonus, rollCard } from './power';
 import { addLog, type BattleState, type Enemy, type GameState } from './state';
 import { addXp, attackInterval, attributesOf, critChance, troops, unitDamage } from './units';
 
@@ -32,7 +33,10 @@ export function wallMaxHp(state: GameState): number {
   const endurance = troops(state).reduce((sum, u) => sum + attributesOf(u, state).end, 0);
   const base =
     B.wallBaseHp + B.wallHpPerUpgrade * state.wallUpgrades + UNIT_FORMULAS.wallHpPerEnd * endurance;
-  return Math.round(base * (1 + globalBonus(state, 'wallHpMult')));
+  // Karten können die Mauer auch schwächen – nie unter 10 %.
+  return Math.round(
+    base * (1 + globalBonus(state, 'wallHpMult')) * Math.max(0.1, 1 + cardBonus(state, 'wallHp')),
+  );
 }
 
 export function waveSize(wave: number): number {
@@ -53,7 +57,8 @@ export function clickDamage(state: GameState): number {
     B.clickDamage *
     keepLevel(state) *
     (1 + globalBonus(state, 'clickMult')) *
-    (1 + chronicleBonus(state, 'click'))
+    (1 + chronicleBonus(state, 'click')) *
+    (1 + cardBonus(state, 'click'))
   );
 }
 
@@ -160,7 +165,10 @@ export function damageEnemy(
   if (enemy.hp > 0) return;
 
   const def = ENEMIES[enemy.type];
-  const lootMult = (1 + globalBonus(state, 'lootGold')) * epochDef(state.epoch).gold;
+  const lootMult =
+    (1 + globalBonus(state, 'lootGold')) *
+    epochDef(state.epoch).gold *
+    Math.max(0.1, 1 + cardBonus(state, 'gold'));
   const gold = Math.round(def.gold * goldMultiplier(b.wave, b.siege) * lootMult * 10) / 10;
   gain(state, 'gold', gold);
   b.goldEarned += gold;
@@ -236,6 +244,7 @@ export function endBattle(state: GameState, result: 'won' | 'lost'): void {
     if (b.clicks === 0) state.stats.noClickWins++;
     if (state.stats.wins === 1) addTimeline(state, 'firstWin');
     rollCompanion(state);
+    rollCard(state);
     if (b.siege === state.siegeLevel) {
       state.siegeLevel++;
       addLog(state, 'narrator.siegeUp', { siege: state.siegeLevel + 1 });

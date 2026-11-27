@@ -19,6 +19,7 @@ import { canAfford, exceedsCap, gain, pay, resourceCap, scaledCost, type Cost } 
 import { achievementMultiplier } from './achievements';
 import { chronicleBonus } from './chronicle';
 import { companionBonus, companionSetMultiplier } from './trade';
+import { powerBonus } from './power';
 import { productionModifier } from './events';
 import { weaponMultiplier } from './gear';
 import { globalBonus, skillBonus } from './skills';
@@ -103,6 +104,8 @@ export interface ProductionBreakdown {
   chronicle: number;
   /** Jahreszeit und Ereignis-Boni (Regen, gute Ernte …). */
   season: number;
+  /** Stromnetz: 1 + Bonus, wenn das Gebäude am Netz hängt (Epoche 3). */
+  power: number;
   /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern) × gear × chronicle */
   total: number;
 }
@@ -133,7 +136,9 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     (1 + chronicleBonus(state, 'production')) *
     (def.produces.resource === 'knowledge' ? 1 + chronicleBonus(state, 'knowledge') : 1);
   const season = productionModifier(state, def.produces.resource);
+  const power = 1 + powerBonus(state, tile);
   const total =
+    power *
     season *
     def.produces.perLevel *
     tile.level *
@@ -155,6 +160,7 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     gear,
     chronicle,
     season,
+    power,
     total,
   };
 }
@@ -169,7 +175,8 @@ export function recipeRate(state: GameState, tile: Tile): number {
     tile.level *
     milestoneMultiplier(tile.level) *
     (1 + neighborBonus(state, tile) + globalBonus(state, 'recipeMult', tile.building!)) *
-    (1 + chronicleBonus(state, 'production'))
+    (1 + chronicleBonus(state, 'production')) *
+    (1 + powerBonus(state, tile))
   );
 }
 
@@ -299,6 +306,8 @@ export function build(state: GameState, tile: Tile, id: BuildingId): MessageKey 
 
 export function upgradeBlocker(state: GameState, tile: Tile): MessageKey | null {
   if (!tile.building) return 'reason.unknown';
+  const max = BUILDINGS[tile.building].maxLevel;
+  if (max !== undefined && tile.level >= max) return 'reason.maxLevel';
   return costBlocker(state, upgradeCost(tile));
 }
 

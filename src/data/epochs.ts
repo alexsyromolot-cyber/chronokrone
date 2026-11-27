@@ -42,6 +42,14 @@ export const EPOCH2_MAP: MapDef = {
   startUnlocked: [{ x: 2, y: 3 }],
 };
 
+export const EPOCH3_MAP: MapDef = {
+  ...EPOCH1_MAP,
+  // Viel Fels für Kupfer, weniger Wald: Elektro-Lehnswesen frisst Landschaft.
+  terrain: ['rrrgggrr', 'rgggsggr', 'rggsggrr', 'ggsgggrg', 'gsggggrr', 'sgggfgrr', 'gsgffggg', 'ggsfgrrg'],
+  keep: { x: 3, y: 3 },
+  startUnlocked: [{ x: 2, y: 3 }],
+};
+
 export const EPOCHS: EpochDef[] = [
   {
     id: 1,
@@ -84,6 +92,28 @@ export const EPOCHS: EpochDef[] = [
       panel2: '#33291f',
       line: '#4e3f2e',
       background: '#17130f',
+    },
+  },
+  {
+    id: 3,
+    map: EPOCH3_MAP,
+    enemyHp: 160,
+    gold: 64,
+    palette: {
+      // Warmes Glühbirnenlicht: dunkles Violett, darunter bernsteinfarbenes Leuchten.
+      sky: ['#140f1c', '#1e1626', '#2a1d30', '#3a2834', '#4c3634'],
+      stars: '#f2d48a',
+      treeline: '#1c1820',
+      glow: '#c8902a',
+      ground: '#2a2420',
+      groundDark: '#221d1a',
+      wall: '#4a4048',
+      wallDark: '#3c343c',
+      accent: '#ffd36a',
+      panel: '#1f1a24',
+      panel2: '#2b2430',
+      line: '#46394a',
+      background: '#151118',
     },
   },
 ];

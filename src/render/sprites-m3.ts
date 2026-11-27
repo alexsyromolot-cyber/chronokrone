@@ -145,6 +145,49 @@ export const M3_UNIT_SPRITES: Partial<Record<ClassId, PixelSprite>> = {
       m: '#b8bccb',
     },
   },
+  lineman: {
+    rows: [
+      '...yyyy.....',
+      '..yyyyyy....',
+      '...ssss.....',
+      '...sksk..c..',
+      '...ssss..c..',
+      '..aaaaaa.c..',
+      '.saaaaaasc..',
+      '..aabbaa....',
+      '..aaaaaa....',
+      '...pppp.....',
+      '...p..p.....',
+      '..kk..kk....',
+    ],
+    palette: { y: '#ffd36a', s: SKIN, k: '#2a2a30', a: '#4a6a8a', b: '#3a3a40', p: PANTS, c: '#d9774a' },
+  },
+  teslaLancer: {
+    rows: [
+      '..........z.',
+      '...hhhh..zz.',
+      '..hhhhhh.z..',
+      '..hkyyk..l..',
+      '..hhhhhh.l..',
+      '.raaaaaar.l.',
+      '.raaaaaarll.',
+      '..aaggaa..l.',
+      '..aaaaaa....',
+      '..aa..aa....',
+      '..aa..aa....',
+      '.kkk..kkk...',
+    ],
+    palette: {
+      z: '#9ad8ff',
+      h: '#5a5a7a',
+      k: '#2a2a30',
+      y: '#9ad8ff',
+      a: '#3a3a6a',
+      r: '#2a2a4a',
+      g: '#ffd36a',
+      l: '#c0c0d0',
+    },
+  },
   monk: {
     rows: [
       '...bbbb.....',
@@ -181,6 +224,9 @@ const GLYPHS: Record<string, string[]> = {
   star: ['..E..', 'EEEEE', '.EEE.', '.E.E.', 'E...E'],
   coin: ['.EEE.', 'E.E.E', 'EEEEE', 'E.E.E', '.EEE.'],
   coal: ['..E..', '.EEE.', 'EEEEE', 'EEEEE', '.EEE.'],
+  bolt: ['..EE.', '.EE..', 'EEEEE', '..EE.', '.EE..'],
+  coil: ['EEEEE', '....E', 'EEEEE', 'E....', 'EEEEE'],
+  pylon: ['E...E', '.E.E.', '..E..', '.E.E.', 'E...E'],
 };
 
 function building(roof: string, wall: string, emblem: string, glyph: keyof typeof GLYPHS): PixelSprite {
@@ -222,6 +268,11 @@ export const M3_BUILDING_SPRITES: Partial<Record<BuildingId, PixelSprite>> = {
   gearWorks: building('#8a5a2a', '#a08060', '#d9a15a', 'gear'),
   market: building('#b0433a', '#d8c09a', '#f2b33d', 'coin'),
   steamFoundry: building('#5a4a3a', '#8d7a6a', '#ff8a3d', 'anvil'),
+  copperMine: building('#8a4a2a', '#a07a62', '#d9774a', 'pick'),
+  wireWorks: building('#6a5a4a', '#b09a80', '#e8c070', 'coil'),
+  powerPlant: building('#3a3a48', '#7a7a88', '#ffd36a', 'bolt'),
+  pylon: building('#4a4a52', '#9a9aa2', '#e8c070', 'pylon'),
+  teslaTower: building('#2a2a5a', '#6a6a9a', '#9ad8ff', 'bolt'),
 };
 
 /** Gleiche Form, andere Farben – so entstehen die Elitegegner aus ihren normalen Verwandten. */

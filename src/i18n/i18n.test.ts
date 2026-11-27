@@ -11,7 +11,7 @@ describe('i18n', () => {
   });
 
   it('wechselt Sprache und Dezimaltrennzeichen', () => {
-    expect(t('hud.gold')).toBe('Gold');
+    expect(t('res.gold')).toBe('Gold');
     expect(decimalSeparator()).toBe(',');
     setLocale('en');
     expect(t('app.title')).toBe('Chronocrown');

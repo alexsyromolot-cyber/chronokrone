@@ -15,18 +15,70 @@
   </head>
   <body>
     <main id="app">
-      <header class="hud">
+      <header class="topbar">
         <h1 data-i18n="app.title">Chronokrone</h1>
-        <p class="tagline" data-i18n="app.tagline"></p>
-        <button id="lang" type="button"></button>
+        <div id="resources" class="resources"></div>
+        <div class="top-actions">
+          <button id="save" class="btn small" type="button" data-i18n="save.save"></button>
+          <button id="lang" class="btn small" type="button" data-i18n="lang.switch"></button>
+        </div>
       </header>
-      <div id="stage" aria-hidden="true"></div>
-      <section class="log" aria-live="polite">
-        <p id="narrator" data-i18n="narrator.boot"></p>
-        <p class="stats"><span id="gold"></span> · <span id="ticks"></span></p>
-        <p class="milestone" data-i18n="app.milestone"></p>
-      </section>
+
+      <div class="layout">
+        <div class="col-left">
+          <section id="battle" class="panel">
+            <h2 data-i18n="battle.title"></h2>
+            <div class="stage-wrap">
+              <div id="stage"><div id="fx-layer" aria-hidden="true"></div></div>
+            </div>
+            <div id="battle-hud" class="battle-hud"></div>
+          </section>
+          <section id="log" class="panel">
+            <h2 data-i18n="log.title"></h2>
+            <div id="log-body"></div>
+          </section>
+        </div>
+
+        <div class="col-right">
+          <section id="castle" class="panel" hidden>
+            <h2 data-i18n="castle.title"></h2>
+            <div id="castle-body"></div>
+          </section>
+          <section id="units" class="panel" hidden>
+            <h2 data-i18n="units.title"></h2>
+            <div id="units-body"></div>
+          </section>
+          <section id="skills" class="panel" hidden>
+            <h2 data-i18n="skills.title"></h2>
+            <div id="skills-body"></div>
+          </section>
+          <section id="bestiary" class="panel" hidden>
+            <h2 data-i18n="bestiary.title"></h2>
+            <ul id="bestiary-body" class="bestiary-list"></ul>
+          </section>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <button id="export" class="btn small" type="button" data-i18n="save.export"></button>
+        <button id="import" class="btn small" type="button" data-i18n="save.import"></button>
+        <label class="autosave"
+          ><span id="autosave-label"></span>
+          <select id="autosave">
+            <option value="5">5 s</option>
+            <option value="10">10 s</option>
+            <option value="30">30 s</option>
+            <option value="60">60 s</option>
+            <option value="120">120 s</option>
+          </select>
+        </label>
+        <span class="hint" data-i18n="help.shortcuts"></span>
+        <button id="debug-toggle" class="btn small" type="button" hidden>Debug</button>
+      </footer>
     </main>
+    <div id="tooltip" class="tooltip" hidden></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <aside id="debug" class="debug" hidden></aside>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

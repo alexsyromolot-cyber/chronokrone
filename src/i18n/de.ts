@@ -1,16 +1,200 @@
 /**
  * Deutsche Texte. Deutsch ist die Referenzsprache: Neue Schlüssel entstehen hier,
  * `en.ts` muss dieselben Schlüssel haben (das prüft TypeScript über `Messages`).
+ * Platzhalter: {name} wird beim Anzeigen ersetzt.
  */
 export const de = {
   'app.title': 'Chronokrone',
-  'app.tagline': 'Ein Meteor. Alberne Aliens. Drei Bauern mit Mistgabeln.',
-  'app.milestone': 'Meilenstein 1: Grundgerüst',
-  'hud.ticks': 'Logik-Ticks',
-  'hud.gold': 'Gold',
-  'narrator.boot':
-    'Der Erzähler gähnt. „Ah, ein neuer Spieler. Das Spiel ist noch nicht fertig. Ich auch nicht.“',
   'lang.switch': 'English',
+
+  'res.gold': 'Gold',
+  'res.wood': 'Holz',
+  'res.stone': 'Stein',
+  'res.scrap': 'Alien-Schrott',
+  'res.tip':
+    '{name}: {value} / {cap}\nProduktion: {rate}/s\nLagerlimit = {base} × {growth}^(Bergfried-Level − 1)',
+
+  'battle.title': 'Abwehrschlacht',
+  'battle.start': 'Schlacht beginnen',
+  'battle.again': 'Nächste Schlacht',
+  'battle.retreat': 'Rückzug',
+  'battle.siege': 'Belagerungsstufe {siege}',
+  'battle.wave': 'Welle {wave}/{total}',
+  'battle.wall': 'Mauer {hp}/{max}',
+  'battle.won': 'Sieg! Alle {total} Wellen abgewehrt.',
+  'battle.lost': 'Die Mauer ist in Welle {wave} gefallen.',
+  'battle.summary': '{kills} Aliens besiegt · {gold} Gold · {seconds} s',
+  'battle.clickHint': 'Klick auf Aliens: {dmg} Schaden pro Klick',
+  'battle.idle': 'Die Aliens sammeln sich hinter dem Wald.',
+  'battle.wallTip':
+    'Mauer-LP = (Basis {base} + {per} × Verstärkungen {upgrades} + 2 × Ausdauer der Truppen {end}) × (1 + Mauerwächter {skill} %)',
+  'battle.clickTip': 'Klickschaden = {base} × Bergfried-Level {keep}',
+  'battle.siegeTip': 'Gegner-LP × {hp} je Stufe, Beute × {gold} je Stufe',
+
+  'castle.title': 'Burg',
+  'castle.pick': 'Wähle ein Feld auf dem Raster.',
+  'castle.locked': 'Unerschlossenes Feld',
+  'castle.clear': 'Roden',
+  'castle.clearTip': 'Rodungskosten = Grundkosten × {growth}^(bereits gerodete Felder)',
+  'castle.notAdjacent': 'Nur Felder neben bereits freien Feldern lassen sich roden.',
+  'castle.empty': 'Freies Feld',
+  'castle.build': 'Bauen',
+  'castle.upgrade': 'Ausbauen auf Level {level}',
+  'castle.level': 'Level {level}',
+  'castle.produces': '+{value} {res}/s',
+  'castle.workers': 'Holzfäller: {n}/{max}',
+  'castle.milestone': 'Nächster Meilenstein: Level {level} (Produktion ×2)',
+  'castle.prodTip':
+    '{perLevel} × Level {level} × Meilenstein {milestone} × Gelände {terrain} × (1 + Nachbarn {neighbor} % + Arbeiter {workers} % + Skills {skills} %) = {total}/s',
+  'castle.costTip': 'Kosten = Grundkosten × {growth}^Level',
+  'castle.buildCostTip': 'Baukosten = Grundkosten × {growth}^(vorhandene Gebäude dieses Typs)',
+  'castle.keepEffect': 'Lagerlimits ×{cap} · Steuern · Klickschaden {click}',
+  'castle.barracksEffect': 'Truppenplätze {slots} · Truppenschaden +{pct} %',
+  'castle.wallUpgrade': 'Mauer verstärken (+{hp} LP)',
+
+  'terrain.grass': 'Wiese',
+  'terrain.forest': 'Wald',
+  'terrain.rock': 'Fels',
+  'terrain.stream': 'Bach',
+
+  'building.keep': 'Bergfried',
+  'building.lumberHut': 'Holzfällerhütte',
+  'building.quarry': 'Steinbruch',
+  'building.barracks': 'Kaserne',
+  'building.keep.desc':
+    'Herz der Burg. Jedes Level: größere Lager, mehr Steuern, ein selbstbewussterer Königsklick.',
+  'building.lumberHut.desc':
+    'Holz. Wald +50 %, Bach +10 %. +15 % je benachbarter Hütte. Platz für 2 Holzfäller.',
+  'building.quarry.desc':
+    'Stein. Fels +50 %, Bach +10 %. +25 % neben der Kaserne, weil Soldaten sich langweilen.',
+  'building.barracks.desc':
+    'Schaltet Ritter frei. Je Level +2 Truppenplätze und +5 % Truppenschaden. Nur eine.',
+
+  'class.peasant': 'Bauer',
+  'class.knight': 'Ritter',
+  'class.woodcutter': 'Holzfäller',
+  'class.peasant.desc': 'Mistgabel, Mut, wenig Ahnung. Kämpft an der Mauer.',
+  'class.knight.desc': 'Viel Blech, viel Stärke. Kämpft an der Mauer. Braucht eine Kaserne.',
+  'class.woodcutter.desc': 'Arbeitet in Holzfällerhütten. Stärke erhöht den Holzertrag.',
+
+  'attr.str': 'Stä',
+  'attr.dex': 'Ges',
+  'attr.mag': 'Mag',
+  'attr.end': 'Aus',
+  'attr.tip':
+    'Stärke: Schaden und Arbeit · Geschick: Angriffstempo · Magie: (ab Epoche 1 komplett) · Ausdauer: Mauer-LP',
+
+  'units.title': 'Leute',
+  'units.troops': 'Truppen {n}/{max}',
+  'units.recruit': 'Anwerben',
+  'units.level': 'Lv {level}',
+  'units.damage': '{dmg} Schaden alle {sec} s',
+  'units.work': 'Arbeitsbonus +{pct} %',
+  'units.idle': 'wartet auf eine Hütte',
+  'units.recruitTip': 'Kosten = Grundkosten × {growth}^(Anzahl dieser Klasse)',
+  'units.damageTip':
+    'Schaden = {base} × (1 + 0,1 × Stärke {str}) × (1 + Skills/Kaserne {bonus} %)\nTempo = {interval} s ÷ (1 + 0,03 × Geschick {dex})',
+  'units.xpTip': 'XP {xp}/{need} · nächstes Level braucht {xpBase} × {xpGrowth}^(Level − 1)',
+
+  'skills.title': 'Skilltrees',
+  'skills.points': '{n} Punkte',
+  'skills.rank': '{rank}/{max}',
+  'skill.pitchforkTraining': 'Mistgabel-Training',
+  'skill.pitchforkTraining.desc': '+50 % Bauernschaden je Stufe. Man hält die spitze Seite nach vorn.',
+  'skill.loudCursing': 'Lautes Fluchen',
+  'skill.loudCursing.desc':
+    'Aliens laufen je Stufe 10 % langsamer. Sie verstehen kein Wort, sind aber beleidigt.',
+  'skill.whetstone': 'Wetzstein',
+  'skill.whetstone.desc': '+40 % Ritterschaden je Stufe.',
+  'skill.wallWarden': 'Mauerwächter',
+  'skill.wallWarden.desc': '+15 % Mauer-LP je Stufe.',
+  'skill.sharpAxes': 'Scharfe Äxte',
+  'skill.sharpAxes.desc': '+30 % Holzproduktion je Stufe.',
+  'skill.forestLore': 'Försterwissen',
+  'skill.forestLore.desc': 'Verdoppelt den Wald-Bonus der Holzfällerhütten.',
+  'skills.requires': 'Benötigt: {name}',
+
+  'bestiary.title': 'Bestiarium',
+  'bestiary.unknown': '??? – noch nicht besiegt',
+  'bestiary.kills': '{n}× besiegt',
+  'enemy.saugling': 'Saugling',
+  'enemy.saugling.desc': 'Staubsauger trifft Tintenfisch. Saugt an der Mauer. Wirklich.',
+  'enemy.blechkriecher': 'Blechkriecher',
+  'enemy.blechkriecher.desc': 'Flach, schnell, klappert wie eine Besteckschublade.',
+  'enemy.brummdrohne': 'Brummdrohne',
+  'enemy.brummdrohne.desc': 'Schwebt, hält viel aus, brummt in einer Tonart, die es nicht geben sollte.',
+
+  'log.title': 'Chronik des Erzählers',
+
+  'narrator.boot': 'Ein Meteor schlägt hinter dem Wald ein. Kurz darauf klopft es an der Mauer. Von außen.',
+  'narrator.firstDefeat':
+    '„Das war zu erwarten.“ Drei Bauern gegen eine Invasion. Wer hat dieses Spiel balanciert? Ach ja. Ich.',
+  'narrator.unlockCastle': 'Die Burg. Fast leer, aber eure. Bau eine Holzfällerhütte, dann reden wir weiter.',
+  'narrator.unlockBestiary':
+    'Ihr habt ein Alien erschlagen. Ich habe ihm ein Kapitel im Bestiarium gewidmet. Es hätte das so gewollt.',
+  'narrator.firstBuilding': 'Ein Gebäude! Die Bauern weinen vor Glück. Oder wegen des Rauchs.',
+  'narrator.unlockRecruit': 'Ihr könnt jetzt Leute anwerben. Freiwillig, sagt der König.',
+  'narrator.firstRecruit': 'Ein neues Gesicht in der Burg. Es sieht schon jetzt müde aus.',
+  'narrator.firstSkillPoint':
+    'Erster Skillpunkt. Ich empfehle Mistgabel-Training. Ich empfehle immer Mistgabel-Training.',
+  'narrator.unlockSkills':
+    'Skilltrees sind offen. Jedes Level-Up einer Einheit gibt ihrer Klasse einen Punkt.',
+  'narrator.unlockWall':
+    'Jemand hat entdeckt, dass man Steine auf Steine legen kann. Mauer verstärken ist jetzt möglich.',
+  'narrator.unlockSiege': 'Ein Sieg! Die Aliens schicken jetzt ihre größeren Cousins.',
+  'narrator.firstScrap': 'Alien-Schrott! Glänzt, summt, riecht nach Zukunft. Bewahrt ihn gut auf.',
+  'narrator.siegeUp': 'Belagerungsstufe {siege} ist offen. Mehr Aliens, mehr Beute, mehr Geschrei.',
+  'narrator.defeat': 'Die Mauer fiel in Welle {wave}. Die Bauern nennen es „taktischen Rückzug nach innen“.',
+  'narrator.buildingMilestone': 'Level {level}! Die Produktion verdoppelt sich. Ich bin fast beeindruckt.',
+  'narrator.enemy.saugling': 'Neuer Eintrag: Saugling. Saugt. Mehr steht nicht in meinen Notizen.',
+  'narrator.enemy.blechkriecher': 'Neuer Eintrag: Blechkriecher. Schnell. Lasst ihn nicht unter die Tür.',
+  'narrator.enemy.brummdrohne': 'Neuer Eintrag: Brummdrohne. Brummt. Hält mehr aus als meine Geduld.',
+  'narrator.loaded': 'Willkommen zurück. Ich habe nichts angefasst. Fast nichts.',
+
+  'reason.unknown': 'Geht gerade nicht.',
+  'reason.notYet': 'Noch nicht freigeschaltet.',
+  'reason.tooExpensive': 'Zu teuer.',
+  'reason.exceedsCap': 'Teurer als dein Lager fasst – erst den Bergfried ausbauen.',
+  'reason.tileLocked': 'Feld erst roden.',
+  'reason.tileOccupied': 'Hier steht schon etwas.',
+  'reason.maxCount': 'Davon gibt es nur eines.',
+  'reason.notAdjacent': 'Nur neben freien Feldern.',
+  'reason.requiresBuilding': 'Braucht erst das passende Gebäude.',
+  'reason.noTroopSlots': 'Keine Truppenplätze frei – Kaserne ausbauen.',
+  'reason.noWorkerSlots': 'Keine Arbeitsplätze frei – mehr Hütten bauen.',
+  'reason.maxRank': 'Höchste Stufe erreicht.',
+  'reason.requiresSkill': 'Erst den vorigen Knoten lernen.',
+  'reason.noSkillPoints': 'Keine Skillpunkte.',
+  'reason.battleRunning': 'Es läuft schon eine Schlacht.',
+  'reason.siegeLocked': 'Diese Belagerungsstufe ist noch nicht offen.',
+  'reason.noTroops': 'Keine Truppen.',
+
+  'cost.label': 'Kosten: {list}',
+  'cost.wait': 'leistbar in ~{s} s',
+  'cost.never': 'wird nicht produziert',
+
+  'save.save': 'Speichern',
+  'save.saved': 'Gespeichert.',
+  'save.export': 'Export',
+  'save.import': 'Import',
+  'save.importPrompt': 'Spielstand-Text hier einfügen:',
+  'save.importFailed': 'Dieser Text ist kein gültiger Spielstand.',
+  'save.exported': 'Spielstand in die Zwischenablage kopiert.',
+  'save.autosave': 'Autosave alle {s} s',
+  'save.loadFailed': 'Der Spielstand war beschädigt – ich habe das letzte Backup geladen.',
+
+  'help.shortcuts': 'Leertaste: Schlacht · S: Speichern · Strg+Umschalt+D: Debug',
+
+  'debug.title': 'Debug',
+  'debug.speed': 'Tempo ×{speed}',
+  'debug.ff': '1 Stunde vorspulen',
+  'debug.resources': '+1000 von allem',
+  'debug.win': 'Schlacht gewinnen',
+  'debug.skillPoints': '+5 Skillpunkte je Klasse',
+  'debug.reset': 'Spielstand löschen',
+  'debug.resetConfirm': 'Wirklich alles löschen? Backups bleiben erhalten.',
+  'debug.epoch': 'Epoche wählen / Sprung (ab Meilenstein 4)',
+  'debug.simulate': 'Simulation: npm run simulate',
 } as const;
 
 export type MessageKey = keyof typeof de;

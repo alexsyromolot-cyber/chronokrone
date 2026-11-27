@@ -6,7 +6,8 @@ import { BARRACKS, BUILDINGS, type BuildingId } from '../data/buildings';
 import { CLASSES, TROOP_BUILDINGS, UNIT_FORMULAS as F, type Attributes, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
-import { armorEndurance, talismanXp, weaponBonus } from './gear';
+import { chronicleBonus } from './chronicle';
+import { armorEndurance, talismanXp, weaponMultiplier } from './gear';
 import { skillBonus } from './skills';
 import { addLog, type GameState, type Unit } from './state';
 
@@ -45,12 +46,11 @@ export function trainingLevel(state: GameState, classId: ClassId): number {
   return levelOf(state, building);
 }
 
-/** +Anteil Schaden aus Skills, Ausbildungsgebäude und Waffe. */
+/** +Anteil Schaden aus Skills und Ausbildungsgebäude (die Waffe wirkt multiplikativ, siehe unitDamage). */
 export function damageBonus(state: GameState, unit: Unit): number {
   return (
     skillBonus(state, unit.classId, 'damageMult') +
-    BARRACKS.damageBonusPerLevel * trainingLevel(state, unit.classId) +
-    weaponBonus(state, unit.classId, 'troop')
+    BARRACKS.damageBonusPerLevel * trainingLevel(state, unit.classId)
   );
 }
 
@@ -59,11 +59,17 @@ export function critChance(state: GameState, unit: Unit): number {
   return skillBonus(state, unit.classId, 'critChance');
 }
 
-/** Schaden = baseDamage × (1 + 0,10 × Hauptattribut) × (1 + Skill-Bonus + Gebäude-Bonus) */
+/** Schaden = baseDamage × (1 + 0,10 × Hauptattribut) × (1 + Skill- und Gebäude-Bonus) × Waffe × Chronik */
 export function unitDamage(state: GameState, unit: Unit): number {
   const def = CLASSES[unit.classId];
   const main = attributesOf(unit)[def.mainAttr];
-  return def.baseDamage * (1 + F.damagePerAttr * main) * (1 + damageBonus(state, unit));
+  return (
+    def.baseDamage *
+    (1 + F.damagePerAttr * main) *
+    (1 + damageBonus(state, unit)) *
+    weaponMultiplier(state, unit.classId, 'troop') *
+    (1 + chronicleBonus(state, 'damage'))
+  );
 }
 
 /** Sekunden zwischen zwei Schlägen = attackInterval / (1 + 0,03 × Geschick) / (1 + Tempo-Skills) */
@@ -78,7 +84,12 @@ export function attackInterval(state: GameState, unit: Unit): number {
 
 /** XP-Multiplikator = 1 + Skills + Talisman */
 export function xpMultiplier(state: GameState, unit: Unit): number {
-  return 1 + skillBonus(state, unit.classId, 'xpMult') + talismanXp(state, unit.classId);
+  return (
+    1 +
+    skillBonus(state, unit.classId, 'xpMult') +
+    talismanXp(state, unit.classId) +
+    chronicleBonus(state, 'xp')
+  );
 }
 
 /** Sammler-Arbeitsbonus = 0,5 + 0,05 × Hauptattribut der Klasse */

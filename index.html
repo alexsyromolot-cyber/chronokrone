@@ -17,6 +17,7 @@
     <main id="app">
       <header class="topbar">
         <h1 data-i18n="app.title">Chronokrone</h1>
+        <span id="epoch-label" class="epoch-label"></span>
         <div id="resources" class="resources"></div>
         <div class="top-actions">
           <button id="save" class="btn small" type="button" data-i18n="save.save"></button>
@@ -51,6 +52,10 @@
           <section id="units" class="panel" hidden>
             <h2 data-i18n="units.title"></h2>
             <div id="units-body"></div>
+          </section>
+          <section id="chronicle" class="panel" hidden>
+            <h2 data-i18n="chronicle.title"></h2>
+            <div id="chronicle-body"></div>
           </section>
           <section id="timemachine" class="panel" hidden>
             <h2 data-i18n="tm.title"></h2>

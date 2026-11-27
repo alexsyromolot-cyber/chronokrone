@@ -10,7 +10,7 @@ import {
   TAVERN_BONUS_PER_LEVEL,
   type BuildingId,
 } from '../data/buildings';
-import { EPOCH1_MAP } from '../data/map';
+import { epochDef } from '../data/epochs';
 import { RESOURCES, STOREHOUSE_CAP_BONUS, type ResourceAmounts, type ResourceId } from '../data/resources';
 import { TROOP_BUILDINGS, type ClassId } from '../data/units';
 import { t, tk } from '../i18n';
@@ -86,6 +86,8 @@ function productionHtml(state: GameState, tile: Tile): string {
     workers: pct(p.workers),
     skills: pct(p.skills),
     tavern: pct(p.tavern),
+    gear: num(p.gear, 2),
+    chronicle: num(p.chronicle, 2),
     total: num(p.total, 2),
   });
   return `<p class="prod" ${tip(formula)}>${esc(t('castle.produces', { value: num(p.total, 2), res: t(`res.${p.resource}`) }))} ⓘ</p>`;
@@ -200,7 +202,7 @@ function detailHtml(state: GameState, ui: CastleUi): string {
         : '';
     return `<h3>${esc(title)} · ${esc(t(`terrain.${tile.terrain}`))}</h3>${hint}
       <div class="buy"><button class="btn primary" ${blocker ? 'disabled' : ''} ${action({ type: 'clearTile', x: tile.x, y: tile.y })} ${tip(
-        t('castle.clearTip', { growth: num(EPOCH1_MAP.clearGrowth, 2) }),
+        t('castle.clearTip', { growth: num(epochDef(state.epoch).map.clearGrowth, 2) }),
       )}>${esc(t('castle.clear'))}</button>${costHtml(state, clearCost(state))}</div>`;
   }
   if (tile.building) return buildingDetail(state, tile);
@@ -210,7 +212,7 @@ function detailHtml(state: GameState, ui: CastleUi): string {
 export function castleHtml(state: GameState, ui: CastleUi): string {
   const grid = state.tiles.map((tile) => tileHtml(state, tile, ui)).join('');
   return `<div class="castle-layout">
-    <div class="grid" style="--cols:${EPOCH1_MAP.width}">${grid}</div>
+    <div class="grid" style="--cols:${epochDef(state.epoch).map.width}">${grid}</div>
     <div class="detail">${detailHtml(state, ui)}</div>
   </div>`;
 }

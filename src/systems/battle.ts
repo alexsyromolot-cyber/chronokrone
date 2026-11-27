@@ -13,6 +13,8 @@ import {
 } from '../data/enemies';
 import { CLASSES, UNIT_FORMULAS } from '../data/units';
 import type { MessageKey } from '../i18n/de';
+import { epochDef } from '../data/epochs';
+import { chronicleBonus } from './chronicle';
 import { gain, keepLevel } from './resources';
 import { globalBonus, skillBonus } from './skills';
 import { addLog, type BattleState, type Enemy, type GameState } from './state';
@@ -45,7 +47,12 @@ export function goldMultiplier(wave: number, siege: number): number {
 
 /** Klickschaden = Basis × Bergfried-Level × (1 + Klick-Skills). Ein größerer Bergfried, ein selbstbewussterer König. */
 export function clickDamage(state: GameState): number {
-  return B.clickDamage * keepLevel(state) * (1 + globalBonus(state, 'clickMult'));
+  return (
+    B.clickDamage *
+    keepLevel(state) *
+    (1 + globalBonus(state, 'clickMult')) *
+    (1 + chronicleBonus(state, 'click'))
+  );
 }
 
 export function startBattleBlocker(state: GameState, siege: number): MessageKey | null {
@@ -119,7 +126,7 @@ function spawn(state: GameState, b: BattleState): void {
     if (!state.bestiary[elite]) addLog(state, 'narrator.eliteArrives', { name: `@enemy.${elite}` });
   }
   const type = elite ?? pickEnemyType(state, b.wave);
-  const hp = ENEMIES[type].hp * enemyHpMultiplier(b.wave, b.siege);
+  const hp = ENEMIES[type].hp * enemyHpMultiplier(b.wave, b.siege) * epochDef(state.epoch).enemyHp;
   b.enemies.push({
     id: b.nextEnemyId++,
     type,
@@ -150,8 +157,8 @@ export function damageEnemy(
   if (enemy.hp > 0) return;
 
   const def = ENEMIES[enemy.type];
-  const gold =
-    Math.round(def.gold * goldMultiplier(b.wave, b.siege) * (1 + globalBonus(state, 'lootGold')) * 10) / 10;
+  const lootMult = (1 + globalBonus(state, 'lootGold')) * epochDef(state.epoch).gold;
+  const gold = Math.round(def.gold * goldMultiplier(b.wave, b.siege) * lootMult * 10) / 10;
   gain(state, 'gold', gold);
   b.goldEarned += gold;
   b.kills++;
@@ -235,7 +242,7 @@ export function tickBattle(state: GameState, dt: number): void {
   const waveDone = b.toSpawn === 0 && b.enemies.length === 0;
   if (waveDone && b.wave > b.clearedWaves) {
     b.clearedWaves = b.wave;
-    const bonus = B.waveClearGold * b.wave * B.goldGrowthPerSiege ** b.siege;
+    const bonus = B.waveClearGold * b.wave * B.goldGrowthPerSiege ** b.siege * epochDef(state.epoch).gold;
     gain(state, 'gold', bonus);
     b.goldEarned += bonus;
     if (b.wave >= B.wavesPerBattle) {

@@ -38,10 +38,10 @@ export function craftGear(state: GameState, classId: ClassId, slot: GearSlot): M
   return null;
 }
 
-/** +Anteil Schaden (Truppen) bzw. Produktion (Sammler) aus der Waffe. */
-export function weaponBonus(state: GameState, classId: ClassId, role: 'troop' | 'gatherer'): number {
+/** Multiplikator auf Schaden (Truppen: 1,2^Stufe) bzw. Produktion (Sammler: 1,15^Stufe) aus der Waffe. */
+export function weaponMultiplier(state: GameState, classId: ClassId, role: 'troop' | 'gatherer'): number {
   const per = role === 'troop' ? GEAR_EFFECTS.weaponDamage : GEAR_EFFECTS.weaponProduction;
-  return per * gearTier(state, classId, 'weapon');
+  return per ** gearTier(state, classId, 'weapon');
 }
 
 export function armorEndurance(state: GameState, classId: ClassId): number {

@@ -65,6 +65,31 @@ test('Erste Schlacht, Burg, Bauen, Speichern und Laden', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('Zeitsprung: Dialog, Feier, Epoche 2 mit Chronik', async ({ page }) => {
+  await game(page, 'g.loop.fastForward(120)');
+  await game(
+    page,
+    `(() => {
+      const s = g.state;
+      s.unlocked.timeMachine = true;
+      s.timeMachineAt = s.time;
+      s.siegeLevel = 5;
+    })()`,
+  );
+  await page.waitForTimeout(400);
+  await page.locator('[data-jump]').click();
+  await expect(page.locator('.modal')).toContainText('Zeitsprung');
+  await page.getByRole('button', { name: 'Springen' }).click();
+  await expect(page.locator('.modal-backdrop.celebrate')).toBeVisible();
+  await expect(page.locator('.modal')).toContainText('Dampf & Zahnrad');
+  await page.screenshot({ path: 'test-results/04-sprung.png' });
+  await page.getByRole('button', { name: 'Los geht’s' }).click();
+  expect(await game(page, 'g.state.epoch')).toBe(2);
+  await expect(page.locator('#epoch-label')).toContainText('Epoche 2');
+  await expect(page.locator('#chronicle')).toBeVisible();
+  await page.screenshot({ path: 'test-results/05-epoche2.png', fullPage: true });
+});
+
 test('Sprache lässt sich umschalten', async ({ page }) => {
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.locator('h1')).toHaveText('Chronocrown');

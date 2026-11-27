@@ -63,7 +63,7 @@ describe('Skilltrees', () => {
 });
 
 describe('Ausrüstung', () => {
-  it('braucht die Schmiede, kostet doppelt so viel je Stufe und erhöht den Schaden', () => {
+  it('braucht die Schmiede, wird je Stufe 1,7× teurer und multipliziert den Schaden', () => {
     const s = rich();
     expect(dispatch(s, { type: 'craftGear', classId: 'peasant', slot: 'weapon' })).toBe(
       'reason.requiresBuilding',
@@ -78,8 +78,8 @@ describe('Ausrüstung', () => {
     expect(dispatch(s, { type: 'craftGear', classId: 'peasant', slot: 'weapon' })).toBeNull();
     expect(steelBefore - s.resources.steel.toNumber()).toBe(4);
     dispatch(s, { type: 'craftGear', classId: 'peasant', slot: 'weapon' });
-    expect(steelBefore - s.resources.steel.toNumber()).toBe(4 + 8);
-    expect(unitDamage(s, u)).toBeCloseTo((before * (1 + 0.5)) / 1, 5);
+    expect(steelBefore - s.resources.steel.toNumber()).toBe(4 + 7); // 4 × 1,7 = 6,8 → 7
+    expect(unitDamage(s, u)).toBeCloseTo(before * 1.2 * 1.2, 5);
   });
 
   it('Werkzeuge erhöhen die Produktion der Sammler', () => {
@@ -93,7 +93,7 @@ describe('Ausrüstung', () => {
     const before = tileProduction(s, tileAt(s, 2, 3)!)!;
     dispatch(s, { type: 'craftGear', classId: 'woodcutter', slot: 'weapon' });
     const after = tileProduction(s, tileAt(s, 2, 3)!)!;
-    expect(after.gear).toBeCloseTo(0.2);
+    expect(after.gear).toBeCloseTo(1.15);
     expect(after.total).toBeGreaterThan(before.total);
   });
 });

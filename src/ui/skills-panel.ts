@@ -62,13 +62,27 @@ function specLine(state: GameState, c: ClassId): string {
   return `<p class="spec-line hint">${esc(t('skills.specHint'))}</p>`;
 }
 
+function tokensHtml(state: GameState): string {
+  if (state.respecTokens < 1) return '';
+  const owned = CLASS_ORDER.filter((c) => state.units.some((u) => u.classId === c));
+  const buttons = owned
+    .map(
+      (c) =>
+        `<button class="btn small" ${action({ type: 'useToken', classId: c })}>+1 ${esc(t(`class.${c}`))}</button>`,
+    )
+    .join('');
+  return `<div class="tokens"><p>${esc(t('tokens.line', { n: state.respecTokens }))}</p><div class="hud-row">${buttons}</div></div>`;
+}
+
 export function skillsHtml(state: GameState): string {
-  return CLASS_ORDER.filter((c) => state.units.some((u) => u.classId === c))
-    .map((c) => {
-      const nodes = SKILLS.filter((s) => s.classId === c)
-        .map((s) => nodeHtml(state, s))
-        .join('');
-      return `<div class="tree">
+  return (
+    tokensHtml(state) +
+    CLASS_ORDER.filter((c) => state.units.some((u) => u.classId === c))
+      .map((c) => {
+        const nodes = SKILLS.filter((s) => s.classId === c)
+          .map((s) => nodeHtml(state, s))
+          .join('');
+        return `<div class="tree">
         <h4><img src="${spriteUrl(UNIT_SPRITES[c])}" alt=""> ${esc(t(`class.${c}`))}
           <span class="points ${state.skillPoints[c] > 0 ? 'has' : ''}">${esc(t('skills.points', { n: state.skillPoints[c] }))}</span></h4>
         ${specLine(state, c)}
@@ -78,6 +92,7 @@ export function skillsHtml(state: GameState): string {
           ${nodes}
         </div>
       </div>`;
-    })
-    .join('');
+      })
+      .join('')
+  );
 }

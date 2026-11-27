@@ -7,6 +7,7 @@ import Decimal from 'break_eternity.js';
 import type { FixedStepLoop } from '../core/loop';
 import { RESOURCE_IDS } from '../data/resources';
 import { t } from '../i18n';
+import { dispatch } from '../systems/actions';
 import { endBattle } from '../systems/battle';
 import type { GameState } from '../systems/state';
 import { esc } from '../ui/dom';
@@ -35,7 +36,8 @@ export function installDebugPanel(root: HTMLElement, api: DebugApi): { toggle():
         <button class="btn small" data-debug="win">${esc(t('debug.win'))}</button>
       </div>
       <div class="row">
-        <button class="btn small" disabled>${esc(t('debug.epoch'))}</button>
+                <button class="btn small" data-debug="jump">${esc(t('debug.jump'))}</button>
+        <button class="btn small" data-debug="shards">${esc(t('debug.shards'))}</button>
         <button class="btn small danger" data-debug="reset">${esc(t('debug.reset'))}</button>
       </div>
       <p class="hint">${esc(t('debug.simulate'))}</p>`;
@@ -65,6 +67,16 @@ export function installDebugPanel(root: HTMLElement, api: DebugApi): { toggle():
           state.battle.wave = 8;
           endBattle(state, 'won');
         }
+        break;
+      case 'jump':
+        // Alle Bedingungen erfüllen und springen – zum Testen der Epochen.
+        state.battle = null;
+        state.timeMachineAt = state.time;
+        dispatch(state, { type: 'jump' });
+        break;
+      case 'shards':
+        state.shards += 50;
+        state.totalShards += 50;
         break;
       case 'reset':
         if (confirm(t('debug.resetConfirm'))) api.resetSave();

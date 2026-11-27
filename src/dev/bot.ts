@@ -6,11 +6,13 @@
 import { BUILDINGS, type BuildingId } from '../data/buildings';
 import { BATTLE } from '../data/enemies';
 import { GEAR_SLOTS } from '../data/gear';
+import { CHRONICLE } from '../data/chronicle';
 import { RESEARCH } from '../data/research';
 import { SPELL_IDS } from '../data/spells';
 import { SKILLS } from '../data/skills';
 import type { ClassId } from '../data/units';
 import { dispatch, type Action } from '../systems/actions';
+import { chronicleBlocker, chronicleCost } from '../systems/chronicle';
 import { buildingAvailable, countBuildings, inBounds, neighbors } from '../systems/castle';
 import type { GameState, Tile } from '../systems/state';
 import { troops } from '../systems/units';
@@ -129,10 +131,29 @@ export class Bot {
       if (state.battle && b.wallHp < b.wallMaxHp * 0.6)
         dispatch(state, { type: 'castSpell', spell: 'blessing' });
     } else {
+      // Zeitmaschine fertig? Sofort springen – zwischen zwei Schlachten.
+      if (state.timeMachineAt !== null && dispatch(state, { type: 'jump' }) === null) {
+        this.purchases.push({ time: state.time, action: { type: 'jump' } });
+      }
       this.idleTimer += dt;
       if (this.idleTimer >= this.options.pauseBetweenBattles && troops(state).length > 0) {
         dispatch(state, { type: 'startBattle' });
       }
+    }
+
+    // Chronik: immer den günstigsten Knoten. Tokens: an die Klasse mit den meisten Einheiten.
+    for (;;) {
+      const cheapest = CHRONICLE.filter((c) => chronicleBlocker(state, c.id) === null).sort(
+        (a, b) => chronicleCost(state, a.id) - chronicleCost(state, b.id),
+      )[0];
+      if (!cheapest) break;
+      dispatch(state, { type: 'buyChronicle', id: cheapest.id });
+    }
+    if (state.respecTokens > 0) {
+      const counts = new Map<ClassId, number>();
+      for (const u of state.units) counts.set(u.classId, (counts.get(u.classId) ?? 0) + 1);
+      const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+      if (top) dispatch(state, { type: 'useToken', classId: top[0] });
     }
 
     // Einkaufen einmal pro Sekunde reicht – Menschen klicken auch nicht schneller.

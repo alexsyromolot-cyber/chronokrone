@@ -4,6 +4,8 @@
  */
 import { ELITES } from '../data/enemies';
 import { t, tk } from '../i18n';
+import { shardsForJump, tokensForJump } from '../systems/prestige';
+import { totalSkillRanks } from '../systems/skills';
 import type { GameState } from '../systems/state';
 import {
   oracleBlocker,
@@ -24,7 +26,14 @@ export function timeMachineHtml(state: GameState): string {
   if (state.timeMachineAt !== null) {
     const m = Math.floor(state.timeMachineAt / 60);
     const s = String(Math.floor(state.timeMachineAt % 60)).padStart(2, '0');
-    return `<p class="good">${esc(t('tm.done', { time: `${m}:${s}` }))}</p>`;
+    const shardTip = t('jump.shardTip', {
+      epoch: state.epoch,
+      siege: state.siegeLevel,
+      ranks: totalSkillRanks(state),
+    });
+    return `<p class="good">${esc(t('tm.done', { time: `${m}:${s}` }))}</p>
+      <p class="jump-preview" ${tip(shardTip)}>${esc(t('jump.preview', { shards: shardsForJump(state), tokens: tokensForJump(state) }))} ⓘ</p>
+      <div class="buy"><button class="btn primary jump" data-jump="1" ${state.battle ? 'disabled' : ''}>${esc(t('jump.button'))}</button></div>`;
   }
   const parts = ELITES.map((e) => {
     const have = !!state.timeParts[e.enemy];

@@ -2,7 +2,8 @@
  * Forschung: prüfen, kaufen, Auswirkungen abfragen.
  */
 import Decimal from 'break_eternity.js';
-import { EPOCH1_MAP, type Bounds } from '../data/map';
+import { epochDef } from '../data/epochs';
+import type { Bounds } from '../data/map';
 import { RESEARCH_BY_ID, type ResearchId } from '../data/research';
 import type { MessageKey } from '../i18n/de';
 import { pay } from './resources';
@@ -33,5 +34,6 @@ export function doResearch(state: GameState, id: ResearchId): MessageKey | null 
 /** Erreichbarer Kartenbereich: wächst mit jeder Landvermessung. */
 export function surveyBounds(state: GameState): Bounds {
   const level = (hasResearch(state, 'survey1') ? 1 : 0) + (hasResearch(state, 'survey2') ? 1 : 0);
-  return EPOCH1_MAP.surveyBounds[level] ?? EPOCH1_MAP.surveyBounds[0]!;
+  const bounds = epochDef(state.epoch).map.surveyBounds;
+  return bounds[level] ?? bounds[0]!;
 }

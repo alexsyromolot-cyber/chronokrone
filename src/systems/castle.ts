@@ -10,13 +10,14 @@ import {
   TAVERN_BONUS_PER_LEVEL,
   type BuildingId,
 } from '../data/buildings';
-import { EPOCH1_MAP } from '../data/map';
+import { epochDef } from '../data/epochs';
 import { RESOURCE_IDS, type ResourceId } from '../data/resources';
 import { CLASSES, UNIT_FORMULAS, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { hasResearch, surveyBounds } from './research';
 import { canAfford, exceedsCap, gain, pay, resourceCap, scaledCost, type Cost } from './resources';
-import { weaponBonus } from './gear';
+import { chronicleBonus } from './chronicle';
+import { weaponMultiplier } from './gear';
 import { globalBonus, skillBonus } from './skills';
 import { addLog, type GameState, type Tile, type Unit } from './state';
 import { addXp, workPower } from './units';
@@ -95,7 +96,9 @@ export interface ProductionBreakdown {
   skills: number;
   tavern: number;
   gear: number;
-  /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern + gear) */
+  /** Chronik-Multiplikator (Produktion, bei Wissen zusätzlich „Stipendium“). */
+  chronicle: number;
+  /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern) × gear × chronicle */
   total: number;
 }
 
@@ -113,15 +116,20 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
   const workers = workersAt(state, tile).reduce((sum, u) => sum + workPower(u), 0);
   const skills = cls ? skillBonus(state, cls, 'productionMult') : 0;
   const tavern = cls ? tavernBonus(state, tile) : 0;
-  const gear = cls ? weaponBonus(state, cls, 'gatherer') : 0;
+  const gear = cls ? weaponMultiplier(state, cls, 'gatherer') : 1;
   const milestone = milestoneMultiplier(tile.level);
 
+  const chronicle =
+    (1 + chronicleBonus(state, 'production')) *
+    (def.produces.resource === 'knowledge' ? 1 + chronicleBonus(state, 'knowledge') : 1);
   const total =
     def.produces.perLevel *
     tile.level *
     milestone *
     terrain *
-    (1 + neighbor + workers + skills + tavern + gear);
+    (1 + neighbor + workers + skills + tavern) *
+    gear *
+    chronicle;
   return {
     resource: def.produces.resource,
     perLevel: def.produces.perLevel,
@@ -133,6 +141,7 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     skills,
     tavern,
     gear,
+    chronicle,
     total,
   };
 }
@@ -146,7 +155,8 @@ export function recipeRate(state: GameState, tile: Tile): number {
     recipe.cyclesPerLevel *
     tile.level *
     milestoneMultiplier(tile.level) *
-    (1 + neighborBonus(state, tile) + globalBonus(state, 'recipeMult', tile.building!))
+    (1 + neighborBonus(state, tile) + globalBonus(state, 'recipeMult', tile.building!)) *
+    (1 + chronicleBonus(state, 'production'))
   );
 }
 
@@ -293,9 +303,10 @@ export function upgrade(state: GameState, tile: Tile): MessageKey | null {
 
 /** Kosten = clearBaseCost × clearGrowth^(bereits gerodete Felder) */
 export function clearCost(state: GameState): Cost {
-  const initial = 1 + EPOCH1_MAP.startUnlocked.length;
+  const map = epochDef(state.epoch).map;
+  const initial = 1 + map.startUnlocked.length;
   const cleared = state.tiles.filter((t) => t.unlocked).length - initial;
-  return scaledCost(EPOCH1_MAP.clearBaseCost, EPOCH1_MAP.clearGrowth, Math.max(0, cleared));
+  return scaledCost(map.clearBaseCost, map.clearGrowth, Math.max(0, cleared));
 }
 
 export function clearBlocker(state: GameState, tile: Tile): MessageKey | null {

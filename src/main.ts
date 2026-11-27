@@ -6,6 +6,7 @@
 import './style.css';
 import './shell.css';
 import './hud.css';
+import './iso.css';
 import { FixedStepLoop } from './core/loop';
 import { installDebugPanel } from './dev/debug-panel';
 import { getLocale, setLocale, t, tk } from './i18n';
@@ -20,6 +21,7 @@ import { startBattle } from './systems/battle';
 import { newGame, tick } from './systems/game';
 import { addLog, type FxEvent, type GameState } from './systems/state';
 import type { CastleUi } from './ui/castle-panel';
+import type { BuildingId } from './data/buildings';
 import { el, setHtml } from './ui/dom';
 import { resourcesHtml } from './ui/panels-top';
 import { spellButtonsHtml } from './ui/spells-panel';
@@ -77,7 +79,7 @@ let state = loadOrCreate();
 setLocale(state.settings.locale);
 
 const loop = new FixedStepLoop((dt) => tick(state, dt));
-const castleUi: CastleUi = { selected: { x: 2, y: 3 } };
+const castleUi: CastleUi = { selected: { x: 2, y: 3 }, build: null };
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const reducedMotion = () => state.settings.reducedMotion || prefersReducedMotion.matches;
 
@@ -441,10 +443,26 @@ function installInput(debug: { toggle(): void }): void {
       renderPanels();
       return;
     }
+    // Bau-Katalog: Gebäude wählen (noch einmal klicken = Bau-Modus aus).
+    const pick = target.closest<HTMLElement>('[data-build-pick]');
+    if (pick) {
+      const id = pick.dataset.buildPick as BuildingId;
+      castleUi.build = castleUi.build === id ? null : id;
+      holdRenderUntil = 0;
+      renderPanels();
+      return;
+    }
     const tileEl = target.closest<HTMLElement>('[data-select]');
     if (tileEl) {
-      const [x, y] = (tileEl.dataset.select ?? '0,0').split(',').map(Number);
-      castleUi.selected = { x: x ?? 0, y: y ?? 0 };
+      const [x = 0, y = 0] = (tileEl.dataset.select ?? '0,0').split(',').map(Number);
+      castleUi.selected = { x, y };
+      // Im Bau-Modus baut ein Klick auf ein freies Feld direkt das gewählte Gebäude.
+      const tile = state.tiles.find((t) => t.x === x && t.y === y);
+      if (castleUi.build && tile?.unlocked && !tile.building) {
+        run({ type: 'build', x, y, building: castleUi.build });
+        if (tile.building) castleUi.build = null;
+        return;
+      }
       renderPanels();
     }
   });
@@ -480,6 +498,7 @@ function installInput(debug: { toggle(): void }): void {
       document.querySelector('.modal-backdrop')?.remove();
       narratorOpen = false;
       castleUi.selected = null;
+      castleUi.build = null;
       renderPanels();
     }
   });

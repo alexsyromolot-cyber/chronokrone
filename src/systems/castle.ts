@@ -93,6 +93,33 @@ function tavernBonus(state: GameState, tile: Tile): number {
     .reduce((sum, n) => sum + n.level * TAVERN_BONUS_PER_LEVEL, 0);
 }
 
+/**
+ * Vorschau für den Bau-Modus: Was bekäme Gebäude `id` auf diesem freien Feld?
+ *   terrain  = Gelände-Multiplikator (1 = kein Bonus)
+ *   neighbor = Nachbarschaftsbonus als Anteil (+0,15 je passendem Nachbarn)
+ *   tavern   = Tavernen-Bonus für Sammler-Gebäude
+ *   adrift   = Epoche 5: Das Feld grenzt an kein Modul – das Gebäude triebe im All.
+ * `score` fasst alles zu einem Anteil zusammen, damit die Oberfläche grün/grau färben kann.
+ */
+export interface PlacementPreview {
+  terrain: number;
+  neighbor: number;
+  tavern: number;
+  adrift: boolean;
+  score: number;
+}
+
+export function placementPreview(state: GameState, tile: Tile, id: BuildingId): PlacementPreview {
+  const def = BUILDINGS[id];
+  const terrain = def.terrainBonus?.[tile.terrain] ?? 1;
+  const nb = def.neighborBonus;
+  const around = neighbors(state, tile);
+  const neighbor = nb ? around.filter((n) => n.building === nb.building).length * nb.bonus : 0;
+  const tavern = workerClassFor(id) ? tavernBonus(state, tile) : 0;
+  const adrift = state.epoch >= 5 && !around.some((n) => n.building);
+  return { terrain, neighbor, tavern, adrift, score: terrain - 1 + neighbor + tavern };
+}
+
 export interface ProductionBreakdown {
   resource: ResourceId;
   perLevel: number;

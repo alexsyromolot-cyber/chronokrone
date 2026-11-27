@@ -18,6 +18,7 @@ import { FIGURES, POSES, drawFigure } from './figures.mjs';
 import { ALIEN_IDS, alienFrames } from './aliens.mjs';
 import { drawBackdrop } from './backdrop.mjs';
 import { drawUi } from './ui.mjs';
+import { drawIso } from './iso.mjs';
 
 const { PNG } = pngjs;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -70,6 +71,26 @@ for (const [name, pix] of Object.entries(backdrop)) {
   fs.writeFileSync(path.join(outDir, `backdrop-1-${name}.png`), toPngBuffer(PNG, pix));
 }
 
+// ---------- Isometrischer Bauplatz ----------
+/** Ein Blatt mit Atlas-JSON (nur frames) für Bilder gleicher Größe schreiben. */
+function writeAtlas(name, map, w, h, cols) {
+  const list = Object.entries(map).map(([n, pix]) => ({ name: n, pix }));
+  const packed = packSheet(list, w, h, cols);
+  fs.writeFileSync(path.join(outDir, `${name}.png`), toPngBuffer(PNG, packed.sheet));
+  const json = {
+    frames: Object.fromEntries(
+      Object.entries(packed.rects).map(([n, r]) => [n, { x: r.x, y: r.y, w: r.w, h: r.h }]),
+    ),
+    size: { w: packed.sheet.w, h: packed.sheet.h },
+  };
+  fs.writeFileSync(path.join(outDir, `${name}.json`), JSON.stringify(json));
+  return packed.sheet;
+}
+const iso = drawIso();
+const isoBuildings = writeAtlas('iso-buildings', iso.buildings, 64, 96, 12);
+writeAtlas('iso-terrain', iso.terrain, 64, 40, 6);
+writeAtlas('iso-workers', iso.workers, 8, 12, 10);
+
 // ---------- Overlay (Kampf-HUD) ----------
 const uiDir = path.join(root, 'src/assets/ui');
 fs.mkdirSync(uiDir, { recursive: true });
@@ -97,4 +118,8 @@ for (const pix of Object.values(ui)) {
 fs.writeFileSync(path.join(previewDir, 'ui-preview.png'), toPngBuffer(PNG, scaled(uiPreview, 6, '#1a2030')));
 console.log(
   `Sprites: ${frames.length} Bilder, ${Object.keys(animations).length} Animationen, Blatt ${sheet.w}×${sheet.h}`,
+);
+fs.writeFileSync(
+  path.join(previewDir, 'iso-preview.png'),
+  toPngBuffer(PNG, scaled(isoBuildings, 3, '#2a3a2a')),
 );

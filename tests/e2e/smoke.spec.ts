@@ -58,7 +58,7 @@ test('Erste Schlacht, Ergebnis, Dorf, Bauen, Speichern und Laden', async ({ page
   await expect(page.locator('#arena')).toBeHidden();
 
   // Holzfällerhütte auf das freie Waldfeld bauen – über die echte Oberfläche.
-  await page.locator('.tile[data-select="2,3"]').click();
+  await page.locator('.iso-tile[data-select="2,3"]').click();
   await page
     .locator('.option', { hasText: 'Holzfällerhütte' })
     .getByRole('button', { name: 'Bauen' })
@@ -248,4 +248,19 @@ test('Nach 15 Minuten Spielzeit: Räume sehen ordentlich aus', async ({ page }) 
   await page.screenshot({ path: 'test-results/10-uebungsplatz.png' });
   await openRoom(page, 'kaserne');
   await page.screenshot({ path: 'test-results/11-kaserne.png' });
+});
+
+test('Bauplatz: Bau-Modus mit Vorschau, Bauen per Klick aufs Feld', async ({ page }) => {
+  await toVillage(page);
+  await game(
+    page,
+    `(() => { for (const k of ['gold','wood','stone']) g.state.resources[k] = g.state.resources[k].add(100); })()`,
+  );
+  await page.locator('[data-build-pick="lumberHut"]').click();
+  // Waldfeld neben dem Startfeld: Gelände-Bonus wird angezeigt.
+  await expect(page.locator('.iso-preview.good').first()).toBeVisible();
+  await page.locator('.iso-tile[data-select="2,3"]').click();
+  expect(await game(page, `g.state.tiles.find(t => t.x === 2 && t.y === 3).building`)).toBe('lumberHut');
+  await expect(page.locator('.iso-bld')).toHaveCount(2);
+  await page.screenshot({ path: 'test-results/12-bauplatz.png' });
 });

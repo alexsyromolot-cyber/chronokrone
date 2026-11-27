@@ -8,6 +8,7 @@ Jede Grafik-, Sound- oder Schriftquelle, die nicht im Code erzeugt wird, kommt h
 | Einheiten, Aliens, Gebäude, Gelände (Pixelart) | `src/render/sprites.ts`      | im Code als Text-Raster gezeichnet                         | eigenes Werk |
 | Favicon (Krone)                                | `index.html`                 | Inline-SVG, eigenes Werk                                   | eigenes Werk |
 | Figuren, Aliens, Kulisse Epoche 1 (32×32, PNG) | `src/assets/sprites/`        | per Skript erzeugt (`npm run sprites`, `scripts/sprites/`) | eigenes Werk |
+| Iso-Gelände, Iso-Gebäude, Sammler (PNG)        | `src/assets/sprites/iso-*`   | per Skript erzeugt (`npm run sprites`)                     | eigenes Werk |
 | Raum-Icons, Erzählerfigur                      | `src/render/icons.ts`        | im Code als Text-Raster gezeichnet                         | eigenes Werk |
 
 Schrift: System-Monospace (`ui-monospace`, Cascadia Mono, Consolas) – keine eingebettete Schrift, keine externen Fonts.

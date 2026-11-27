@@ -2,7 +2,7 @@
  * Zeitmaschine: Checkliste aller Bedingungen mit Haken, Rechenorakel und Bau.
  * „Nie eine Wartezeit ohne nächstes sichtbares Ziel“ – hier sieht man genau, was fehlt.
  */
-import { ELITES } from '../data/enemies';
+import { ELITES, FINALE } from '../data/enemies';
 import { t, tk } from '../i18n';
 import { shardsForJump, tokensForJump } from '../systems/prestige';
 import { totalSkillRanks } from '../systems/skills';
@@ -26,7 +26,7 @@ function finaleHtml(state: GameState): string {
   const won = state.finale.wonAt !== null;
   return `<p class="${won ? 'good' : ''}">${esc(t(won ? 'finale.won' : 'finale.ready'))}</p>
     <div class="buy"><button class="btn primary jump" ${blocker ? 'disabled' : ''} ${action({ type: 'startFinale' })} ${tip(
-      blocker ? reasonText(blocker) : t('finale.tip', { siege: state.siegeLevel + 1 }),
+      blocker ? reasonText(blocker) : t('finale.tip', { siege: FINALE.siege + 1 }),
     )}>${esc(t(won ? 'finale.again' : 'finale.button'))}</button></div>
     ${won ? `<div class="buy"><button class="btn" data-credits="1">${esc(t('finale.credits'))}</button></div>` : ''}`;
 }

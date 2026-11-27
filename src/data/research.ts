@@ -129,7 +129,7 @@ export const RESEARCH: ResearchDef[] = [
   // --- Epoche 5: Sternenorden ---
   {
     id: 'starNavigation',
-    cost: 40000,
+    cost: 12000,
     requires: [],
     buildings: ['hullPlate', 'stardustScoop'],
     pos: [0, 12],
@@ -137,7 +137,7 @@ export const RESEARCH: ResearchDef[] = [
   },
   {
     id: 'stainedGlass',
-    cost: 60000,
+    cost: 18000,
     requires: ['starNavigation'],
     buildings: ['glassFurnace'],
     pos: [1, 12],
@@ -145,7 +145,7 @@ export const RESEARCH: ResearchDef[] = [
   },
   {
     id: 'neonRosette',
-    cost: 80000,
+    cost: 24000,
     requires: ['stainedGlass'],
     buildings: ['rosette'],
     pos: [0, 13],
@@ -153,7 +153,7 @@ export const RESEARCH: ResearchDef[] = [
   },
   {
     id: 'starOrder',
-    cost: 100000,
+    cost: 30000,
     requires: ['stainedGlass'],
     buildings: ['hangar'],
     pos: [1, 13],

@@ -44,39 +44,19 @@ import { marketHtml } from './market-panel';
 import { gridHtml } from './cards-panel';
 import { reactorHtml } from './reactor-panel';
 import { action } from './panels-top';
-import { catalogHtml, isoGridHtml } from './iso-castle';
+import { catalogHtml, isoBuildingStyle, isoGridHtml } from './iso-castle';
+import { uiIcon } from './ui-icons';
 
 export interface CastleUi {
   selected: { x: number; y: number } | null;
+  /** Produktionszahlen an allen Gebäuden zeigen. */
+  numbers: boolean;
   /** Bau-Modus: im Katalog gewähltes Gebäude (null = aus). */
   build: BuildingId | null;
 }
 
 function amountsText(a: ResourceAmounts): string {
   return (Object.entries(a) as [ResourceId, number][]).map(([id, n]) => `${n} ${t(`res.${id}`)}`).join(' + ');
-}
-
-function productionHtml(state: GameState, tile: Tile): string {
-  const p = tileProduction(state, tile);
-  if (!p) return '';
-  const formula = t('castle.prodTip', {
-    perLevel: num(p.perLevel, 2),
-    level: p.level,
-    milestone: p.milestone,
-    terrain: num(p.terrain, 2),
-    neighbor: pct(p.neighbor),
-    workers: pct(p.workers),
-    skills: pct(p.skills),
-    tavern: pct(p.tavern),
-    gear: num(p.gear, 2),
-    chronicle: num(p.chronicle, 2),
-    season: num(p.season, 2),
-    power: num(p.power, 2),
-    reactor: num(p.reactor, 2),
-    ship: num(p.ship, 2),
-    total: num(p.total, 2),
-  });
-  return `<p class="prod" ${tip(formula)}>${esc(t('castle.produces', { value: num(p.total, 2), res: t(`res.${p.resource}`) }))} ⓘ</p>`;
 }
 
 /** Rezept, Durchsatz und – das Wichtigste – der aktuelle Engpass der Kette. */
@@ -140,59 +120,104 @@ function effectHtml(state: GameState, tile: Tile): string {
   return '';
 }
 
+/** Kleiner Info-Chip: Icon und Wert, die Erklärung steht im Tooltip. */
+function chip(icon: string, value: string, tipText: string, cls = ''): string {
+  const url = uiIcon(`ic-${icon}`);
+  return `<span class="bchip ${cls}" ${tip(tipText)}>${url ? `<img src="${url}" alt="">` : ''}${esc(value)}</span>`;
+}
+
+/** Große Ertragszeile: Ressourcen-Icon und Menge pro Sekunde; die volle Formel im Tooltip. */
+function productionBig(state: GameState, tile: Tile): string {
+  const p = tileProduction(state, tile);
+  if (!p) return '';
+  const formula = t('castle.prodTip', {
+    perLevel: num(p.perLevel, 2),
+    level: p.level,
+    milestone: p.milestone,
+    terrain: num(p.terrain, 2),
+    neighbor: pct(p.neighbor),
+    workers: pct(p.workers),
+    skills: pct(p.skills),
+    tavern: pct(p.tavern),
+    gear: num(p.gear, 2),
+    chronicle: num(p.chronicle, 2),
+    season: num(p.season, 2),
+    power: num(p.power, 2),
+    reactor: num(p.reactor, 2),
+    ship: num(p.ship, 2),
+    total: num(p.total, 2),
+  });
+  const icon = uiIcon(`res-${p.resource}`);
+  return `<div class="bcard-prod" ${tip(`${t(`res.${p.resource}`)}
+${formula}`)}>${icon ? `<img src="${icon}" alt="">` : ''}<b>+${num(p.total, 2)}</b><small>/s</small></div>`;
+}
+
+/** Boni als Icon-Chips statt Textliste. */
+function bonusChips(state: GameState, tile: Tile): string {
+  const id = tile.building!;
+  const def = BUILDINGS[id];
+  const p = tileProduction(state, tile);
+  const chips: string[] = [];
+  if (p && p.terrain !== 1) chips.push(chip('terrain', `×${num(p.terrain, 1)}`, t('castle.bonus.terrain')));
+  if (p && p.neighbor > 0) chips.push(chip('neighbor', `+${pct(p.neighbor)} %`, t('castle.bonus.neighbor')));
+  const cls: ClassId | undefined = workerClassFor(id);
+  if (cls)
+    chips.push(
+      chip(
+        'worker',
+        `${workersAt(state, tile).length}/${def.workerSlots ?? 0}`,
+        t('castle.workersOf', {
+          cls: t(`class.${cls}`),
+          n: workersAt(state, tile).length,
+          max: def.workerSlots ?? 0,
+        }),
+      ),
+    );
+  if (p && p.skills > 0) chips.push(chip('skills', `+${pct(p.skills)} %`, t('castle.bonus.skills')));
+  if (p && p.tavern > 0) chips.push(chip('tavern', `+${pct(p.tavern)} %`, t('castle.bonus.tavern')));
+  if (p && p.power > 1) chips.push(chip('power', `×${num(p.power, 2)}`, t('castle.bonus.power')));
+  const next = BUILDING_MILESTONES.find((m) => m > tile.level);
+  if ((def.produces || def.recipe) && next) {
+    // Meilenstein als Stern-Chip mit Mini-Balken: wie weit bis zur nächsten Verdopplung?
+    const prev = [...BUILDING_MILESTONES].reverse().find((m) => m <= tile.level) ?? 1;
+    const share = (tile.level - prev) / (next - prev);
+    chips.push(
+      `<span class="bchip milestone" ${tip(t('castle.milestoneBar', { level: tile.level, next }))}>${
+        uiIcon('ic-milestone') ? `<img src="${uiIcon('ic-milestone')}" alt="">` : ''
+      }${next}<span class="mini-bar"><span style="width:${(share * 100).toFixed(0)}%"></span></span></span>`,
+    );
+  }
+  return chips.length ? `<div class="bchips">${chips.join('')}</div>` : '';
+}
+
 function buildingDetail(state: GameState, tile: Tile): string {
   const id = tile.building!;
   const def = BUILDINGS[id];
-  const lines: string[] = [
-    `<h3><img src="${spriteUrl(BUILDING_SPRITES[id])}" alt=""> ${esc(t(`building.${id}`))} <small>${esc(
-      t('castle.level', { level: tile.level }),
-    )}</small></h3>`,
-    `<p class="desc">${esc(t(`building.${id}.desc`))}</p>`,
-    shipHtml(state, tile),
-    productionHtml(state, tile),
-    recipeHtml(state, tile),
-    effectHtml(state, tile),
-  ];
-  const cls: ClassId | undefined = workerClassFor(id);
-  if (cls) {
-    lines.push(
-      `<p>${esc(t('castle.workersOf', { cls: t(`class.${cls}`), n: workersAt(state, tile).length, max: def.workerSlots ?? 0 }))}</p>`,
-    );
-  }
-  const next = BUILDING_MILESTONES.find((m) => m > tile.level);
-  if ((def.produces || def.recipe) && next) {
-    // Meilenstein-Balken: Fortschritt vom letzten zum nächsten Meilenstein (Produktion ×2).
-    const prev = [...BUILDING_MILESTONES].reverse().find((m) => m <= tile.level) ?? 1;
-    const share = (tile.level - prev) / (next - prev);
-    lines.push(`<div class="milestone" ${tip(t('castle.milestone', { level: next }))}>
-      <span class="milestone-bar"><span style="width:${(share * 100).toFixed(0)}%"></span></span>
-      <small>${esc(t('castle.milestoneBar', { level: tile.level, next }))}</small></div>`);
-  }
-  lines.push(bonusListHtml(state, tile));
-
   const blocker = upgradeBlocker(state, tile);
-  lines.push(`<div class="buy">
-    <button class="btn primary" ${blocker ? 'disabled' : ''} ${action({ type: 'upgrade', x: tile.x, y: tile.y })} ${tip(
-      `${t('castle.costTip', { growth: num(def.costGrowth, 2) })}${blocker ? `\n${reasonText(blocker)}` : ''}`,
-    )}>${esc(t('castle.upgrade', { level: tile.level + 1 }))}</button>
-    ${costHtml(state, upgradeCost(tile))}
-  </div>`);
-  return lines.join('');
-}
-
-/** Boni-Liste in der Seitenleiste: woher die Produktion ihre Zuschläge bekommt. */
-function bonusListHtml(state: GameState, tile: Tile): string {
-  const p = tileProduction(state, tile);
-  if (!p) return '';
-  const rows: [string, string][] = [];
-  if (p.terrain !== 1) rows.push([t('castle.bonus.terrain'), `×${num(p.terrain, 2)}`]);
-  if (p.neighbor > 0) rows.push([t('castle.bonus.neighbor'), `+${pct(p.neighbor)} %`]);
-  if (p.workers > 0) rows.push([t('castle.bonus.workers'), `+${pct(p.workers)} %`]);
-  if (p.skills > 0) rows.push([t('castle.bonus.skills'), `+${pct(p.skills)} %`]);
-  if (p.tavern > 0) rows.push([t('castle.bonus.tavern'), `+${pct(p.tavern)} %`]);
-  if (p.milestone > 1) rows.push([t('castle.bonus.milestone'), `×${p.milestone}`]);
-  if (rows.length === 0) return '';
-  return `<ul class="bonus-list">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><b>${esc(v)}</b></li>`).join('')}</ul>`;
+  const up = uiIcon('ic-upgrade');
+  return `<div class="bcard">
+    <div class="bcard-head" ${tip(t(`building.${id}.desc`))}>
+      <span class="bcard-img"><span style="${isoBuildingStyle(id, tile.level)}"></span></span>
+      <div class="bcard-title"><h3>${esc(t(`building.${id}`))}</h3><span class="plaque">${tile.level}</span></div>
+    </div>
+    ${shipHtml(state, tile)}
+    ${productionBig(state, tile)}
+    ${recipeHtml(state, tile)}
+    ${effectHtml(state, tile)}
+    ${bonusChips(state, tile)}
+    <div class="bcard-buy">
+      <button class="sign big" ${blocker ? 'disabled' : ''} ${action({ type: 'upgrade', x: tile.x, y: tile.y })} ${tip(
+        `${t('castle.upgrade', { level: tile.level + 1 })}
+${t('castle.costTip', { growth: num(def.costGrowth, 2) })}${
+          blocker
+            ? `
+${reasonText(blocker)}`
+            : ''
+        }`,
+      )}>${up ? `<img src="${up}" alt="">` : '▲'} ${tile.level + 1}</button>
+      ${costHtml(state, upgradeCost(tile))}
+    </div>
+  </div>`;
 }
 
 function buildOptions(state: GameState, tile: Tile): string {

@@ -1307,4 +1307,11 @@ export const en: Messages = {
   'iso.catalog': 'Build:',
   'iso.buildMode': 'Pick a tile – green = bonus (Esc ends)',
   'reason.buildModeTile': 'Nothing can be built here: the tile is taken or not cleared yet.',
+
+  // --- Bauplatz-Schalter ---
+  'iso.numbers': 'Numbers',
+  'iso.numbersTip': 'Show production on all buildings (otherwise only on the selected one).',
+
+  // --- Bauplatz-Karte ---
+  'castle.bonus.power': 'Power',
 };

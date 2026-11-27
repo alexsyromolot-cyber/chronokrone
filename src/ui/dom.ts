@@ -12,6 +12,7 @@ import type { MessageKey } from '../i18n/de';
 import { productionRates } from '../systems/castle';
 import { secondsUntilAffordable, type Cost } from '../systems/resources';
 import type { GameState } from '../systems/state';
+import { uiIcon } from './ui-icons';
 
 const lastHtml = new WeakMap<HTMLElement, string>();
 
@@ -52,8 +53,12 @@ export function costHtml(state: GameState, cost: Cost): string {
     const c = cost[id];
     if (!c) continue;
     const ok = state.resources[id].gte(c);
+    const icon = uiIcon(`res-${id}`);
+    // Mit Icon reicht die Zahl; der Name steht im Tooltip. Ohne Icon wie bisher mit Namen.
     parts.push(
-      `<span class="cost ${ok ? '' : 'missing'}" style="${ok ? `color:${RESOURCES[id].color}` : ''}">${num(c)} ${esc(t(`res.${id}`))}</span>`,
+      icon
+        ? `<span class="cost ${ok ? '' : 'missing'}" ${tip(`${num(c)} ${t(`res.${id}`)}`)}><img class="cost-icon" src="${icon}" alt="">${num(c)}</span>`
+        : `<span class="cost ${ok ? '' : 'missing'}" style="${ok ? `color:${RESOURCES[id].color}` : ''}">${num(c)} ${esc(t(`res.${id}`))}</span>`,
     );
   }
   const wait = secondsUntilAffordable(state, cost, productionRates(state));

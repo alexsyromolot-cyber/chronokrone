@@ -8,14 +8,18 @@
 import { BATTLE } from '../data/enemies';
 import type { BuildingId } from '../data/buildings';
 import type { UnlockId } from '../data/progression';
+import type { GearSlot } from '../data/gear';
 import type { ResearchId } from '../data/research';
+import type { SpellId } from '../data/spells';
 import type { ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { clickEnemy, endBattle, startBattle } from './battle';
 import { build, clearTile, tileAt, upgrade } from './castle';
 import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
 import { checkUnlocks } from './progression';
+import { craftGear } from './gear';
 import { doResearch } from './research';
+import { castSpell, upgradeSpell } from './spells';
 import { buySkill } from './skills';
 import type { GameState } from './state';
 import { recruit } from './units';
@@ -30,7 +34,10 @@ export type Action =
   | { type: 'recruit'; classId: ClassId }
   | { type: 'buySkill'; skillId: string }
   | { type: 'upgradeWall' }
-  | { type: 'research'; id: ResearchId };
+  | { type: 'research'; id: ResearchId }
+  | { type: 'castSpell'; spell: SpellId }
+  | { type: 'upgradeSpell'; spell: SpellId }
+  | { type: 'craftGear'; classId: ClassId; slot: GearSlot };
 
 /** Kosten der nächsten Mauerverstärkung = wallUpgradeCost × wallUpgradeGrowth^Stufe */
 export function wallUpgradeCost(state: GameState): Cost {
@@ -54,6 +61,8 @@ const REQUIRED_UNLOCK: Partial<Record<Action['type'], UnlockId>> = {
   buySkill: 'skills',
   upgradeWall: 'wall',
   research: 'research',
+  upgradeSpell: 'research',
+  craftGear: 'recruit',
 };
 
 /**
@@ -94,6 +103,12 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return buySkill(state, action.skillId);
     case 'research':
       return doResearch(state, action.id);
+    case 'castSpell':
+      return castSpell(state, action.spell);
+    case 'upgradeSpell':
+      return upgradeSpell(state, action.spell);
+    case 'craftGear':
+      return craftGear(state, action.classId, action.slot);
     case 'upgradeWall': {
       const blocker = wallUpgradeBlocker(state);
       if (blocker) return blocker;

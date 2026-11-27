@@ -7,21 +7,21 @@ import { BATTLE as B, ENEMIES, type EnemyId } from '../data/enemies';
 import { CLASSES, UNIT_FORMULAS } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { gain, keepLevel } from './resources';
-import { skillBonus } from './skills';
+import { globalBonus, skillBonus } from './skills';
 import { addLog, type BattleState, type Enemy, type GameState } from './state';
-import { addXp, attackInterval, attributesOf, troops, unitDamage } from './units';
+import { addXp, attackInterval, attributesOf, critChance, troops, unitDamage } from './units';
 
 /** Wie weit vor der Mauer Nahkämpfer zuschlagen können (Pixel). */
 const MELEE_REACH = 26;
 /** Anteil des Schadens, den Aliens im Flächenradius abbekommen. */
 const SPLASH_FACTOR = 0.6;
 
-/** Mauer-LP = (Basis + 10 × Verstärkungen + 2 × Ausdauer aller Truppen) × (1 + Mauerwächter-Bonus) */
+/** Mauer-LP = (Basis + 10 × Verstärkungen + 2 × Ausdauer aller Truppen) × (1 + Mauer-Skills) */
 export function wallMaxHp(state: GameState): number {
-  const endurance = troops(state).reduce((sum, u) => sum + attributesOf(u).end, 0);
+  const endurance = troops(state).reduce((sum, u) => sum + attributesOf(u, state).end, 0);
   const base =
     B.wallBaseHp + B.wallHpPerUpgrade * state.wallUpgrades + UNIT_FORMULAS.wallHpPerEnd * endurance;
-  return Math.round(base * (1 + skillBonus(state, 'knight', 'wallHpMult')));
+  return Math.round(base * (1 + globalBonus(state, 'wallHpMult')));
 }
 
 export function waveSize(wave: number): number {
@@ -36,9 +36,9 @@ export function goldMultiplier(wave: number, siege: number): number {
   return (1 + B.goldPerWaveStep * (wave - 1)) * B.goldGrowthPerSiege ** siege;
 }
 
-/** Klickschaden des Königs = Basis × Bergfried-Level. Ein größerer Bergfried, ein selbstbewussterer König. */
+/** Klickschaden = Basis × Bergfried-Level × (1 + Klick-Skills). Ein größerer Bergfried, ein selbstbewussterer König. */
 export function clickDamage(state: GameState): number {
-  return B.clickDamage * keepLevel(state);
+  return B.clickDamage * keepLevel(state) * (1 + globalBonus(state, 'clickMult'));
 }
 
 export function startBattleBlocker(state: GameState, siege: number): MessageKey | null {
@@ -68,6 +68,9 @@ export function startBattle(state: GameState, siege = state.siegeLevel): Message
     kills: 0,
     goldEarned: 0,
     cooldowns: {},
+    spellCooldowns: {},
+    militiaLeft: 0,
+    militiaTimer: 0,
   };
   return null;
 }
@@ -106,7 +109,8 @@ export function damageEnemy(state: GameState, enemy: Enemy, amount: number, byCl
   if (enemy.hp > 0) return;
 
   const def = ENEMIES[enemy.type];
-  const gold = Math.round(def.gold * goldMultiplier(b.wave, b.siege) * 10) / 10;
+  const gold =
+    Math.round(def.gold * goldMultiplier(b.wave, b.siege) * (1 + globalBonus(state, 'lootGold')) * 10) / 10;
   gain(state, 'gold', gold);
   b.goldEarned += gold;
   b.kills++;
@@ -115,7 +119,8 @@ export function damageEnemy(state: GameState, enemy: Enemy, amount: number, byCl
 
   // Alien-Schrott mit Pity-Grenze: spätestens nach scrapPity Fehlversuchen fällt er garantiert.
   state.scrapPity++;
-  const scrap = chance(state.rng, B.scrapChance) || state.scrapPity >= B.scrapPity;
+  const scrap =
+    chance(state.rng, B.scrapChance + globalBonus(state, 'scrapChance')) || state.scrapPity >= B.scrapPity;
   if (scrap) {
     state.scrapPity = 0;
     const first = state.resources.scrap.eq(0) && !state.log.some((l) => l.key === 'narrator.firstScrap');
@@ -205,7 +210,7 @@ export function tickBattle(state: GameState, dt: number): void {
   }
 
   // Bewegung. Lautes Fluchen der Bauern verlangsamt die Aliens.
-  const slow = 1 / (1 + skillBonus(state, 'peasant', 'enemySlow'));
+  const slow = 1 / (1 + globalBonus(state, 'enemySlow'));
   for (const e of b.enemies) {
     e.prevX = e.x;
     if (e.x > B.wallX) {
@@ -216,6 +221,8 @@ export function tickBattle(state: GameState, dt: number): void {
       b.wallDamageAcc += dmg;
     }
   }
+  // Heilerinnen & Co.: die Mauer regeneriert einen Anteil ihrer LP pro Sekunde.
+  b.wallHp = Math.min(b.wallMaxHp, b.wallHp + b.wallMaxHp * globalBonus(state, 'wallRegen') * dt);
   if (b.wallDamageAcc >= 2) {
     b.wallDamageAcc = 0;
     state.fx.push({ kind: 'wallHit' });
@@ -231,12 +238,16 @@ export function tickBattle(state: GameState, dt: number): void {
       continue;
     }
     const def = CLASSES[unit.classId];
+    const range = def.range + skillBonus(state, unit.classId, 'rangeAdd');
     let target: Enemy | undefined;
     for (const e of b.enemies) {
-      if (e.x <= B.wallX + def.range && (!target || e.x < target.x)) target = e;
+      if (e.x <= B.wallX + range && (!target || e.x < target.x)) target = e;
     }
     if (target) {
-      const dmg = unitDamage(state, unit);
+      // Kritischer Treffer: doppelter Schaden.
+      const crit = chance(state.rng, critChance(state, unit));
+      const dmg = unitDamage(state, unit) * (crit ? 2 : 1);
+      if (crit) state.fx.push({ kind: 'crit', x: target.x, lane: target.lane });
       if (def.range > MELEE_REACH) {
         state.fx.push({ kind: 'shot', toX: target.x, lane: target.lane, color: def.color, slot });
       }
@@ -245,8 +256,9 @@ export function tickBattle(state: GameState, dt: number): void {
       const splashed =
         def.splash > 0 ? b.enemies.filter((e) => e !== target && Math.abs(e.x - target.x) <= def.splash) : [];
       damageEnemy(state, target, dmg, false);
-      for (const e of splashed) damageEnemy(state, e, dmg * SPLASH_FACTOR, false);
-      b.cooldowns[unit.id] = attackInterval(unit);
+      const splashShare = SPLASH_FACTOR * (1 + skillBonus(state, unit.classId, 'splashMult'));
+      for (const e of splashed) damageEnemy(state, e, dmg * splashShare, false);
+      b.cooldowns[unit.id] = attackInterval(state, unit);
     } else {
       b.cooldowns[unit.id] = 0;
     }

@@ -27,6 +27,8 @@ export interface EnemyDef {
   /** Relative Häufigkeit unter den erlaubten Typen. */
   weight: number;
   color: string;
+  /** Elitegegner: nehmen von Prozent-Zaubern weniger Schaden (siehe data/spells.ts). */
+  elite?: boolean;
 }
 
 export const ENEMIES: Record<EnemyId, EnemyDef> = {
@@ -78,7 +80,7 @@ export const BATTLE = {
   countPerWave: 1,
   hpGrowthPerWave: 1.45,
   hpGrowthPerSiege: 1.9,
-  goldGrowthPerSiege: 2,
+  goldGrowthPerSiege: 1.6,
   goldPerWaveStep: 0.15,
   /** Sekunden zwischen zwei Spawns innerhalb einer Welle. */
   spawnInterval: 0.9,

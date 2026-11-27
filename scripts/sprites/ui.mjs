@@ -15,6 +15,9 @@ const LEATHER = ramp('#7a4a2a');
 const GLASS = '#9ab4c8';
 const SAND = ramp('#e8c070');
 
+/** Pergamentfasern: pseudozufällig verteilt – regelmäßige Muster würden als Streifen auffallen. */
+const fiber = (x, y) => ((Math.imul(x, 374761393) + Math.imul(y, 668265263)) >>> 0) % 31 === 0;
+
 /** Kleines Messing-Zahnrad (7×7) mit Achse. */
 function gear(p, cx, cy, on = true) {
   const r = on ? BRASS : IRON;
@@ -99,7 +102,7 @@ function banner() {
   const p = new Pix(32, 12);
   for (let y = 1; y < 11; y++)
     for (let x = 3; x < 29; x++)
-      p.set(x, y, y === 1 ? PARCH[3] : y === 10 ? PARCH[1] : (x + y) % 9 === 0 ? PARCH[1] : PARCH[2]);
+      p.set(x, y, y === 1 ? PARCH[3] : y === 10 ? PARCH[1] : fiber(x, y) ? PARCH[1] : PARCH[2]);
   for (const x of [0, 29]) {
     p.cyl(x, 2, 3, 9, PARCH);
     p.set(x + 1, 6, PARCH[0]);
@@ -174,8 +177,250 @@ function wavePip(on) {
   return p.outline(0.5);
 }
 
+// ---------- Kopfleiste: schmale Leiste, Knöpfe, Zettel, Siegel ----------
+
+/** Schmale Holzleiste 16×16, Ränder 5 px: für die Währungsleiste und die Knöpfe. */
+function strip() {
+  const p = new Pix(16, 16);
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) p.set(x, y, y % 5 === 0 ? mix(WOOD[2], WOOD[1], 0.5) : WOOD[2]);
+  for (let i = 0; i < 16; i++) {
+    for (const [x, y] of [
+      [i, 0],
+      [i, 15],
+      [0, i],
+      [15, i],
+    ])
+      p.set(x, y, IRON[1]);
+    p.set(i, 1, IRON[3]);
+    p.set(1, i, IRON[3]);
+    p.set(i, 14, IRON[0]);
+    p.set(14, i, IRON[0]);
+  }
+  for (const [x, y] of [
+    [2, 2],
+    [13, 2],
+    [2, 13],
+    [13, 13],
+  ])
+    p.set(x, y, BRASS[3]);
+  return p;
+}
+
+/** Pergamentzettel 24×24 (Ränder 8 px) mit leicht ausgefransten Kanten. */
+function note() {
+  const p = new Pix(24, 24);
+  for (let y = 1; y < 23; y++)
+    for (let x = 1; x < 23; x++) {
+      const edge = x < 3 || y < 3 || x > 20 || y > 20;
+      const fray = edge && (x * 7 + y * 13) % 5 === 0;
+      if (fray) continue;
+      p.set(x, y, edge ? PARCH[1] : fiber(x, y) ? PARCH[1] : PARCH[2]);
+    }
+  return p.outline(0.55);
+}
+
+/** Rotes Wachssiegel 14×14 mit eingeprägter Krone. */
+function seal() {
+  const p = new Pix(14, 14);
+  const wax = ramp('#a3262a');
+  p.ball(7, 7, 6.2, 6, wax);
+  for (const [x, y] of [
+    [1, 9],
+    [12, 4],
+    [3, 2],
+  ])
+    p.set(x, y, wax[1]);
+  const c = wax[0];
+  p.rect(4, 8, 6, 1, c);
+  for (const x of [4, 7, 9]) p.rect(x, 5, 1, 3, c);
+  p.set(5, 7, c);
+  p.set(8, 7, c);
+  p.set(5, 5, wax[4]);
+  return p.outline(0.5);
+}
+
+// ---------- Icons 12×12 (Rohstoffe und Knöpfe) ----------
+
+const icon = (draw) => {
+  const p = new Pix(12, 12);
+  draw(p);
+  return p.outline(0.55);
+};
+
+const ingot = (base) => (p) => {
+  const r = ramp(base);
+  p.poly(
+    [
+      [1, 9],
+      [3, 5],
+      [9, 5],
+      [11, 9],
+    ],
+    r[2],
+  );
+  p.rect(3, 5, 6, 1, r[4]);
+  p.rect(1, 9, 11, 1, r[1]);
+};
+
+const lump = (base, sparkle) => (p) => {
+  p.ball(6, 7, 5, 4, ramp(base));
+  if (sparkle)
+    for (const [x, y] of [
+      [4, 5],
+      [7, 8],
+      [8, 5],
+    ])
+      p.set(x, y, sparkle);
+};
+
+const RESOURCE_ICONS = {
+  gold: (p) => {
+    p.ball(5, 7, 3.6, 3.6, BRASS);
+    p.ball(7.5, 5, 3.6, 3.6, BRASS);
+    p.rect(7, 4, 1, 3, BRASS[4]);
+  },
+  wood: (p) => {
+    p.cyl(1, 4, 10, 5, WOOD);
+    p.ball(10.5, 6.5, 1.6, 2.6, ramp('#c8965a'));
+    p.set(10, 6, WOOD[1]);
+  },
+  stone: lump('#9a9eae'),
+  scrap: (p) => {
+    const r = ramp('#6ee0c8');
+    p.rect(2, 3, 8, 6, r[2]);
+    p.rect(2, 3, 8, 1, r[4]);
+    p.rect(4, 5, 4, 2, '#0b1b22');
+    for (const x of [3, 5, 7, 9]) {
+      p.set(x, 2, r[1]);
+      p.set(x, 9, r[1]);
+    }
+  },
+  knowledge: (p) => {
+    const b = ramp('#3a5a9a');
+    p.rect(1, 4, 10, 6, b[2]);
+    p.rect(2, 3, 4, 6, PARCH[3]);
+    p.rect(6, 3, 4, 6, PARCH[2]);
+    p.set(6, 1, '#ffe66d');
+    p.set(5, 0, '#ffe66d');
+    p.set(7, 0, '#ffe66d');
+  },
+  ore: lump('#7a6a5a', '#e8c070'),
+  herbs: (p) => {
+    const g = ramp('#5aa04a');
+    p.line(6, 11, 6, 3, g[1]);
+    p.ball(4, 4, 2.4, 1.6, g);
+    p.ball(8, 6, 2.4, 1.6, g);
+    p.ball(4, 8, 2.2, 1.4, g);
+  },
+  planks: (p) => {
+    for (const y of [3, 6, 9]) p.slab(1, y, 10, 3, ramp('#b07a42'));
+  },
+  iron: ingot('#8d93a6'),
+  steel: ingot('#a8c0d8'),
+  ink: (p) => {
+    p.ball(6, 8, 4, 3, ramp('#2a2a4a'));
+    p.rect(5, 3, 2, 3, ramp('#2a2a4a')[1]);
+    p.line(8, 0, 6, 5, '#e8e2c8');
+  },
+  scrolls: (p) => {
+    p.cyl(2, 3, 8, 7, PARCH);
+    p.cyl(1, 2, 2, 9, ramp('#c8a870'));
+    p.cyl(9, 2, 2, 9, ramp('#c8a870'));
+    p.rect(4, 5, 4, 1, '#7a5a3a');
+    p.rect(4, 7, 3, 1, '#7a5a3a');
+  },
+  chips: (p) => {
+    const r = ramp('#2a7a6a');
+    p.rect(3, 3, 6, 6, r[2]);
+    p.rect(4, 4, 4, 4, '#9fe8f0');
+    for (const k of [4, 6, 8]) {
+      p.set(k - 1, 2, '#c8c8c8');
+      p.set(k - 1, 9, '#c8c8c8');
+      p.set(2, k - 1, '#c8c8c8');
+      p.set(9, k - 1, '#c8c8c8');
+    }
+  },
+  coal: lump('#2a2a30', '#5a5a68'),
+  gears: (p) => gear(p, 6, 6, true),
+  copper: ingot('#d9774a'),
+  wire: (p) => {
+    for (let k = 0; k < 4; k++) p.ball(3 + k * 2, 6, 1.8, 3.5, ramp('#e8c070'));
+  },
+  uranium: lump('#5aa03a', '#d8ff70'),
+  fuelRods: (p) => {
+    for (const x of [2, 5, 8]) p.cyl(x, 2, 2, 9, ramp('#c8f060'));
+  },
+  stardust: (p) => {
+    for (const [x, y] of [
+      [3, 3],
+      [8, 5],
+      [5, 8],
+      [9, 9],
+      [2, 7],
+    ]) {
+      p.set(x, y, '#e8d8ff');
+      p.set(x + 1, y, '#c09aff');
+      p.set(x, y + 1, '#c09aff');
+    }
+  },
+  starglass: (p) =>
+    p.poly(
+      [
+        [6, 1],
+        [10, 5],
+        [7, 11],
+        [2, 6],
+      ],
+      ramp('#ff6ad5')[3],
+    ),
+};
+
+const BUTTON_ICONS = {
+  // Speichern: Siegelring auf einer Urkunde.
+  save: (p) => {
+    p.cyl(1, 2, 9, 8, PARCH);
+    p.rect(3, 4, 5, 1, '#7a5a3a');
+    p.rect(3, 6, 4, 1, '#7a5a3a');
+    p.ball(9, 9, 2.6, 2.6, ramp('#a3262a'));
+  },
+  settings: (p) => {
+    const r = BRASS;
+    for (const [dx, dy] of [
+      [0, -5],
+      [0, 5],
+      [-5, 0],
+      [5, 0],
+      [-4, -4],
+      [4, -4],
+      [-4, 4],
+      [4, 4],
+    ])
+      p.rect(6 + dx - (dx > 0 ? 1 : 0), 6 + dy - (dy > 0 ? 1 : 0), 2, 2, r[1]);
+    p.ball(6, 6, 4, 4, r);
+    p.ball(6, 6, 1.6, 1.6, ramp('#3e2716'));
+  },
+  fullscreen: (p) => {
+    const c = IRON[3];
+    for (const [x, y, dx, dy] of [
+      [1, 1, 1, 1],
+      [10, 1, -1, 1],
+      [1, 10, 1, -1],
+      [10, 10, -1, -1],
+    ]) {
+      p.rect(Math.min(x, x + dx * 3), y, 4, 1, c);
+      p.rect(x, Math.min(y, y + dy * 3), 1, 4, c);
+    }
+  },
+};
+
 export function drawUi() {
   return {
+    strip: strip(),
+    note: note(),
+    seal: seal(),
+    ...Object.fromEntries(Object.entries(RESOURCE_ICONS).map(([id, draw]) => [`res-${id}`, icon(draw)])),
+    ...Object.fromEntries(Object.entries(BUTTON_ICONS).map(([id, draw]) => [`btn-${id}`, icon(draw)])),
     frame: frame(),
     banner: banner(),
     medallion: medallion(),

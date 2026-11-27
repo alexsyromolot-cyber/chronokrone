@@ -13,6 +13,7 @@ import { keepLevel, resourceCap } from '../systems/resources';
 import { skillBonus } from '../systems/skills';
 import type { GameState } from '../systems/state';
 import { attributesOf, troops } from '../systems/units';
+import { uiIcon } from './ui-icons';
 import { costHtml, esc, num, pct, tip } from './dom';
 
 export function action(a: Action): string {
@@ -28,6 +29,14 @@ function resourceVisible(state: GameState, id: ResourceId, rate: number): boolea
   if (state.resources[id].gt(0) || rate !== 0) return true;
   if (id === 'gold') return state.stats.kills > 0;
   return (id === 'wood' || id === 'stone') && !!state.unlocked.castle;
+}
+
+/** Pixel-Icon der Ressource; ohne Icon der alte Farbpunkt. */
+function resIcon(id: ResourceId, color: string): string {
+  const url = uiIcon(`res-${id}`);
+  return url
+    ? `<img class="res-icon" src="${url}" alt="">`
+    : `<span class="res-dot" style="background:${color}"></span>`;
 }
 
 /** `only`: nur diese Ressourcen zeigen (Raum bzw. Kampfphase); 'all' = alle, die schon eine Rolle spielen. */
@@ -50,7 +59,7 @@ export function resourcesHtml(state: GameState, only: ResourceId[] | 'all' = 'al
         growth: num(def.capGrowth, 2),
       });
       return `<div class="res res-${id} ${full ? 'full' : ''}" ${tip(tipText)}>
-        <span class="res-dot" style="background:${def.color}"></span><span class="res-name">${esc(t(`res.${id}`))}</span>
+        ${resIcon(id, def.color)}<span class="res-name">${esc(t(`res.${id}`))}</span>
         <span class="res-val">${num(value)}</span><span class="res-cap">/${num(cap)}</span>
         ${rates[id] > 0 ? `<span class="res-rate">+${num(rates[id], 1)}/s</span>` : ''}
       </div>`;

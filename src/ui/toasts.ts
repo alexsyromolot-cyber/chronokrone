@@ -3,6 +3,7 @@
  * es stehen höchstens MAX gleichzeitig da, die älteste fliegt zuerst.
  */
 import { esc } from './dom';
+import { uiIcon } from './ui-icons';
 
 const MAX = 4;
 const LIFETIME_MS = 3500;
@@ -14,7 +15,9 @@ export function pushToast(text: string, kind: ToastKind = 'info'): void {
   if (!box) return;
   const card = document.createElement('div');
   card.className = `toast-card ${kind}`;
-  card.innerHTML = `<span>${esc(text)}</span>`;
+  // Erfolge tragen ein Wachssiegel – wie eine königliche Urkunde.
+  const seal = kind === 'achievement' ? uiIcon('seal') : null;
+  card.innerHTML = `${seal ? `<img class="seal" src="${seal}" alt="">` : ''}<span>${esc(text)}</span>`;
   box.appendChild(card);
   while (box.children.length > MAX) box.firstElementChild?.remove();
   window.setTimeout(() => {

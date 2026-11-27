@@ -88,7 +88,7 @@ const previewDir = path.join(root, 'test-results');
 fs.mkdirSync(previewDir, { recursive: true });
 fs.writeFileSync(path.join(previewDir, 'sprites-preview.png'), toPngBuffer(PNG, scaled(sheet, 4, '#2a2f45')));
 // Overlay-Teile nebeneinander, 6×.
-const uiPreview = new Pix(240, 30);
+const uiPreview = new Pix(560, 30);
 let ux = 2;
 for (const pix of Object.values(ui)) {
   uiPreview.blit(pix, ux, 2);

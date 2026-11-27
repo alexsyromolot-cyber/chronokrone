@@ -107,6 +107,35 @@ test('Hofbefehle: Regel zusammenklicken und automatisch ausführen lassen', asyn
   await page.locator('#orders').screenshot({ path: 'test-results/06-hofbefehle.png' });
 });
 
+test('Ereignis beantworten und Drohne anklicken', async ({ page }) => {
+  await game(page, 'g.loop.fastForward(120)');
+  await game(
+    page,
+    `(() => {
+      g.state.events.active = { id: 'bard', expiresAt: g.state.time + 60, params: {} };
+      g.state.events.drone = { left: 7.9, lane: 0 };
+    })()`,
+  );
+  await expect(page.locator('#event')).toBeVisible();
+  await page.screenshot({ path: 'test-results/07-ereignis.png' });
+  await page.getByRole('button', { name: /Verjagen/ }).click();
+  expect(await game(page, 'g.state.events.active')).toBeNull();
+  await expect(page.locator('#log-body')).toContainText('Verjagt');
+  // Drohne: Position aus der Szene, dann ins Canvas klicken.
+  await page.waitForTimeout(100);
+  const caught = await game<boolean>(
+    page,
+    `(() => {
+      const c = document.querySelector('#stage canvas').getBoundingClientRect();
+      const left = g.state.events.drone.left, progress = 1 - left / 8;
+      const x = c.left + (330 - progress * 360 + 7) / 320 * c.width, y = c.top + (24 + 5) / 180 * c.height;
+      document.querySelector('#stage canvas').dispatchEvent(new PointerEvent('pointerdown', { clientX: x, clientY: y, bubbles: true }));
+      return g.state.stats.dronesCaught === 1;
+    })()`,
+  );
+  expect(caught).toBe(true);
+});
+
 test('Sprache lässt sich umschalten', async ({ page }) => {
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.locator('h1')).toHaveText('Chronocrown');

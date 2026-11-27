@@ -15,6 +15,7 @@ import { TERRAIN_CODES, type MapDef, type TerrainId } from '../data/map';
 import { LOG_LIMIT, type UnlockId } from '../data/progression';
 import type { GearSlot } from '../data/gear';
 import type { OrderRule } from '../data/orders';
+import type { DiceBet, EventId } from '../data/events';
 import type { ResearchId } from '../data/research';
 import type { SpecPath } from '../data/skills';
 import type { SpellId } from '../data/spells';
@@ -106,6 +107,7 @@ export type FxEvent =
   | { kind: 'battleEnd'; result: 'won' | 'lost' }
   | { kind: 'spell'; spell: SpellId }
   | { kind: 'jump'; epoch: number; shards: number; tokens: number }
+  | { kind: 'drone'; gold: number }
   | { kind: 'crit'; x: number; lane: number };
 
 export interface Stats {
@@ -116,6 +118,10 @@ export interface Stats {
   highestWave: number;
   skillPointsEarned: number;
   buildingsBuilt: number;
+  eventsSeen: number;
+  dronesCaught: number;
+  diceGames: number;
+  miracles: number;
 }
 
 export interface Settings {
@@ -137,6 +143,18 @@ export interface OrdersState {
 
 export function emptyOrders(): OrdersState {
   return { rules: [], nextId: 1, timer: 0, log: [], lastTrue: {} };
+}
+
+export interface EventsState {
+  /** Sekunden bis zum nächsten Ereignis. */
+  timer: number;
+  active: { id: EventId; expiresAt: number; params: Record<string, string | number> } | null;
+  /** Zeitlich begrenzte Produktions-Boni (Regen, gute Ernte …). */
+  buffs: { resource: ResourceId | 'all'; mult: number; until: number }[];
+  /** Alien-Drohne am Himmel: Restflugzeit und Spur. */
+  drone: { left: number; lane: number } | null;
+  droneTimer: number;
+  lastDice: { d1: number; d2: number; bet: DiceBet; stake: number; payout: number } | null;
 }
 
 export interface GameState {
@@ -174,6 +192,8 @@ export interface GameState {
   oracle: boolean;
   /** Spielzeit, zu der die Zeitmaschine fertig wurde (null = noch nicht). */
   timeMachineAt: number | null;
+  /** Ereignisse, Drohne, Würfel. */
+  events: EventsState;
   /** Hofbefehle (bleiben beim Sprung erhalten). */
   orders: OrdersState;
   /** Abgeschlossene Forschung. */
@@ -249,6 +269,8 @@ export function createInitialState(seed = Date.now()): GameState {
     skills: {},
     research: {},
     orders: emptyOrders(),
+    // Erstes Ereignis nach 3 Minuten, erste Drohne nach 2 Minuten – nicht schon in der ersten Schlacht.
+    events: { timer: 180, active: null, buffs: [], drone: null, droneTimer: 120, lastDice: null },
     timeParts: {},
     oracle: false,
     timeMachineAt: null,
@@ -271,6 +293,10 @@ export function createInitialState(seed = Date.now()): GameState {
       highestWave: 0,
       skillPointsEarned: 0,
       buildingsBuilt: 0,
+      eventsSeen: 0,
+      dronesCaught: 0,
+      diceGames: 0,
+      miracles: 0,
     },
     settings: { autosaveSeconds: 30, reducedMotion: false, locale: 'de' },
     fx: [],

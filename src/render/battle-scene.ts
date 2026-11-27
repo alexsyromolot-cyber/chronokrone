@@ -7,6 +7,7 @@
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import { BATTLE, ENEMIES } from '../data/enemies';
 import { epochDef, type EpochPalette } from '../data/epochs';
+import { DRONE } from '../data/events';
 import type { GameState } from '../systems/state';
 import { attackInterval, troops } from '../systems/units';
 import { Effects } from './effects';
@@ -22,6 +23,7 @@ const LANE_STEP = 7;
 
 export interface BattleSceneOptions {
   onEnemyClick: (enemyId: number) => void;
+  onDroneClick: () => void;
   reducedMotion: () => boolean;
 }
 
@@ -35,6 +37,8 @@ export class BattleScene {
   private readonly enemyLayer = new Container();
   private readonly torches: Graphics[] = [];
   private readonly effects: Effects;
+  /** Die Alien-Drohne (Minispiel): fliegt oben über den Himmel. */
+  private drone: Sprite | null = null;
   private time = 0;
   private shake = 0;
   /** Das umgebende Element bestimmt die verfügbare Breite (host selbst schrumpft aufs Canvas). */
@@ -170,6 +174,14 @@ export class BattleScene {
     const rect = this.app.canvas.getBoundingClientRect();
     const fx = ((e.clientX - rect.left) / rect.width) * VIEW_W;
     const fy = ((e.clientY - rect.top) / rect.height) * VIEW_H;
+    // Die Drohne hat Vorrang – sie ist selten und schnell weg.
+    if (this.drone?.visible) {
+      const d = this.drone;
+      if (Math.hypot(d.x + d.width / 2 - fx, d.y + d.height / 2 - fy) <= BATTLE.clickRadius + 4) {
+        this.options.onDroneClick();
+        return;
+      }
+    }
     let best: { id: number; d: number } | null = null;
     for (const [id, view] of this.enemies) {
       const s = view.sprite;
@@ -207,6 +219,25 @@ export class BattleScene {
       const lunge = !this.options.reducedMotion() && cd > attackInterval(state, unit) * 0.8 ? 2 : 0;
       sprite.position.set(pos.x + lunge, pos.y);
     });
+  }
+
+  private syncDrone(state: GameState): void {
+    const d = state.events.drone;
+    if (!d) {
+      if (this.drone) this.drone.visible = false;
+      return;
+    }
+    if (!this.drone) {
+      this.drone = new Sprite(spriteTexture(ENEMY_SPRITES.brummdrohne));
+      this.drone.tint = 0xffe66d;
+      this.app.stage.addChild(this.drone);
+    }
+    const progress = 1 - d.left / DRONE.flightTime;
+    this.drone.visible = true;
+    this.drone.position.set(
+      Math.round(VIEW_W + 10 - progress * (VIEW_W + 40)),
+      Math.round(24 + d.lane * 14 + Math.sin(this.time * 5) * 3),
+    );
   }
 
   /** Platz der i-ten Truppe: die ersten vier auf dem Wehrgang, der Rest dahinter in Reihen. */
@@ -301,6 +332,15 @@ export class BattleScene {
         }
         case 'battleEnd':
           break;
+        case 'drone':
+          this.effects.burst(this.drone?.x ?? 160, this.drone?.y ?? 30, '#ffe66d', reduced ? 4 : 16);
+          this.effects.text(
+            (this.drone?.x ?? 160) + 6,
+            (this.drone?.y ?? 30) + 10,
+            `+${Math.round(fx.gold)}`,
+            'gold',
+          );
+          break;
         case 'crit':
           this.effects.text(fx.x + 6, this.enemyY(fx.lane, 10) - 14, 'KRIT!', 'click');
           break;
@@ -327,6 +367,7 @@ export class BattleScene {
     this.applyEpoch(state.epoch);
     this.syncDefenders(state);
     this.syncEnemies(state, alpha);
+    this.syncDrone(state);
     this.consumeFx(state);
     this.effects.update(dtSeconds);
 

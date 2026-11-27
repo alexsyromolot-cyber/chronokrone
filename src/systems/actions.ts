@@ -11,6 +11,7 @@ import type { UnlockId } from '../data/progression';
 import type { ChronicleId } from '../data/chronicle';
 import type { GearSlot } from '../data/gear';
 import type { OrderRule } from '../data/orders';
+import type { DiceBet } from '../data/events';
 import type { ResearchId } from '../data/research';
 import type { SpellId } from '../data/spells';
 import type { ClassId } from '../data/units';
@@ -26,6 +27,7 @@ import { buildOracle, buildTimeMachine } from './timemachine';
 import { buyChronicle } from './chronicle';
 import { performJump, useToken } from './prestige';
 import { setOrders } from './orders';
+import { catchDrone, resolveEvent, rollDice } from './events';
 import { buySkill } from './skills';
 import type { GameState } from './state';
 import { recruit } from './units';
@@ -49,7 +51,10 @@ export type Action =
   | { type: 'jump' }
   | { type: 'buyChronicle'; id: ChronicleId }
   | { type: 'useToken'; classId: ClassId }
-  | { type: 'setOrders'; rules: OrderRule[] };
+  | { type: 'setOrders'; rules: OrderRule[] }
+  | { type: 'eventChoice'; option: string }
+  | { type: 'catchDrone' }
+  | { type: 'rollDice'; bet: DiceBet };
 
 /** Kosten der nächsten Mauerverstärkung = wallUpgradeCost × wallUpgradeGrowth^Stufe */
 export function wallUpgradeCost(state: GameState): Cost {
@@ -79,6 +84,9 @@ const REQUIRED_UNLOCK: Partial<Record<Action['type'], UnlockId>> = {
   buildTimeMachine: 'timeMachine',
   jump: 'timeMachine',
   setOrders: 'orders',
+  eventChoice: 'castle',
+  catchDrone: 'castle',
+  rollDice: 'castle',
 };
 
 /**
@@ -137,6 +145,12 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return useToken(state, action.classId);
     case 'setOrders':
       return setOrders(state, action.rules);
+    case 'eventChoice':
+      return resolveEvent(state, action.option);
+    case 'catchDrone':
+      return catchDrone(state);
+    case 'rollDice':
+      return rollDice(state, action.bet);
     case 'upgradeWall': {
       const blocker = wallUpgradeBlocker(state);
       if (blocker) return blocker;

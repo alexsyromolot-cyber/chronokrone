@@ -18,6 +18,7 @@
       <header class="topbar">
         <h1 data-i18n="app.title">Chronokrone</h1>
         <span id="epoch-label" class="epoch-label"></span>
+        <span id="season-label"></span>
         <div id="resources" class="resources"></div>
         <div class="top-actions">
           <button id="save" class="btn small" type="button" data-i18n="save.save"></button>
@@ -33,6 +34,9 @@
               <div id="stage"><div id="fx-layer" aria-hidden="true"></div></div>
             </div>
             <div id="battle-hud" class="battle-hud"></div>
+          </section>
+          <section id="event" class="panel event-card" hidden>
+            <div id="event-body"></div>
           </section>
           <section id="spells" class="panel" hidden>
             <h2 data-i18n="spells.title"></h2>

@@ -37,6 +37,8 @@ import { companionsHtml } from './ui/market-panel';
 import { cardsHtml } from './ui/cards-panel';
 import { relicsHtml } from './ui/reactor-panel';
 import { completionHtml, showCredits } from './ui/finale-panel';
+import { loopHtml } from './ui/loop-panel';
+import { curseShardMult, sealsForLoop } from './systems/loop';
 import { eventHtml, seasonHtml } from './ui/events-panel';
 import { achievementsHtml, achievementTitle, statsHtml } from './ui/achievements-panel';
 import { ACHIEVEMENTS } from './data/achievements';
@@ -101,6 +103,7 @@ const panels = {
   cards: el('#cards'),
   relics: el('#relics'),
   completion: el('#completion'),
+  loop: el('#loop'),
   stats: el('#stats'),
   bestiary: el('#bestiary'),
 };
@@ -157,6 +160,9 @@ function renderPanels(): void {
   const completionVisible = state.epoch >= 5 || state.loop.count > 0;
   reveal(panels.completion, completionVisible);
   if (completionVisible) setHtml(el('#completion-body'), completionHtml(state));
+  const loopVisible = state.finale.wins > 0 || state.loop.count > 0;
+  reveal(panels.loop, loopVisible);
+  if (loopVisible) setHtml(el('#loop-body'), loopHtml(state));
   reveal(panels.stats, !!state.unlocked.castle);
   if (state.unlocked.castle) setHtml(el('#stats-body'), statsHtml(state));
   reveal(panels.event, !!state.events.active);
@@ -238,7 +244,35 @@ function confirmJump(): void {
 
 /** Abspann nach dem Finale (und auf Wunsch erneut aus dem Zeitmaschinen-Bereich). */
 function openCredits(): void {
-  showCredits(state, reducedMotion());
+  const extra =
+    state.finale.wonAt !== null ? [{ label: t('credits.loop'), primary: true, onClick: confirmLoop }] : [];
+  showCredits(state, reducedMotion(), extra);
+}
+
+const loopShards = () => Math.round(shardsForJump(state) * curseShardMult(state));
+
+/** Vor der Zeitschleife genau sagen, was bleibt und was neu beginnt. */
+function confirmLoop(): void {
+  showModal({
+    title: t('loop.confirmTitle', { n: state.loop.count + 1 }),
+    lines: [
+      t('loop.gain', { seals: sealsForLoop(state), shards: loopShards() }),
+      t('loop.keeps'),
+      t('loop.resets'),
+    ],
+    buttons: [
+      { label: t('jump.cancel') },
+      {
+        label: t('loop.go'),
+        primary: true,
+        onClick: () => {
+          lastJump = { shards: loopShards(), tokens: 0 };
+          run({ type: 'startLoop' });
+          save();
+        },
+      },
+    ],
+  });
 }
 
 /** Einstellungen anwenden: Schriftgröße, Lautstärken. */
@@ -372,6 +406,10 @@ function installInput(debug: { toggle(): void }): void {
     }
     if (target.closest('[data-jump]')) {
       confirmJump();
+      return;
+    }
+    if (target.closest('[data-loop]')) {
+      confirmLoop();
       return;
     }
     if (target.closest('[data-credits]')) {

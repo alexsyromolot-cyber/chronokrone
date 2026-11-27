@@ -33,6 +33,7 @@ import { buy, sell } from './trade';
 import { equipCard, unequipCard } from './power';
 import { setThrottle } from './reactor';
 import { startFinale } from './finale';
+import { startLoop, toggleCurse } from './loop';
 import { buySkill } from './skills';
 import type { GameState } from './state';
 import { recruit } from './units';
@@ -65,7 +66,9 @@ export type Action =
   | { type: 'equipCard'; cardId: string }
   | { type: 'unequipCard'; cardId: string }
   | { type: 'setThrottle'; throttle: number }
-  | { type: 'startFinale' };
+  | { type: 'startFinale' }
+  | { type: 'toggleCurse'; curse: string }
+  | { type: 'startLoop' };
 
 /** Kosten der nächsten Mauerverstärkung = wallUpgradeCost × wallUpgradeGrowth^Stufe */
 export function wallUpgradeCost(state: GameState): Cost {
@@ -104,6 +107,8 @@ const REQUIRED_UNLOCK: Partial<Record<Action['type'], UnlockId>> = {
   unequipCard: 'castle',
   setThrottle: 'castle',
   startFinale: 'castle',
+  toggleCurse: 'castle',
+  startLoop: 'castle',
 };
 
 /**
@@ -181,6 +186,10 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return setThrottle(state, action.throttle);
     case 'startFinale':
       return startFinale(state);
+    case 'toggleCurse':
+      return toggleCurse(state, action.curse);
+    case 'startLoop':
+      return startLoop(state);
     case 'upgradeWall': {
       const blocker = wallUpgradeBlocker(state);
       if (blocker) return blocker;

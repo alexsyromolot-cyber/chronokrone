@@ -45,7 +45,7 @@ export const de = {
   'castle.workers': 'Holzfäller: {n}/{max}',
   'castle.milestone': 'Nächster Meilenstein: Level {level} (Produktion ×2)',
   'castle.prodTip':
-    '{perLevel} × Level {level} × Meilenstein {milestone} × Gelände {terrain} × (1 + Nachbarn {neighbor} % + Arbeiter {workers} % + Skills {skills} % + Taverne {tavern} %) × Ausrüstung {gear} × Chronik & Erfolge {chronicle} × Strom {power} × Reaktor & Relikte {reactor} × Schiff & Komplettierung {ship} × Jahreszeit/Ereignis {season} = {total}/s',
+    '{perLevel} × Level {level} × Meilenstein {milestone} × Gelände {terrain} × (1 + Nachbarn {neighbor} % + Arbeiter {workers} % + Skills {skills} % + Taverne {tavern} %) × Ausrüstung {gear} × Chronik, Erfolge & Siegel {chronicle} × Strom {power} × Reaktor & Relikte {reactor} × Schiff & Komplettierung {ship} × Jahreszeit/Ereignis {season} = {total}/s',
   'castle.costTip': 'Kosten = Grundkosten × {growth}^Level',
   'castle.buildCostTip': 'Baukosten = Grundkosten × {growth}^(vorhandene Gebäude dieses Typs)',
   'castle.keepEffect': 'Lagerlimits ×{cap} · Steuern · Klickschaden {click}',
@@ -1174,6 +1174,52 @@ export const de = {
     'Idee, Spieltest und Krone: Alex · Code, Texte und Pixel: Claude · Musik und Klänge: im Code erzeugt',
   'credits.thanks': 'Danke fürs Spielen!',
   'credits.close': 'Weiterspielen',
+
+  // --- M7e: Zeitschleife ---
+  'loop.title': 'Zeitschleife',
+  'loop.intro':
+    'Das Mutterschiff ist besiegt. Die Zeitschleife bringt dich zurück ins Finstere Mittelalter – mit allem, was dauerhaft ist.',
+  'loop.keeps':
+    'Bleibt: Chronik, Zeitsplitter, alle Sammlungen, Erfolge, Hofbefehle, Statistik, Schleifen-Siegel.',
+  'loop.resets': 'Beginnt neu: Epoche 1, Burg, Einheiten, Forschung und Zauber.',
+  'loop.seals': 'Schleifen-Siegel: {seals} → +{pct} % Produktion und Schaden (+{per} % je Siegel).',
+  'loop.gain': 'Diese Schleife abschließen bringt +{seals} Siegel und +{shards} Zeitsplitter.',
+  'loop.current': 'Schleife {n} · Regel: {rule}',
+  'loop.currentCurses': 'Aktive Flüche: {list}',
+  'loop.noCurses': 'keine',
+  'loop.nextRule': 'Nächste Schleife ändert eine Regel: {rule} – {desc}',
+  'loop.cursesTitle': 'Fluch-Siegel für die nächste Schleife ({n}/{max})',
+  'loop.cursesHint':
+    'Jeder Fluch macht es härter, gibt aber +{shards} % Zeitsplitter und +{seal} Siegel. Bestzeiten gelten je Fluch-Kombination.',
+  'loop.bestTitle': 'Bestzeiten bis zum Mutterschiff',
+  'loop.bestNone': 'Noch keine – schließe die erste Schleife ab.',
+  'loop.best': '{curses}: {time}',
+  'loop.button': 'Zeitschleife beginnen',
+  'loop.confirmTitle': 'Zeitschleife {n} beginnen?',
+  'loop.go': 'Schleife starten',
+  'loop.rule.mirror': 'Spiegelwelt',
+  'loop.rule.mirror.desc': 'Alle Karten sind gespiegelt.',
+  'loop.rule.swiftAliens': 'Flinke Aliens',
+  'loop.rule.swiftAliens.desc': 'Aliens laufen {speed} % schneller, lassen aber {gold} % mehr Gold fallen.',
+  'loop.rule.altStart': 'Andere Startaufstellung',
+  'loop.rule.altStart.desc': 'Statt drei Bauern starten ein Ritter, eine Bogenschützin und ein Bauer.',
+  'loop.rule.armoredAliens': 'Gepanzerte Aliens',
+  'loop.rule.armoredAliens.desc': 'Alle Aliens nehmen {armor} % weniger Nahkampfschaden.',
+  'curse.frailWalls': 'Mürbe Mauern',
+  'curse.frailWalls.desc': 'Die Mauer hat nur {pct} % ihrer LP.',
+  'curse.toughAliens': 'Zähe Aliens',
+  'curse.toughAliens.desc': 'Aliens haben ×{mult} Lebenspunkte.',
+  'curse.weakClicks': 'Lahmer Finger',
+  'curse.weakClicks.desc': 'Klicks machen nur {pct} % Schaden.',
+  'curse.lean': 'Magere Jahre',
+  'curse.lean.desc': 'Alle Gebäude produzieren nur {pct} %.',
+  'curse.shortFuse': 'Kurze Lunte',
+  'curse.shortFuse.desc': 'Die Wut der Aliens setzt {s} s früher ein.',
+  'reason.needsFinale': 'Erst das Mutterschiff besiegen.',
+  'narrator.loopStart':
+    'Die Schleife {n} beginnt. Regel: {rule}. Willkommen zurück in „{epoch}“ – kommt dir bekannt vor, oder?',
+  'tl.loop': 'Zeitschleife {n} begonnen',
+  'credits.loop': 'Zeitschleife beginnen',
 } as const;
 
 export type MessageKey = keyof typeof de;

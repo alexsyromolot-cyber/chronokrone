@@ -23,6 +23,15 @@ import { cardBonus, rollCard } from './power';
 import { hasRelic, rollRelic } from './relics';
 import { RELIC_NUMBERS } from '../data/reactor';
 import { bossPhase, winFinale } from './finale';
+import {
+  alienGoldMult,
+  alienHpMult,
+  alienSpeedMult,
+  clickMult,
+  enrageHead,
+  extraMeleeArmor,
+  wallMult,
+} from './loop';
 import { FINALE } from '../data/enemies';
 import { addLog, type BattleState, type Enemy, type GameState } from './state';
 import { addXp, attackInterval, attributesOf, critChance, troops, unitDamage } from './units';
@@ -39,7 +48,10 @@ export function wallMaxHp(state: GameState): number {
     B.wallBaseHp + B.wallHpPerUpgrade * state.wallUpgrades + UNIT_FORMULAS.wallHpPerEnd * endurance;
   // Karten können die Mauer auch schwächen – nie unter 10 %.
   return Math.round(
-    base * (1 + globalBonus(state, 'wallHpMult')) * Math.max(0.1, 1 + cardBonus(state, 'wallHp')),
+    base *
+      (1 + globalBonus(state, 'wallHpMult')) *
+      Math.max(0.1, 1 + cardBonus(state, 'wallHp')) *
+      wallMult(state),
   );
 }
 
@@ -62,7 +74,8 @@ export function clickDamage(state: GameState): number {
     keepLevel(state) *
     (1 + globalBonus(state, 'clickMult')) *
     (1 + chronicleBonus(state, 'click')) *
-    (1 + cardBonus(state, 'click'))
+    (1 + cardBonus(state, 'click')) *
+    clickMult(state)
   );
 }
 
@@ -139,7 +152,11 @@ function spawn(state: GameState, b: BattleState): void {
     else if (!state.bestiary[elite]) addLog(state, 'narrator.eliteArrives', { name: `@enemy.${elite}` });
   }
   const type = elite ?? pickEnemyType(state, b.wave);
-  const hp = ENEMIES[type].hp * enemyHpMultiplier(b.wave, b.siege) * epochDef(state.epoch).enemyHp;
+  const hp =
+    ENEMIES[type].hp *
+    enemyHpMultiplier(b.wave, b.siege) *
+    epochDef(state.epoch).enemyHp *
+    alienHpMult(state);
   b.enemies.push({
     id: b.nextEnemyId++,
     type,
@@ -154,7 +171,10 @@ function spawn(state: GameState, b: BattleState): void {
 /** Begleiter des Mutterschiffs: stark wie Gegner der letzten Welle, aus verschiedenen Bahnen. */
 function spawnEscort(state: GameState, b: BattleState): void {
   const hp =
-    ENEMIES[FINALE.escort].hp * enemyHpMultiplier(B.wavesPerBattle, b.siege) * epochDef(state.epoch).enemyHp;
+    ENEMIES[FINALE.escort].hp *
+    enemyHpMultiplier(B.wavesPerBattle, b.siege) *
+    epochDef(state.epoch).enemyHp *
+    alienHpMult(state);
   const x = B.spawnX - randomInt(state.rng, 0, 40);
   b.enemies.push({
     id: b.nextEnemyId++,
@@ -179,7 +199,7 @@ export function damageEnemy(
   if (!b || enemy.hp <= 0) return;
   const def0 = ENEMIES[enemy.type];
   // Panzerung gilt nur gegen Nahkampf; das Bestiarium hilft gegen bekannte Typen.
-  const armor = melee ? (def0.meleeArmor ?? 0) : 0;
+  const armor = melee ? Math.min(0.9, (def0.meleeArmor ?? 0) + extraMeleeArmor(state)) : 0;
   const amount = raw * (1 - armor) * (1 + bestiaryBonus(state, enemy.type));
   enemy.hp -= amount;
   state.fx.push({ kind: 'hit', x: enemy.x, lane: enemy.lane, amount, byClick });
@@ -192,7 +212,8 @@ export function damageEnemy(
   const lootMult =
     (1 + globalBonus(state, 'lootGold')) *
     epochDef(state.epoch).gold *
-    Math.max(0.1, 1 + cardBonus(state, 'gold'));
+    Math.max(0.1, 1 + cardBonus(state, 'gold')) *
+    alienGoldMult(state);
   const gold = Math.round(def.gold * goldMultiplier(b.wave, b.siege) * lootMult * 10) / 10;
   gain(state, 'gold', gold);
   b.goldEarned += gold;
@@ -327,10 +348,10 @@ export function tickBattle(state: GameState, dt: number): void {
   }
 
   // Bewegung. Lautes Fluchen der Bauern verlangsamt die Aliens.
-  const slow = 1 / (1 + globalBonus(state, 'enemySlow'));
+  const slow = alienSpeedMult(state) / (1 + globalBonus(state, 'enemySlow'));
   // Gesprungene Sanduhr: die Wut kommt später.
   const enrage = enrageFactor(
-    b.elapsed - (hasRelic(state, 'crackedHourglass') ? RELIC_NUMBERS.hourglassDelay : 0),
+    b.elapsed + enrageHead(state) - (hasRelic(state, 'crackedHourglass') ? RELIC_NUMBERS.hourglassDelay : 0),
   );
   // Spiegelschild: pro Sekunde ein Anteil eines durchschnittlichen Truppen-Treffers.
   const squad = hasRelic(state, 'mirrorShield') ? troops(state) : [];

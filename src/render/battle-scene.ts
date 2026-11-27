@@ -536,6 +536,8 @@ export class BattleScene {
             reduced ? 4 : 12,
           );
           this.effects.loot(fx.x + 6, this.enemyY(fx.lane, 10) - 12, fx.gold, fx.scrap);
+          // Münzen fliegen in die Währungsleiste: Beute sieht man ankommen.
+          if (!reduced) this.effects.flyCoin(fx.x + 6, this.enemyY(fx.lane, 10), this.app.canvas);
           break;
         case 'wallHit':
           this.shake = Math.max(this.shake, 2);

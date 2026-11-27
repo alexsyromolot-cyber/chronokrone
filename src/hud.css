@@ -527,3 +527,14 @@
   color: #e8c070;
   text-shadow: 0 2px 0 #1a0f08;
 }
+
+/* Fliegende Münze (Pool in render/effects.ts). */
+.flying-coin {
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 45;
+  filter: drop-shadow(0 0 4px rgba(255, 210, 90, 0.8));
+}

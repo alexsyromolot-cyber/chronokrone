@@ -320,3 +320,19 @@ Ebenfalls ohne Rückfrage entschieden (siehe M7d), zum Anpassen gedacht.
 ## 20. Offene Fragen
 
 Keine. (Die Balancing-Frage aus M3 – zähe Phase vor dem letzten Elitegegner – ist mit den multiplikativen Waffen gelöst.)
+
+## 21. UI-Umbau
+
+Auftrag: `docs/masterprompt-ui-umbau.md` (Mockup in `docs/ui-mockup/`). Ziel: Das Spiel soll sich wie ein Indie-Game anfühlen – getrennte Szenen, flüssige Übergänge, moderne Pixelart, aufgeräumte Oberfläche. Logik und Balancing bleiben, soweit der Auftrag nichts anderes sagt.
+
+### Etappe 1 – Szenen-Gerüst
+
+- **Zwei Phasen statt einer Seite** (`systems/scene.ts`): Kampfphase = eine Schlacht läuft oder ihr Ergebnisfenster ist offen; sonst Dorfphase. Im Dorf läuft nie eine Schlacht, die Produktion läuft immer.
+- **Ergebnisfenster** nach jeder Schlacht (Sieg/Niederlage/Rückzug, Beute, Erfahrung, neue Bestiarium-Einträge, Zeitmaschinenteil). Erst „Ins Dorf zurückkehren“ (Aktion `dismissResult`) wechselt die Phase; vorher lässt sich keine neue Schlacht starten.
+- **Ereignis-Pause:** Ereignisse mit Entscheidung halten den Logik-Tick an, bis gewählt ist (Fenster in der Mitte, „Spiel pausiert“). Die 60-Sekunden-Bedenkzeit ist weg. Ereignisse mit nur einer Antwort (Regen, gute Ernte) wirken sofort.
+- **Hofbefehl „Schlacht starten“** führt keine Schlacht mehr im Hintergrund, sondern startet im Dorf einen sichtbaren Countdown (10 s, Karte unten rechts mit „Abbrechen“). Danach öffnet sich das Tor. Die Bedingung „keine Schlacht“ gilt während eines Countdowns oder offenen Ergebnisses nicht.
+- **Räume** (`data/rooms.ts`, `systems/rooms.ts`): Bauplatz, Kaserne, Übungsplatz, Bibliothek, Werkstatt, Thronsaal, Markt, Schatzkammer, Chronik-Turm, Archiv. Freischaltung über die bisherigen Bedingungen; gesperrte Räume zeigen ein Schloss mit Hinweis, wann sie kommen. Die Panels sind vorerst in alter Optik umgezogen. Karten legt man über „Karten“ neben „Zur Mauer“.
+- **Ressourcenleiste** zeigt nur, was in der Phase bzw. im Raum zählt (Kampf: Gold und Alien-Schrott; Raum-Listen aus den Kostendaten abgeleitet).
+- **Erzähler** unten links mit Sprechblase (neueste Zeile); Klick öffnet den Verlauf. **Meldungen** als Karten oben rechts.
+- **Übergänge:** Tor schließt und öffnet sich (1,3 s), Räume blenden kurz über (0,25 s); mit „Bewegung reduzieren“ ein harter Schnitt.
+- Bot schließt das Ergebnisfenster sofort; Simulation: erster Sprung weiterhin nach ca. 56 Min., keine Wartezeit über 60 s. Alte Spielstände laden (neues Feld `scene` über Standardwerte, mit Test).

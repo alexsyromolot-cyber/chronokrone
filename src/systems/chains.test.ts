@@ -14,6 +14,7 @@ import { troopCapacity, unitDamage } from './units';
 function rich(): GameState {
   const s = newGame(11);
   while (s.battle) tick(s, 0.05);
+  s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
   s.unlocked.research = true;
   s.unlocked.recruit = true;
   for (const id of RESOURCE_IDS) s.resources[id] = new Decimal(1000);

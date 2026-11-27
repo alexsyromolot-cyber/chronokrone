@@ -13,6 +13,7 @@ import { attackInterval, unitDamage } from './units';
 function rich(): GameState {
   const s = newGame(21);
   while (s.battle) tick(s, 0.05);
+  s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
   Object.assign(s.unlocked, { research: true, recruit: true, skills: true });
   for (const id of RESOURCE_IDS) s.resources[id] = new Decimal(1000);
   for (const t of s.tiles) t.unlocked = true;

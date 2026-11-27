@@ -8,7 +8,6 @@ import {
   DRONE,
   EVENT_INTERVAL,
   EVENT_NUMBERS as N,
-  EVENT_TIMEOUT,
   EVENTS,
   SEASON_EFFECTS,
   SEASON_LENGTH,
@@ -80,7 +79,9 @@ function startEvent(state: GameState): void {
     params.chips = N.defectorChips;
     params.price = Math.ceil(goldRate * N.defectorGoldSeconds);
   }
-  state.events.active = { id: def.id, expiresAt: state.time + EVENT_TIMEOUT, params };
+  state.events.active = { id: def.id, expiresAt: state.time, params };
+  // Ereignisse ohne Wahl (Regen, gute Ernte) wirken sofort; nur echte Entscheidungen halten das Spiel an.
+  if (def.options.length === 1) resolveEvent(state, def.options[0]!);
   state.stats.eventsSeen++;
   addLog(state, `event.${def.id}.log` as MessageKey, params);
 }
@@ -215,11 +216,7 @@ export function tickEvents(state: GameState, dt: number): void {
   const ev = state.events;
   ev.buffs = ev.buffs.filter((b) => b.until > state.time);
 
-  if (ev.active && state.time >= ev.active.expiresAt) {
-    // Wer nicht antwortet, bekommt die erste Option (bei Feuer: brennen lassen).
-    const def = EVENTS.find((e) => e.id === ev.active!.id)!;
-    resolveEvent(state, def.options[0]!);
-  }
+  // Keine Bedenkzeit mehr: Entscheidungs-Ereignisse pausieren das Spiel (systems/scene.ts).
   if (!ev.active) {
     ev.timer -= dt;
     if (ev.timer <= 0) {

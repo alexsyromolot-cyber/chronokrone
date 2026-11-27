@@ -11,6 +11,7 @@ import type { GameState } from './state';
 function castle(): GameState {
   const s = newGame(61);
   while (s.battle) tick(s, 0.05);
+  s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
   s.resources.gold = new Decimal(200);
   s.resources.wood = new Decimal(100);
   s.resources.stone = new Decimal(100);
@@ -58,16 +59,17 @@ describe('Ereignisse', () => {
     expect(s.resources.wood.toNumber()).toBeCloseTo(wood - Math.floor(wood * 0.15));
   });
 
-  it('verfällt nach 60 s mit der ersten Option', () => {
+  it('verfällt nicht mehr: Eine offene Entscheidung pausiert das Spiel', () => {
     const s = castle();
     tileAt(s, 2, 3)!.level = 2;
-    s.events.active = { id: 'stableFire', expiresAt: s.time + 60, params: { x: 2, y: 3 } };
-    for (let i = 0; i < 20 * 61; i++) {
-      s.time += 0.05;
-      tickEvents(s, 0.05);
-    }
-    expect(s.events.active).toBeNull();
-    expect(tileAt(s, 2, 3)!.level).toBe(1);
+    s.events.active = { id: 'stableFire', expiresAt: s.time, params: { x: 2, y: 3 } };
+    const t0 = s.time;
+    const gold = s.resources.gold.toNumber();
+    for (let i = 0; i < 20 * 120; i++) tick(s, 0.05);
+    expect(s.events.active?.id).toBe('stableFire');
+    expect(s.time).toBe(t0);
+    expect(s.resources.gold.toNumber()).toBe(gold);
+    expect(tileAt(s, 2, 3)!.level).toBe(2);
   });
 
   it('Händler tauscht Volles gegen Knappes', () => {

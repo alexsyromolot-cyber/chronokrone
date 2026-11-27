@@ -12,6 +12,7 @@ describe('Rückblick und Ausgeruht-Bonus', () => {
     const s = newGame(81);
     welcomeBack(s, 0);
     while (s.battle) tick(s, 0.05);
+    s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
     const saves = new SaveManager(new MemoryStorage(), () => 10 * MIN);
     saves.save(s);
     expect(s.session.lastSummary?.kills).toBeGreaterThan(0);
@@ -51,6 +52,7 @@ describe('Rückblick und Ausgeruht-Bonus', () => {
   it('es gibt keine Offline-Produktion', () => {
     const s = newGame(83);
     while (s.battle) tick(s, 0.05);
+    s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
     const gold = s.resources.gold.toString();
     s.session.lastSeenAt = 1;
     s.session.lastSummary = {

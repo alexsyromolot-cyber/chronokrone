@@ -21,6 +21,7 @@ import { recruitCost, xpForNext } from './units';
 function afterFirstBattle(): GameState {
   const state = newGame(1);
   for (let i = 0; i < 20 * 200 && state.battle; i++) tick(state, 0.05);
+  state.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
   for (const id of ['gold', 'wood', 'stone'] as const) state.resources[id] = new Decimal(200);
   return state;
 }
@@ -57,6 +58,7 @@ describe('Erste Schlacht', () => {
     const run = () => {
       const s = newGame(7);
       while (s.battle) tick(s, 0.05);
+      s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
       return [s.lastBattle?.kills, s.resources.gold.toString(), s.resources.scrap.toString()];
     };
     expect(run()).toEqual(run());
@@ -138,6 +140,7 @@ describe('Einheiten', () => {
     expect(xpForNext(2)).toBeGreaterThan(xpForNext(1));
     const s = newGame(5);
     while (s.battle) tick(s, 0.05);
+    s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
     expect(s.stats.skillPointsEarned).toBeGreaterThanOrEqual(0);
   });
 

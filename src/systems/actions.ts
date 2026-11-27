@@ -33,6 +33,7 @@ import { buy, sell } from './trade';
 import { equipCard, unequipCard } from './power';
 import { setThrottle } from './reactor';
 import { startFinale } from './finale';
+import { cancelCountdown, dismissResult, requestBattle } from './scene';
 import { startLoop, toggleCurse } from './loop';
 import { buySkill } from './skills';
 import type { GameState } from './state';
@@ -67,6 +68,9 @@ export type Action =
   | { type: 'unequipCard'; cardId: string }
   | { type: 'setThrottle'; throttle: number }
   | { type: 'startFinale' }
+  | { type: 'dismissResult' }
+  | { type: 'requestBattle' }
+  | { type: 'cancelCountdown' }
   | { type: 'toggleCurse'; curse: string }
   | { type: 'startLoop' };
 
@@ -127,11 +131,13 @@ export function dispatch(state: GameState, action: Action): MessageKey | null {
 function execute(state: GameState, action: Action): MessageKey | null {
   switch (action.type) {
     case 'startBattle':
+      // Erst das Ergebnisfenster schließen – sonst wäre der Spieler noch in der Kampfphase.
+      if (state.scene.result) return 'reason.resultOpen';
       return startBattle(state, action.siege);
     case 'retreat':
       if (!state.battle) return 'reason.unknown';
       state.stats.retreats++;
-      endBattle(state, 'lost');
+      endBattle(state, 'lost', true);
       return null;
     case 'clickEnemy':
       return clickEnemy(state, action.enemyId) ? null : 'reason.unknown';
@@ -186,6 +192,12 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return setThrottle(state, action.throttle);
     case 'startFinale':
       return startFinale(state);
+    case 'dismissResult':
+      return dismissResult(state);
+    case 'requestBattle':
+      return requestBattle(state);
+    case 'cancelCountdown':
+      return cancelCountdown(state);
     case 'toggleCurse':
       return toggleCurse(state, action.curse);
     case 'startLoop':

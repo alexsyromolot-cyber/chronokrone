@@ -14,6 +14,7 @@ import type { GameState } from './state';
 function readyToJump(): GameState {
   const s = newGame(41);
   while (s.battle) tick(s, 0.05);
+  s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
   Object.assign(s.unlocked, { timeMachine: true, research: true, recruit: true, skills: true });
   s.siegeLevel = 9;
   s.skills = { pitchforkTraining: 3, harvestHands: 2, thickSkulls: 3, sharpAxes: 2 };

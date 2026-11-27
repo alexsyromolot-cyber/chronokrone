@@ -3,8 +3,8 @@
  *
  * Jahreszeiten wechseln alle SEASON_LENGTH Sekunden Spielzeit (innerhalb der Epoche) und
  * verändern die Produktion einzelner Rohstoffe. Ereignisse kommen alle 4–6 Minuten, haben
- * Antwortmöglichkeiten und verfallen nach EVENT_TIMEOUT Sekunden mit der ersten Option
- * als Standard. Alle Zufälle laufen über den gespeicherten Zufallsgenerator.
+ * Antwortmöglichkeiten. Solange eine Entscheidung offen ist, ruht das Spiel (systems/scene.ts);
+ * Ereignisse mit nur einer Antwort wirken sofort. Alle Zufälle laufen über den gespeicherten Zufallsgenerator.
  *
  * Fairness (No-Go „unfaire Zufälle“): Chancen werden immer angezeigt, das Würfelspiel ist
  * exakt fair (Erwartungswert = Einsatz) und läuft nur mit Gold, höchstens 10 % des Vorrats.
@@ -60,7 +60,6 @@ export const EVENTS: EventDef[] = [
 ];
 
 export const EVENT_INTERVAL: [number, number] = [240, 360];
-export const EVENT_TIMEOUT = 60;
 
 export const EVENT_NUMBERS = {
   /** Löschen kostet diesen Anteil des aktuellen Holz- und Steinvorrats. */

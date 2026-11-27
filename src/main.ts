@@ -4,6 +4,7 @@
  * DOM, requestAnimationFrame und Spiellogik aufeinander.
  */
 import './style.css';
+import './shell.css';
 import { FixedStepLoop } from './core/loop';
 import { installDebugPanel } from './dev/debug-panel';
 import { getLocale, setLocale, t, tk } from './i18n';
@@ -17,36 +18,37 @@ import { dispatch, type Action } from './systems/actions';
 import { startBattle } from './systems/battle';
 import { newGame, tick } from './systems/game';
 import { addLog, type FxEvent, type GameState } from './systems/state';
-import { castleHtml, type CastleUi } from './ui/castle-panel';
+import type { CastleUi } from './ui/castle-panel';
 import { el, setHtml } from './ui/dom';
-import { battleHudHtml, logHtml, resourcesHtml } from './ui/panels-top';
-import { bestiaryHtml, unitsHtml } from './ui/people-panels';
-import { skillsHtml } from './ui/skills-panel';
-import { spellbookHtml, spellButtonsHtml } from './ui/spells-panel';
+import { resourcesHtml } from './ui/panels-top';
+import { spellButtonsHtml } from './ui/spells-panel';
 import { SPELL_IDS, SPELLS } from './data/spells';
-import { spellLevel } from './systems/spells';
-import { researchHtml } from './ui/research-panel';
-import { timeMachineHtml } from './ui/timemachine-panel';
 import { installTooltips } from './ui/tooltip';
 import { audio } from './audio/engine';
 import { sfx, updateMusic } from './audio/player';
 import { applySetting, settingsHtml } from './ui/settings-panel';
 import { showRecap } from './ui/recap';
 import { welcomeBack } from './systems/recap';
-import { chronicleHtml } from './ui/chronicle-panel';
-import { companionsHtml } from './ui/market-panel';
 import { cardsHtml } from './ui/cards-panel';
-import { relicsHtml } from './ui/reactor-panel';
-import { completionHtml, showCredits } from './ui/finale-panel';
-import { loopHtml } from './ui/loop-panel';
+import { showCredits } from './ui/finale-panel';
 import { curseShardMult, sealsForLoop } from './systems/loop';
-import { eventHtml, seasonHtml } from './ui/events-panel';
-import { achievementsHtml, achievementTitle, statsHtml } from './ui/achievements-panel';
+import { seasonHtml } from './ui/events-panel';
+import { achievementTitle } from './ui/achievements-panel';
 import { ACHIEVEMENTS } from './data/achievements';
-import { ordersHtml, ordersLogHtml, rulesAfterButton, rulesAfterChange } from './ui/orders-panel';
+import { rulesAfterButton, rulesAfterChange } from './ui/orders-panel';
 import { showModal } from './ui/modal';
 import { EPOCHS, epochDef } from './data/epochs';
 import { shardsForJump, tokensForJump } from './systems/prestige';
+import { BATTLE_RESOURCES, type RoomId } from './data/rooms';
+import { phase } from './systems/scene';
+import { roomUnlocked } from './systems/rooms';
+import { Shell } from './ui/shell';
+import { pushToast, type ToastKind } from './ui/toasts';
+import { countdownHtml, eventModalHtml, resultHtml } from './ui/overlays';
+import { narratorHtml, narratorLogHtml } from './ui/narrator';
+import { arenaHudHtml, troopListHtml } from './ui/arena';
+import { currentRoom, prepHtml, roomResources, tabsHtml, type VillageUi } from './ui/village';
+import { renderRoom, showRoom } from './ui/rooms-render';
 
 const saves = new SaveManager(defaultStorage());
 
@@ -77,37 +79,16 @@ const castleUi: CastleUi = { selected: { x: 2, y: 3 } };
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const reducedMotion = () => state.settings.reducedMotion || prefersReducedMotion.matches;
 
-// ---------- Toast ----------
-let toastTimer = 0;
-function showToast(text: string): void {
-  const box = document.querySelector<HTMLElement>('#toast');
-  if (!box) return;
-  box.textContent = text;
-  box.classList.add('show');
-  window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => box.classList.remove('show'), 2200);
+// ---------- Meldungen ----------
+function showToast(text: string, kind: ToastKind = 'info'): void {
+  pushToast(text, kind);
 }
 
-// ---------- Panels ----------
-const panels = {
-  castle: el('#castle'),
-  units: el('#units'),
-  skills: el('#skills'),
-  research: el('#research'),
-  spells: el('#spells'),
-  timemachine: el('#timemachine'),
-  chronicle: el('#chronicle'),
-  orders: el('#orders'),
-  event: el('#event'),
-  achievements: el('#achievements'),
-  companions: el('#companions'),
-  cards: el('#cards'),
-  relics: el('#relics'),
-  completion: el('#completion'),
-  loop: el('#loop'),
-  stats: el('#stats'),
-  bestiary: el('#bestiary'),
-};
+// ---------- Szenen ----------
+const shell = new Shell(el('#app'), el('#gate'));
+/** UI-Zustand des Dorfs: offener Raum, gewählte Belagerungsstufe, Karten-Ablage. */
+const villageUi: VillageUi = { room: 'bau', siege: null, cardsOpen: false };
+let narratorOpen = false;
 
 /** Bereich einblenden – beim ersten Mal mit kleinem Einführungsmoment. */
 function reveal(panel: HTMLElement, visible: boolean): void {
@@ -128,58 +109,59 @@ let holdRenderUntil = 0;
 function renderPanels(): void {
   // Während die Maus gedrückt ist, nichts neu schreiben – sonst geht der Klick verloren.
   if (performance.now() < holdRenderUntil) return;
-  setHtml(el('#resources'), resourcesHtml(state));
-  setHtml(el('#battle-hud'), battleHudHtml(state) + spellButtonsHtml(state));
-  setHtml(el('#log-body'), logHtml(state));
+  const shown = shell.phase ?? phase(state);
+  const room = currentRoom(state, villageUi);
 
-  reveal(panels.castle, !!state.unlocked.castle);
-  reveal(panels.units, !!state.unlocked.castle);
-  reveal(panels.skills, !!state.unlocked.skills);
-  reveal(panels.research, !!state.unlocked.research);
-  reveal(panels.timemachine, !!state.unlocked.timeMachine);
-  const chronicleVisible = state.totalShards > 0;
-  reveal(panels.chronicle, chronicleVisible);
-  if (chronicleVisible) setHtml(el('#chronicle-body'), chronicleHtml(state));
-  reveal(panels.orders, !!state.unlocked.orders);
-  if (state.unlocked.orders) {
-    setHtml(el('#orders-body'), ordersHtml(state));
-    setHtml(el('#orders-log'), ordersLogHtml(state));
+  // Ressourcenleiste: nur, was in dieser Phase bzw. diesem Raum zählt.
+  setHtml(
+    el('#resources'),
+    resourcesHtml(state, shown === 'battle' ? BATTLE_RESOURCES : roomResources(room)),
+  );
+
+  if (shown === 'battle') {
+    setHtml(el('#battle-hud'), arenaHudHtml(state));
+    setHtml(el('#troop-list'), troopListHtml(state));
+    setHtml(el('#spell-bar'), spellButtonsHtml(state));
+  } else {
+    renderVillage(room);
   }
-  const anyAchievement = Object.keys(state.achievements).length > 0;
-  reveal(panels.achievements, anyAchievement);
-  if (anyAchievement) setHtml(el('#achievements-body'), achievementsHtml(state));
-  // Begleiter gibt es ab Epoche 2; einmal gefunden, bleibt die Sammlung sichtbar.
-  const companionsVisible = state.epoch >= 2 || Object.keys(state.companions).length > 0;
-  reveal(panels.companions, companionsVisible);
-  if (companionsVisible) setHtml(el('#companions-body'), companionsHtml(state));
-  const cardsVisible = state.epoch >= 3 || Object.keys(state.cards).length > 0;
-  reveal(panels.cards, cardsVisible);
-  if (cardsVisible) setHtml(el('#cards-body'), cardsHtml(state));
-  const relicsVisible = state.epoch >= 4 || Object.keys(state.relics).length > 0;
-  reveal(panels.relics, relicsVisible);
-  if (relicsVisible) setHtml(el('#relics-body'), relicsHtml(state));
-  const completionVisible = state.epoch >= 5 || state.loop.count > 0;
-  reveal(panels.completion, completionVisible);
-  if (completionVisible) setHtml(el('#completion-body'), completionHtml(state));
-  const loopVisible = state.finale.wins > 0 || state.loop.count > 0;
-  reveal(panels.loop, loopVisible);
-  if (loopVisible) setHtml(el('#loop-body'), loopHtml(state));
-  reveal(panels.stats, !!state.unlocked.castle);
-  if (state.unlocked.castle) setHtml(el('#stats-body'), statsHtml(state));
-  reveal(panels.event, !!state.events.active);
-  if (state.events.active) setHtml(el('#event-body'), eventHtml(state));
+
+  // Immer da: Erzähler, Countdown, Fenster in der Mitte.
+  setHtml(el('#narrator'), narratorHtml(state));
+  const log = el('#narrator-log');
+  log.hidden = !narratorOpen;
+  if (narratorOpen) setHtml(log, narratorLogHtml(state));
+  const countdown = el('#countdown');
+  countdown.hidden = state.scene.countdown === null;
+  if (!countdown.hidden) setHtml(countdown, countdownHtml(state));
+  renderOverlay();
+
   setHtml(el('#season-label'), state.unlocked.castle ? seasonHtml(state) : '');
   applyEpoch();
-  if (state.unlocked.timeMachine) setHtml(el('#timemachine-body'), timeMachineHtml(state));
-  const anySpell = SPELL_IDS.some((id) => spellLevel(state, id) > 0);
-  reveal(panels.spells, anySpell);
-  if (anySpell) setHtml(el('#spells-body'), spellbookHtml(state));
-  reveal(panels.bestiary, !!state.unlocked.bestiary);
-  if (state.unlocked.castle) setHtml(el('#castle-body'), castleHtml(state, castleUi));
-  if (state.unlocked.castle) setHtml(el('#units-body'), unitsHtml(state));
-  if (state.unlocked.skills) setHtml(el('#skills-body'), skillsHtml(state));
-  if (state.unlocked.research) setHtml(el('#research-body'), researchHtml(state));
-  if (state.unlocked.bestiary) setHtml(el('#bestiary-body'), bestiaryHtml(state));
+}
+
+/** Dorf: Reiterleiste, „Zur Mauer“, und nur der offene Raum wird geschrieben. */
+function renderVillage(room: RoomId | null): void {
+  setHtml(el('#room-tabs'), tabsHtml(state, room));
+  const cardsVisible = state.epoch >= 3 || Object.keys(state.cards).length > 0;
+  const cards =
+    cardsVisible && villageUi.cardsOpen ? `<div class="float cards-pop">${cardsHtml(state)}</div>` : '';
+  setHtml(el('#prep'), prepHtml(state, villageUi, cardsVisible) + cards);
+  el('#room-title').textContent = room ? tk(`room.${room}`) : '';
+  showRoom(room, reducedMotion());
+  renderRoom(state, room, castleUi, reveal);
+}
+
+/** Ereignis (pausiert das Spiel) hat Vorrang vor dem Ergebnisfenster der Schlacht. */
+function renderOverlay(): void {
+  const box = el('#overlay');
+  const html = state.events.active
+    ? eventModalHtml(state)
+    : state.scene.result && shell.phase === 'battle'
+      ? resultHtml(state)
+      : '';
+  box.hidden = html === '';
+  if (html) setHtml(box, html);
 }
 
 /**
@@ -376,7 +358,8 @@ function resetGame(): void {
   state = newGame();
   setLocale(state.settings.locale);
   applyStaticTexts();
-  for (const p of Object.values(panels)) p.hidden = true;
+  villageUi.room = 'bau';
+  shownEpoch = 0; // neues Spiel ist kein Zeitsprung – keine Feier
   save();
   renderPanels();
 }
@@ -385,7 +368,7 @@ function resetGame(): void {
 function installInput(debug: { toggle(): void }): void {
   document.addEventListener('pointerdown', (e) => {
     // Nur Knöpfe in Panels betreffen; Klicks ins Schlachtfeld halten nichts auf.
-    if ((e.target as HTMLElement).closest('.panel button, .panel [data-select]')) {
+    if ((e.target as HTMLElement).closest('#app button, #overlay button, [data-select]')) {
       holdRenderUntil = performance.now() + 600;
     }
   });
@@ -421,6 +404,31 @@ function installInput(debug: { toggle(): void }): void {
       openCredits();
       return;
     }
+    const tab = target.closest<HTMLElement>('[data-room-tab]');
+    if (tab) {
+      const id = tab.dataset.roomTab as RoomId;
+      if (roomUnlocked(state, id)) {
+        villageUi.room = id;
+        holdRenderUntil = 0;
+        renderPanels();
+      } else showToast(tk(`room.locked.${id}`));
+      return;
+    }
+    if (target.closest('[data-cards-toggle]')) {
+      villageUi.cardsOpen = !villageUi.cardsOpen;
+      renderPanels();
+      return;
+    }
+    if (target.closest('[data-narrator-close]')) {
+      narratorOpen = false;
+      renderPanels();
+      return;
+    }
+    if (target.closest('[data-narrator]')) {
+      narratorOpen = !narratorOpen;
+      renderPanels();
+      return;
+    }
     const tileEl = target.closest<HTMLElement>('[data-select]');
     if (tileEl) {
       const [x, y] = (tileEl.dataset.select ?? '0,0').split(',').map(Number);
@@ -443,7 +451,10 @@ function installInput(debug: { toggle(): void }): void {
     }
     if (e.code === 'Space') {
       e.preventDefault();
-      if (!state.battle) run({ type: 'startBattle' });
+      // Leertaste: im Dorf zur Mauer (gewählte Stufe), nach der Schlacht zurück ins Dorf.
+      if (state.scene.result && !state.battle) run({ type: 'dismissResult' });
+      else if (phase(state) === 'village')
+        run({ type: 'startBattle', siege: Math.min(villageUi.siege ?? state.siegeLevel, state.siegeLevel) });
     } else if (e.key.toLowerCase() === 's' && !e.ctrlKey) {
       save(true);
     } else if (e.key.toLowerCase() === 'r' && state.battle) {
@@ -455,6 +466,7 @@ function installInput(debug: { toggle(): void }): void {
     } else if (e.key === 'Escape') {
       toggleSettings(false);
       document.querySelector('.modal-backdrop')?.remove();
+      narratorOpen = false;
       castleUi.selected = null;
       renderPanels();
     }
@@ -462,6 +474,12 @@ function installInput(debug: { toggle(): void }): void {
 
   // Baukasten der Hofbefehle: Auswahllisten, Zahlenfelder, Häkchen.
   document.addEventListener('change', (e) => {
+    const siege = (e.target as HTMLElement).closest<HTMLSelectElement>('[data-siege-select]');
+    if (siege) {
+      villageUi.siege = Number(siege.value);
+      renderPanels();
+      return;
+    }
     const input = (e.target as HTMLElement).closest<HTMLInputElement | HTMLSelectElement>('[data-order]');
     if (!input) return;
     const rules = rulesAfterChange(state, input);
@@ -497,6 +515,11 @@ function installInput(debug: { toggle(): void }): void {
   });
   // Einstellungen: eigenes Fenster, Änderungen wirken sofort.
   el('#settings-toggle').addEventListener('click', () => toggleSettings());
+  // Vollbild (Browser und Electron): Alex spielt meist so.
+  el('#fullscreen').addEventListener('click', () => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void document.documentElement.requestFullscreen?.();
+  });
   el('#settings').addEventListener('input', (e) => {
     const input = (e.target as HTMLElement).closest<HTMLInputElement | HTMLSelectElement>('[data-setting]');
     if (!input) return;
@@ -550,7 +573,7 @@ async function start(): Promise<void> {
     onFx: soundFor,
     onAchievement: (id) => {
       const def = ACHIEVEMENTS.find((a) => a.id === id);
-      if (def) showToast(`★ ${achievementTitle(id, def.metric)}`);
+      if (def) showToast(`★ ${achievementTitle(id, def.metric)}`, 'achievement');
     },
     reducedMotion,
   });
@@ -566,7 +589,13 @@ async function start(): Promise<void> {
     // Neues Ereignis? Kurzer Hinweiston.
     if (state.events.active && state.events.active !== lastEvent) sfx('event');
     lastEvent = state.events.active;
-    scene.update(state, loop.alpha, dt);
+    // Szene folgt der Logik: bei Phasenwechsel Tor zu, tauschen, Tor auf.
+    shell.sync(phase(state), reducedMotion(), () => {
+      holdRenderUntil = 0;
+      renderPanels();
+    });
+    // Das Schlachtfeld nur zeichnen, wenn man es sieht (im Dorf läuft ohnehin keine Schlacht).
+    if (shell.phase === 'battle') scene.update(state, loop.alpha, dt);
     if (state.settings.musicVolume > 0) updateMusic(state.epoch);
 
     // Panels 5× pro Sekunde reichen; sie ändern ihr DOM ohnehin nur bei echten Änderungen.

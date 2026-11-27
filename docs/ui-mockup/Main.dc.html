@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Chronokrone – Schlacht und Dorf</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#05060c}
+svg.px{shape-rendering:crispEdges;display:block}
+button{font-family:inherit;cursor:pointer}
+@keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes fall{from{transform:translateY(-20px)}to{transform:translateY(740px)}}
+@keyframes march{0%{transform:translateX(0)}100%{transform:translateX(-90px)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes flicker{0%,100%{opacity:.85;transform:scale(1)}40%{opacity:1;transform:scale(1.08)}70%{opacity:.7;transform:scale(.95)}}
+@keyframes floatup{0%{opacity:0;transform:translateY(0)}15%{opacity:1}100%{opacity:0;transform:translateY(-46px)}}
+@keyframes arrow{0%{transform:translate(0,0) rotate(-8deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translate(520px,40px) rotate(6deg);opacity:0}}
+@keyframes gateL{0%{transform:translateX(-100%)}40%,60%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+@keyframes gateR{0%{transform:translateX(100%)}40%,60%{transform:translateX(0)}100%{transform:translateX(100%)}}
+@keyframes gateGlow{0%,30%{opacity:0}50%{opacity:1}70%,100%{opacity:0}}
+@keyframes toast{0%{transform:translateX(120%)}10%,80%{transform:translateX(0)}100%{transform:translateX(120%)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:.8}}
+@keyframes flip{from{transform:perspective(1200px) rotateY(-70deg);opacity:0}to{transform:perspective(1200px) rotateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@keyframes cdsweep{from{height:100%}to{height:0%}}
+@keyframes walk{0%{transform:translate(0,0)}50%{transform:translate(38px,19px)}100%{transform:translate(0,0)}}
+@keyframes smoke{0%{transform:translateY(0) scale(1);opacity:.5}100%{transform:translateY(-60px) scale(2.2);opacity:0}}
+.tab{width:52px;height:52px;border:0;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;transition:transform .15s,background .15s}
+.tab:hover{transform:translateY(-2px)}
+.tab .tip{position:absolute;top:58px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:12px;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,.85);color:#f3ead7;opacity:0;pointer-events:none;transition:opacity .15s}
+.tab:hover .tip{opacity:1}
+.tile{position:absolute;width:96px;height:48px;clip-path:polygon(48px 0,96px 24px,48px 48px,0 24px);transition:filter .15s}
+.tile:hover{filter:brightness(1.35)}
+.bld{position:absolute;width:96px;cursor:pointer;transition:transform .15s}
+.bld:hover{transform:translateY(-4px)}
+.node{position:absolute;width:56px;height:56px;border-radius:14px;border:0;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.node:hover{transform:scale(1.08)}
+.spell{width:68px;height:68px;border-radius:16px;border:0;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.spell:hover{filter:brightness(1.2)}
+.chip{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+
+<div style="width: 1280px; height: 720px; position: relative; overflow: hidden; font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; color: {{p.ink}}; background: linear-gradient(180deg, {{p.sky1}} 0%, {{p.sky2}} 70%); user-select: none;">
+
+<!-- ===== gemeinsamer Hintergrund: Sterne, Mond, Schnee ===== -->
+<sc-for list="{{stars}}" as="s" hint-placeholder-count="20">
+<div style="position: absolute; left: {{s.x}}px; top: {{s.y}}px; width: {{s.size}}px; height: {{s.size}}px; background: {{p.star}}; animation: twinkle {{s.dur}}s ease-in-out infinite; animation-delay: {{s.delay}}s;"></div>
+</sc-for>
+<div style="position: absolute; left: 980px; top: 60px; width: 64px; height: 64px; border-radius: 50%; background: {{p.moon}}; box-shadow: 0 0 60px 20px {{p.moonGlow}};"></div>
+
+<!-- ============================ SCHLACHT ============================ -->
+<sc-if value="{{isBattle}}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; inset: 0;">
+  <!-- Berge und Wald -->
+  <div style="position: absolute; left: 0; right: 0; bottom: 170px; height: 220px; background: {{p.hill}}; clip-path: polygon(0 60%, 12% 30%, 22% 55%, 36% 15%, 48% 50%, 62% 25%, 74% 55%, 88% 20%, 100% 45%, 100% 100%, 0 100%);"></div>
+  <svg class="px" width="1280" height="120" viewBox="0 0 1280 120" style="position: absolute; left: 0; bottom: 150px;" aria-hidden="true"><path fill="{{p.forest}}" d="M0 120V70l20-30 20 30 15-45 20 45 18-35 22 35 14-50 24 50 16-28 20 28 22-55 22 55 18-32 20 32 16-40 22 40 20-30 20 30 18-48 22 48 16-26 20 26 22-52 22 52 18-34 20 34 16-44 22 44 20-30 20 30 18-50 22 50 16-28 20 28 22-40 22 40 18-36 20 36 16-46 22 46 20-30 20 30 18-42 22 42 16-30 20 30 22-50 22 50 18-28 20 28 16-44 22 44 20-34 20 34 18-46 22 46 16-30 20 30V120z"/></svg>
+  <!-- Meteor-Krater mit Rauch -->
+  <div style="position: absolute; right: 90px; bottom: 210px; width: 150px; height: 40px; border-radius: 50%; background: radial-gradient(ellipse at center, {{p.crater}} 0%, transparent 70%);"></div>
+  <div style="position: absolute; right: 150px; bottom: 230px; width: 30px; height: 30px; border-radius: 50%; background: rgba(160,170,190,.35); animation: smoke 3s ease-out infinite;"></div>
+  <div style="position: absolute; right: 130px; bottom: 236px; width: 26px; height: 26px; border-radius: 50%; background: rgba(160,170,190,.3); animation: smoke 3.6s ease-out infinite; animation-delay: 1.2s;"></div>
+  <!-- Boden -->
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 170px; background: linear-gradient(180deg, {{p.ground1}}, {{p.ground2}});"></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 150px; height: 26px; background: repeating-linear-gradient(90deg, {{p.ground1}} 0 14px, {{p.ground2}} 14px 18px); opacity: .55;"></div>
+
+  <!-- Turm und Mauer -->
+  <div style="position: absolute; left: 70px; bottom: 120px; width: 200px; height: 260px;">
+    <svg class="px" width="200" height="260" viewBox="0 0 50 65" aria-hidden="true">
+      <rect x="8" y="14" width="34" height="51" fill="#5d6274"/>
+      <rect x="8" y="14" width="34" height="51" fill="url(#none)"/>
+      <rect x="6" y="8" width="38" height="8" fill="#6d7386"/>
+      <rect x="6" y="4" width="6" height="5" fill="#6d7386"/><rect x="16" y="4" width="6" height="5" fill="#6d7386"/><rect x="26" y="4" width="6" height="5" fill="#6d7386"/><rect x="38" y="4" width="6" height="5" fill="#6d7386"/>
+      <rect x="8" y="20" width="10" height="4" fill="#4c5163"/><rect x="22" y="26" width="12" height="4" fill="#4c5163"/><rect x="12" y="34" width="10" height="4" fill="#4c5163"/><rect x="28" y="40" width="10" height="4" fill="#4c5163"/><rect x="10" y="48" width="12" height="4" fill="#4c5163"/><rect x="26" y="54" width="10" height="4" fill="#4c5163"/>
+      <rect x="38" y="14" width="4" height="51" fill="#454a5b"/>
+      <rect x="21" y="50" width="10" height="15" fill="#2d2118"/><rect x="22" y="51" width="8" height="14" fill="#5a3a22"/>
+      <rect x="44" y="30" width="6" height="35" fill="#565b6c"/>
+    </svg>
+    <div style="position: absolute; left: 14px; top: 58px; width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, rgba(255,190,80,.9), rgba(255,140,40,0) 70%); animation: flicker 1.4s ease-in-out infinite;"></div>
+    <div style="position: absolute; left: 150px; top: 58px; width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, rgba(255,190,80,.9), rgba(255,140,40,0) 70%); animation: flicker 1.1s ease-in-out infinite; animation-delay: .4s;"></div>
+    <!-- Truppen auf der Mauer -->
+    <div style="position: absolute; left: 34px; top: -40px; display: flex; gap: 4px;">
+      <svg class="px" width="44" height="44" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="1" width="6" height="5" fill="#b8bccb"/><rect x="7" y="0" width="2" height="1" fill="#d9483b"/><rect x="6" y="3" width="4" height="1" fill="#1a1206"/><rect x="4" y="6" width="8" height="6" fill="#8d93a6"/><rect x="7" y="7" width="2" height="4" fill="#d9483b"/><rect x="5" y="12" width="2" height="4" fill="#3a3f50"/><rect x="9" y="12" width="2" height="4" fill="#3a3f50"/><rect x="12" y="3" width="1" height="10" fill="#e6e9f0"/><rect x="11" y="9" width="3" height="1" fill="#c08a50"/></svg>
+      <svg class="px" width="44" height="44" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="1" width="6" height="3" fill="#3f6b3a"/><rect x="5" y="4" width="6" height="3" fill="#e8b98a"/><rect x="6" y="5" width="1" height="1" fill="#1a1206"/><rect x="9" y="5" width="1" height="1" fill="#1a1206"/><rect x="4" y="7" width="8" height="5" fill="#4f7d45"/><rect x="5" y="12" width="2" height="4" fill="#3a2a1a"/><rect x="9" y="12" width="2" height="4" fill="#3a2a1a"/><rect x="13" y="3" width="1" height="10" fill="#9a6a3a"/><rect x="12" y="2" width="1" height="2" fill="#9a6a3a"/><rect x="12" y="12" width="1" height="2" fill="#9a6a3a"/></svg>
+      <svg class="px" width="44" height="44" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="2" width="6" height="2" fill="#7a4a24"/><rect x="5" y="4" width="6" height="4" fill="#e8b98a"/><rect x="6" y="5" width="1" height="1" fill="#1a1206"/><rect x="9" y="5" width="1" height="1" fill="#1a1206"/><rect x="4" y="8" width="8" height="5" fill="#8a6a3a"/><rect x="5" y="13" width="2" height="3" fill="#3a2a1a"/><rect x="9" y="13" width="2" height="3" fill="#3a2a1a"/><rect x="13" y="1" width="1" height="14" fill="#9a7a4a"/><rect x="12" y="0" width="3" height="1" fill="#c9cfd8"/></svg>
+    </div>
+  </div>
+  <!-- Pfeile -->
+  <div style="position: absolute; left: 240px; top: 330px; width: 22px; height: 3px; background: #e6d3a3; animation: arrow 1.6s linear infinite;"></div>
+  <div style="position: absolute; left: 240px; top: 350px; width: 22px; height: 3px; background: #e6d3a3; animation: arrow 1.6s linear infinite; animation-delay: .7s;"></div>
+
+  <!-- Aliens -->
+  <sc-for list="{{aliens}}" as="a" hint-placeholder-count="5">
+    <div style="position: absolute; left: {{a.x}}px; top: {{a.y}}px; animation: march {{a.mdur}}s ease-in-out infinite alternate;">
+      <div style="animation: bob {{a.bdur}}s ease-in-out infinite;">
+        <sc-if value="{{a.saucer}}" hint-placeholder-val="{{ false }}">
+          <svg class="px" width="64" height="40" viewBox="0 0 16 10" aria-hidden="true"><rect x="5" y="1" width="6" height="3" fill="#9fe8f0" opacity=".85"/><rect x="2" y="4" width="12" height="3" fill="#a3a9ba"/><rect x="0" y="5" width="16" height="2" fill="#7d8496"/><rect x="3" y="5" width="1" height="1" fill="#ffd34d"/><rect x="7" y="5" width="1" height="1" fill="#ffd34d"/><rect x="11" y="5" width="1" height="1" fill="#ffd34d"/><rect x="5" y="7" width="6" height="1" fill="#5c6274"/><rect x="6" y="8" width="4" height="2" fill="#6ee0c8" opacity=".35"/></svg>
+        </sc-if>
+        <sc-if value="{{a.squid}}" hint-placeholder-val="{{ true }}">
+          <svg class="px" width="52" height="52" viewBox="0 0 13 13" aria-hidden="true"><rect x="3" y="0" width="7" height="2" fill="#bdf6ea"/><rect x="2" y="2" width="9" height="5" fill="#6ee0c8"/><rect x="4" y="3" width="2" height="2" fill="#0b1b22"/><rect x="7" y="3" width="2" height="2" fill="#0b1b22"/><rect x="4" y="3" width="1" height="1" fill="#fff"/><rect x="7" y="3" width="1" height="1" fill="#fff"/><rect x="2" y="7" width="9" height="1" fill="#3fb8a2"/><rect x="2" y="8" width="1" height="4" fill="#3fb8a2"/><rect x="5" y="8" width="1" height="5" fill="#3fb8a2"/><rect x="7" y="8" width="1" height="4" fill="#3fb8a2"/><rect x="10" y="8" width="1" height="5" fill="#3fb8a2"/><rect x="11" y="1" width="1" height="2" fill="#a3a9ba"/></svg>
+        </sc-if>
+        <div style="width: 52px; height: 4px; background: rgba(0,0,0,.5); margin-top: 4px; border-radius: 2px;"><div style="width: {{a.hp}}%; height: 100%; background: #ff7a6b; border-radius: 2px;"></div></div>
+      </div>
+      <div style="position: absolute; left: 8px; top: -18px; font-weight: 800; font-size: 15px; color: {{a.dmgColor}}; text-shadow: 0 2px 0 #000; animation: floatup 1.3s ease-out infinite; animation-delay: {{a.delay}}s;">{{a.dmg}}</div>
+    </div>
+  </sc-for>
+
+  <!-- Schnee -->
+  <sc-if value="{{snow}}" hint-placeholder-val="{{ true }}">
+  <sc-for list="{{flakes}}" as="f" hint-placeholder-count="30">
+    <div style="position: absolute; left: {{f.x}}px; top: -10px; width: {{f.size}}px; height: {{f.size}}px; background: {{p.flake}}; opacity: .8; animation: fall {{f.dur}}s linear infinite; animation-delay: {{f.delay}}s;"></div>
+  </sc-for>
+  </sc-if>
+
+  <!-- HUD oben links: Belagerung -->
+  <div style="position: absolute; left: 24px; top: 20px; width: 360px; padding: 14px 16px; border-radius: 16px; background: {{p.panel}}; backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-weight: 800; font-size: 15px; color: {{p.accent}};">Belagerungsstufe 4</span>
+      <span style="font-size: 13px; opacity: .8;">Welle 5 / 8</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <div style="display: flex; justify-content: space-between; font-size: 12px; opacity: .85;"><span>Mauer</span><span>412 / 640</span></div>
+      <div style="height: 10px; border-radius: 5px; background: rgba(0,0,0,.45); overflow: hidden;"><div style="width: 64%; height: 100%; background: linear-gradient(90deg, #8d93a6, #c9cfdc);"></div></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <div style="display: flex; justify-content: space-between; font-size: 12px; opacity: .85;"><span>Welle</span><span>7 von 12 Aliens besiegt</span></div>
+      <div style="height: 10px; border-radius: 5px; background: rgba(0,0,0,.45); overflow: hidden;"><div style="width: 58%; height: 100%; background: linear-gradient(90deg, {{p.accentDark}}, {{p.accent}});"></div></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #ffb3a8;">
+      <svg class="px" width="16" height="16" viewBox="0 0 8 8" aria-hidden="true"><rect x="3" y="0" width="2" height="1" fill="#ff7a6b"/><rect x="2" y="1" width="4" height="2" fill="#ff7a6b"/><rect x="1" y="3" width="6" height="3" fill="#ff7a6b"/><rect x="2" y="6" width="4" height="2" fill="#ff7a6b"/><rect x="3" y="4" width="2" height="2" fill="#ffd34d"/></svg>
+      <span>Wut in 0:38 – danach doppelter Mauerschaden</span>
+    </div>
+  </div>
+
+  <!-- HUD oben rechts: nur Kampf-Ressourcen -->
+  <div style="position: absolute; right: 24px; top: 20px; display: flex; gap: 8px;">
+    <div class="chip" style="background: {{p.panel}}; backdrop-filter: blur(8px);" title="Gold: Hauptwährung. +12,4/s aus Steuern">
+      <svg class="px" width="16" height="16" viewBox="0 0 8 8" aria-hidden="true"><rect x="2" y="1" width="4" height="6" fill="#f2b33d"/><rect x="1" y="2" width="6" height="4" fill="#f2b33d"/><rect x="3" y="2" width="1" height="4" fill="#ffe08a"/></svg>2,41K
+    </div>
+    <div class="chip" style="background: {{p.panel}}; backdrop-filter: blur(8px);" title="Alien-Schrott: Kleinteile aus Gegner-Drops">
+      <svg class="px" width="16" height="16" viewBox="0 0 8 8" aria-hidden="true"><rect x="1" y="2" width="6" height="4" fill="#6ee0c8"/><rect x="2" y="1" width="1" height="1" fill="#6ee0c8"/><rect x="5" y="6" width="1" height="1" fill="#6ee0c8"/><rect x="3" y="3" width="2" height="2" fill="#0b1b22"/></svg>87
+    </div>
+    <div class="chip" style="background: {{p.accent}}; color: #1a1206;" title="Beute dieser Schlacht, wird am Ende gutgeschrieben">
+      Beute: 318 Gold · 9 Schrott
+    </div>
+  </div>
+
+  <!-- Seitenleiste rechts: Truppen -->
+  <div style="position: absolute; right: 24px; top: 78px; width: 230px; padding: 12px; border-radius: 16px; background: {{p.panel}}; backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 8px;">
+    <div style="font-size: 12px; font-weight: 800; opacity: .75;">Truppen auf der Mauer</div>
+    <sc-for list="{{troops}}" as="t" hint-placeholder-count="5">
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="width: 30px; height: 30px; border-radius: 8px; background: {{t.color}}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: #120d06;">{{t.short}}</div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px;">
+          <div style="display: flex; justify-content: space-between; font-size: 12px;"><span>{{t.name}}</span><span style="opacity: .7;">Lv {{t.lv}}</span></div>
+          <div style="height: 6px; border-radius: 3px; background: rgba(0,0,0,.45); overflow: hidden;"><div style="width: {{t.hp}}%; height: 100%; background: {{t.hpColor}};"></div></div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- Zauberleiste unten -->
+  <div style="position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; gap: 12px; padding: 10px; border-radius: 22px; background: {{p.panel}}; backdrop-filter: blur(8px);">
+    <sc-for list="{{spells}}" as="sp" hint-placeholder-count="3">
+      <button class="spell" type="button" onClick="{{sp.cast}}" title="{{sp.tip}}" aria-label="{{sp.name}}" style="background: {{sp.bg}};">
+        <span style="font-size: 26px; font-weight: 800; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.5);">{{sp.glyph}}</span>
+        <span style="position: absolute; left: 6px; top: 4px; font-size: 11px; font-weight: 800; color: rgba(255,255,255,.85);">{{sp.key}}</span>
+        <sc-if value="{{sp.cooling}}" hint-placeholder-val="{{ false }}">
+          <span style="position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.6); animation: cdsweep 3s linear forwards;"></span>
+        </sc-if>
+      </button>
+    </sc-for>
+  </div>
+
+  <!-- Demo-Steuerung -->
+  <div style="position: absolute; left: 50%; top: 20px; transform: translateX(-50%); display: flex; gap: 8px;">
+    <button type="button" onClick="{{endBattle}}" style="border: 0; border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 800; background: {{p.accent}}; color: #1a1206; box-shadow: 0 4px 0 {{p.accentDark}};">Welle 8 gewinnen (Demo)</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============================ DORF ============================ -->
+<sc-if value="{{isVillage}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0;">
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 260px; background: {{p.hill}}; clip-path: polygon(0 40%, 18% 20%, 34% 38%, 52% 10%, 70% 34%, 86% 16%, 100% 30%, 100% 100%, 0 100%); opacity: .7;"></div>
+  <sc-if value="{{snow}}" hint-placeholder-val="{{ true }}">
+  <sc-for list="{{flakes}}" as="f" hint-placeholder-count="30">
+    <div style="position: absolute; left: {{f.x}}px; top: -10px; width: {{f.size}}px; height: {{f.size}}px; background: {{p.flake}}; opacity: .6; animation: fall {{f.dur}}s linear infinite; animation-delay: {{f.delay}}s;"></div>
+  </sc-for>
+  </sc-if>
+
+  <!-- Kopfzeile: Phase, Reiter, Ressourcen -->
+  <div style="position: absolute; left: 24px; right: 24px; top: 16px; display: flex; align-items: center; gap: 16px;">
+    <button type="button" onClick="{{toBattle}}" title="Tor öffnen und zur nächsten Abwehrschlacht" style="border: 0; border-radius: 14px; padding: 12px 16px; font-size: 13px; font-weight: 800; background: {{p.accent}}; color: #1a1206; box-shadow: 0 4px 0 {{p.accentDark}}; display: flex; gap: 8px; align-items: center;">
+      <svg class="px" width="18" height="18" viewBox="0 0 8 8" aria-hidden="true"><rect x="6" y="0" width="2" height="2" fill="#1a1206"/><rect x="5" y="1" width="2" height="2" fill="#1a1206"/><rect x="4" y="2" width="2" height="2" fill="#1a1206"/><rect x="3" y="3" width="2" height="2" fill="#1a1206"/><rect x="1" y="4" width="3" height="1" fill="#1a1206"/><rect x="2" y="5" width="1" height="2" fill="#1a1206"/><rect x="0" y="6" width="2" height="2" fill="#1a1206"/></svg>
+      Zur Mauer
+    </button>
+    <div style="flex-grow: 1; display: flex; justify-content: center; gap: 6px; padding: 6px; border-radius: 18px; background: {{p.panel}}; backdrop-filter: blur(8px);">
+      <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="10">
+        <button class="tab" type="button" onClick="{{tb.open}}" aria-label="{{tb.name}}" style="background: {{tb.bg}}; opacity: {{tb.opacity}};">
+          <svg class="px" width="28" height="28" viewBox="0 0 8 8" aria-hidden="true"><path fill="{{tb.fg}}" d="{{tb.icon}}"/></svg>
+          <sc-if value="{{tb.isNew}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: 4px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: #ff4f6a; animation: pulse 1.2s infinite;"></span></sc-if>
+          <span class="tip">{{tb.tip}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display: flex; gap: 6px;">
+      <sc-for list="{{tabRes}}" as="r" hint-placeholder-count="3">
+        <div class="chip" title="{{r.tip}}" style="background: {{p.panel}}; backdrop-filter: blur(8px);"><span style="width: 10px; height: 10px; background: {{r.color}}; display: inline-block;"></span>{{r.val}}</div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="position: absolute; left: 50%; top: 86px; transform: translateX(-50%); font-size: 13px; font-weight: 800; letter-spacing: .02em; color: {{p.accent}};">{{tabTitle}}</div>
+
+  <!-- ---------- Bauplatz ---------- -->
+  <sc-if value="{{tabBau}}" hint-placeholder-val="{{ true }}">
+  <div style="position: absolute; left: 0; top: 110px; width: 900px; height: 610px;">
+    <sc-for list="{{tiles}}" as="tl" hint-placeholder-count="36">
+      <div class="tile" style="left: {{tl.x}}px; top: {{tl.y}}px; background: {{tl.color}};"></div>
+      <sc-if value="{{tl.preview}}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; left: {{tl.x}}px; top: {{tl.y}}px; width: 96px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: {{tl.previewColor}}; text-shadow: 0 1px 0 #000;">{{tl.previewText}}</div>
+      </sc-if>
+    </sc-for>
+    <!-- Nachbarbonus Holzfäller → Sägewerk -->
+    <div style="position: absolute; left: 434px; top: 150px; width: 70px; height: 0; border-top: 3px dashed {{p.good}}; transform: rotate(26.5deg); transform-origin: left center;"></div>
+    <div style="position: absolute; left: 448px; top: 140px; font-size: 11px; font-weight: 800; color: {{p.good}}; background: rgba(0,0,0,.55); padding: 2px 6px; border-radius: 6px;">+15 %</div>
+    <sc-for list="{{buildings}}" as="b" hint-placeholder-count="6">
+      <div class="bld" onClick="{{b.pick}}" title="{{b.name}}" style="left: {{b.x}}px; top: {{b.top}}px; height: {{b.boxH}}px; filter: {{b.glow}};">
+        <div style="position: absolute; inset: 0; background: {{b.left}}; clip-path: {{b.clipL}};"></div>
+        <div style="position: absolute; inset: 0; background: {{b.right}}; clip-path: {{b.clipR}};"></div>
+        <div style="position: absolute; inset: 0; background: {{b.roof}}; clip-path: {{b.clipT}};"></div>
+        <div style="position: absolute; left: 40px; top: {{b.winTop}}px; width: 8px; height: 10px; background: #ffd27a; box-shadow: 0 0 10px #ffb84d;"></div>
+        <div style="position: absolute; left: 62px; top: -8px; min-width: 22px; height: 22px; border-radius: 11px; background: {{p.accent}}; color: #1a1206; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px;">{{b.lv}}</div>
+        <div style="position: absolute; left: 10px; top: -20px; font-size: 11px; font-weight: 800; color: {{b.prodColor}}; text-shadow: 0 1px 0 #000; white-space: nowrap;">{{b.prod}}</div>
+        <sc-if value="{{b.fire}}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{openEvent}}" aria-label="Ereignis: Stallfeuer" style="position: absolute; left: 4px; top: 6px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #ff6a3d; color: #fff; font-weight: 800; font-size: 16px; animation: pulse .9s infinite; box-shadow: 0 0 18px #ff6a3d;">!</button>
+        </sc-if>
+      </div>
+    </sc-for>
+    <!-- Sammler laufen -->
+    <div style="position: absolute; left: 372px; top: 186px; width: 8px; height: 12px; background: #c08a50; border-top: 4px solid #e8b98a; animation: walk 5s ease-in-out infinite;"></div>
+    <div style="position: absolute; left: 520px; top: 250px; width: 8px; height: 12px; background: #7d7a9a; border-top: 4px solid #e8b98a; animation: walk 6.5s ease-in-out infinite; animation-delay: 1s;"></div>
+
+    <!-- Bau-Modus -->
+    <div style="position: absolute; left: 24px; bottom: 24px; display: flex; gap: 10px; align-items: flex-end;">
+      <button type="button" onClick="{{toggleBuild}}" style="border: 0; border-radius: 14px; padding: 12px 16px; font-size: 13px; font-weight: 800; background: {{buildBtnBg}}; color: {{buildBtnFg}};">{{buildBtnText}}</button>
+      <sc-if value="{{buildMode}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; gap: 8px; padding: 8px; border-radius: 16px; background: {{p.panel}}; backdrop-filter: blur(8px); animation: fadeIn .2s ease-out;">
+          <sc-for list="{{catalog}}" as="c" hint-placeholder-count="4">
+            <button type="button" onClick="{{c.pick}}" style="width: 120px; border: 0; border-radius: 12px; padding: 8px; text-align: left; background: {{c.bg}}; color: {{p.ink}}; display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 12px; font-weight: 800;">{{c.name}}</span>
+              <span style="font-size: 11px; opacity: .8;">{{c.cost}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- Seitenleiste: Gebäudeinfo -->
+  <div style="position: absolute; right: 24px; top: 120px; width: 330px; padding: 18px; border-radius: 20px; background: {{p.panel}}; backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: 12px; animation: fadeIn .2s ease-out;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <span style="font-size: 18px; font-weight: 800;">{{sel.name}}</span>
+      <span style="font-size: 13px; color: {{p.accent}}; font-weight: 800;">Level {{sel.lv}}</span>
+    </div>
+    <div style="font-size: 13px; opacity: .85; line-height: 1.5;">{{sel.desc}}</div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,.28);">
+      <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Produktion</span><span style="color: {{p.good}}; font-weight: 800;">{{sel.prod}}</span></div>
+      <div style="font-size: 11px; opacity: .7;">{{sel.formula}}</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <sc-for list="{{sel.boni}}" as="bo" hint-placeholder-count="2">
+        <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="opacity: .85;">{{bo.src}}</span><span style="color: {{p.good}}; font-weight: 800;">{{bo.val}}</span></div>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <div style="display: flex; justify-content: space-between; font-size: 12px; opacity: .85;"><span>Nächster Meilenstein</span><span>Lv {{sel.ms}} · Produktion ×2</span></div>
+      <div style="height: 8px; border-radius: 4px; background: rgba(0,0,0,.4); overflow: hidden;"><div style="width: {{sel.msPct}}%; height: 100%; background: {{p.accent}};"></div></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <div style="font-size: 12px; opacity: .7;">Arbeiter</div>
+      <div style="display: flex; gap: 6px;">
+        <sc-for list="{{sel.workers}}" as="w" hint-placeholder-count="2">
+          <div style="width: 34px; height: 34px; border-radius: 10px; background: {{w.bg}}; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #1a1206;">{{w.t}}</div>
+        </sc-for>
+      </div>
+    </div>
+    <button type="button" onClick="{{upgrade}}" style="border: 0; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 800; background: {{p.accent}}; color: #1a1206; box-shadow: 0 4px 0 {{p.accentDark}};">Ausbauen · {{sel.cost}}</button>
+  </div>
+  </sc-if>
+
+  <!-- ---------- Übungsplatz (Skilltrees) ---------- -->
+  <sc-if value="{{tabSkill}}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 24px; top: 120px; width: 190px; display: flex; flex-direction: column; gap: 8px; animation: fadeIn .25s ease-out;">
+    <sc-for list="{{classes}}" as="cl" hint-placeholder-count="5">
+      <button type="button" onClick="{{cl.pick}}" style="border: 0; border-radius: 14px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; text-align: left; background: {{cl.bg}}; color: {{p.ink}};">
+        <span style="width: 34px; height: 34px; border-radius: 10px; background: {{cl.color}}; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #1a1206;">{{cl.short}}</span>
+        <span style="display: flex; flex-direction: column;"><span style="font-size: 13px; font-weight: 800;">{{cl.name}}</span><span style="font-size: 11px; opacity: .75;">{{cl.pts}} Punkte frei</span></span>
+      </button>
+    </sc-for>
+  </div>
+  <div style="position: absolute; left: 240px; top: 120px; width: 640px; height: 570px; border-radius: 24px; background: {{p.panelSoft}}; animation: fadeIn .25s ease-out;">
+    <svg width="640" height="570" viewBox="0 0 640 570" style="position: absolute; inset: 0;" aria-hidden="true">
+      <g stroke="{{p.line}}" stroke-width="4" fill="none" stroke-linecap="round">
+        <path d="M320 78 L200 168 M320 78 L320 168 M320 78 L440 168"/>
+        <path d="M200 168 L260 258 M320 168 L260 258 M320 168 L380 258 M440 168 L380 258"/>
+        <path d="M260 258 L160 368 M380 258 L480 368"/>
+        <path d="M160 368 L110 468 M160 368 L210 468 M480 368 L430 468 M480 368 L530 468"/>
+      </g>
+      <g stroke="{{p.accent}}" stroke-width="4" fill="none" stroke-linecap="round">
+        <path d="M320 78 L200 168 M320 78 L320 168 M200 168 L260 258 M320 168 L260 258"/>
+      </g>
+    </svg>
+    <div style="position: absolute; left: 60px; top: 330px; font-size: 12px; font-weight: 800; opacity: .8;">Weg A · Mistgabelmeister</div>
+    <div style="position: absolute; right: 60px; top: 330px; font-size: 12px; font-weight: 800; opacity: .8;">Weg B · Dorfwache</div>
+    <div style="position: absolute; left: 0; right: 0; top: 304px; text-align: center; font-size: 11px; opacity: .65;">Entweder-oder ab Level 10 · änderbar beim Zeitsprung</div>
+    <sc-for list="{{nodes}}" as="n" hint-placeholder-count="12">
+      <button class="node" type="button" onClick="{{n.pick}}" aria-label="{{n.name}}" style="left: {{n.x}}px; top: {{n.y}}px; background: {{n.bg}}; box-shadow: {{n.shadow}};">
+        <svg class="px" width="26" height="26" viewBox="0 0 8 8" aria-hidden="true"><path fill="{{n.fg}}" d="{{n.icon}}"/></svg>
+        <span style="position: absolute; bottom: -9px; right: -9px; font-size: 10px; font-weight: 800; padding: 2px 5px; border-radius: 8px; background: rgba(0,0,0,.75); color: #fff;">{{n.rank}}</span>
+      </button>
+    </sc-for>
+  </div>
+  <div style="position: absolute; right: 24px; top: 120px; width: 330px; padding: 18px; border-radius: 20px; background: {{p.panel}}; backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: 12px; animation: fadeIn .25s ease-out;">
+    <div style="font-size: 12px; opacity: .7;">{{selClass.name}} · Skilltree</div>
+    <div style="font-size: 18px; font-weight: 800;">{{selNode.name}}</div>
+    <div style="font-size: 13px; opacity: .85; line-height: 1.5;">{{selNode.desc}}</div>
+    <div style="padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,.28); display: flex; flex-direction: column; gap: 4px;">
+      <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Rang</span><span style="font-weight: 800;">{{selNode.rank}}</span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Wirkung jetzt</span><span style="color: {{p.good}}; font-weight: 800;">{{selNode.now}}</span></div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Nächster Rang</span><span style="color: {{p.good}}; font-weight: 800;">{{selNode.next}}</span></div>
+      <div style="font-size: 11px; opacity: .7; margin-top: 4px;">{{selNode.formula}}</div>
+    </div>
+    <button type="button" style="border: 0; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 800; background: {{p.accent}}; color: #1a1206; box-shadow: 0 4px 0 {{p.accentDark}};">Skillpunkt setzen</button>
+  </div>
+  </sc-if>
+
+  <!-- ---------- Schatzkammer (Buch) ---------- -->
+  <sc-if value="{{tabSchatz}}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 50%; top: 130px; transform: translateX(-50%); width: 900px; height: 500px; display: flex; filter: drop-shadow(0 24px 40px rgba(0,0,0,.55));">
+    <div style="position: absolute; inset: -14px; border-radius: 18px; background: linear-gradient(135deg, #5a2a1c, #3a1810);"></div>
+    <sc-for list="{{bookKey}}" as="bk" hint-placeholder-count="1">
+    <div style="position: relative; display: flex; width: 900px; height: 500px; animation: flip .45s ease-out; transform-origin: left center;">
+      <div style="flex: 1; padding: 36px 40px; background: linear-gradient(90deg, #ead9b6, #f4e7c9); color: #2b1d10; border-radius: 8px 0 0 8px; display: flex; flex-direction: column; gap: 14px; align-items: center;">
+        <div style="font-size: 12px; font-weight: 800; letter-spacing: .04em; color: #7a4a24;">{{page.chapter}}</div>
+        <div style="width: 190px; height: 190px; border-radius: 50%; background: radial-gradient(circle, rgba(110,224,200,.35), rgba(110,224,200,0) 70%); display: flex; align-items: center; justify-content: center;">
+          <sc-if value="{{page.squid}}" hint-placeholder-val="{{ true }}">
+          <svg class="px" width="130" height="130" viewBox="0 0 13 13" aria-hidden="true"><rect x="3" y="0" width="7" height="2" fill="#bdf6ea"/><rect x="2" y="2" width="9" height="5" fill="#3fb8a2"/><rect x="4" y="3" width="2" height="2" fill="#0b1b22"/><rect x="7" y="3" width="2" height="2" fill="#0b1b22"/><rect x="2" y="7" width="9" height="1" fill="#2a8a78"/><rect x="2" y="8" width="1" height="4" fill="#2a8a78"/><rect x="5" y="8" width="1" height="5" fill="#2a8a78"/><rect x="7" y="8" width="1" height="4" fill="#2a8a78"/><rect x="10" y="8" width="1" height="5" fill="#2a8a78"/></svg>
+          </sc-if>
+          <sc-if value="{{page.goose}}" hint-placeholder-val="{{ false }}">
+          <svg class="px" width="130" height="130" viewBox="0 0 13 13" aria-hidden="true"><rect x="7" y="1" width="3" height="3" fill="#f4f4f0"/><rect x="10" y="2" width="2" height="1" fill="#f29a2e"/><rect x="8" y="2" width="1" height="1" fill="#1a1206"/><rect x="7" y="4" width="2" height="3" fill="#f4f4f0"/><rect x="2" y="6" width="8" height="4" fill="#e6e6df"/><rect x="1" y="6" width="2" height="2" fill="#e6e6df"/><rect x="4" y="5" width="4" height="2" fill="#9aa2b3"/><rect x="4" y="10" width="1" height="2" fill="#f29a2e"/><rect x="7" y="10" width="1" height="2" fill="#f29a2e"/></svg>
+          </sc-if>
+          <sc-if value="{{page.saucer}}" hint-placeholder-val="{{ false }}">
+          <svg class="px" width="140" height="90" viewBox="0 0 16 10" aria-hidden="true"><rect x="5" y="1" width="6" height="3" fill="#7fc9d2"/><rect x="2" y="4" width="12" height="3" fill="#8a90a1"/><rect x="0" y="5" width="16" height="2" fill="#5f6678"/><rect x="3" y="5" width="1" height="1" fill="#e0a92a"/><rect x="7" y="5" width="1" height="1" fill="#e0a92a"/><rect x="11" y="5" width="1" height="1" fill="#e0a92a"/></svg>
+          </sc-if>
+        </div>
+        <div style="font-size: 26px; font-weight: 800;">{{page.name}}</div>
+        <div style="font-size: 14px; line-height: 1.6; text-align: center; font-style: italic; max-width: 330px;">„{{page.quote}}“</div>
+        <div style="font-size: 11px; opacity: .7;">– der Erzähler</div>
+      </div>
+      <div style="width: 6px; background: linear-gradient(90deg, #b9a27a, #8d7754, #b9a27a);"></div>
+      <div style="flex: 1; padding: 36px 40px; background: linear-gradient(90deg, #f4e7c9, #ead9b6); color: #2b1d10; border-radius: 0 8px 8px 0; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 12px; font-weight: 800; color: #7a4a24;">Steckbrief</div>
+        <sc-for list="{{page.facts}}" as="fa" hint-placeholder-count="4">
+          <div style="display: flex; justify-content: space-between; font-size: 14px; border-bottom: 1px dashed rgba(43,29,16,.25); padding-bottom: 6px;"><span>{{fa.k}}</span><span style="font-weight: 800;">{{fa.v}}</span></div>
+        </sc-for>
+        <div style="margin-top: 8px; padding: 12px; border-radius: 10px; background: rgba(122,74,36,.12); font-size: 13px; line-height: 1.5;"><b>Sammelbonus:</b> {{page.bonus}}</div>
+        <div style="flex-grow: 1;"></div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; opacity: .7;"><span>Seite {{pageNo}} von {{pageCount}}</span><span>{{page.progress}}</span></div>
+      </div>
+    </div>
+    </sc-for>
+    <button type="button" onClick="{{prevPage}}" aria-label="Vorherige Seite" style="position: absolute; left: -70px; top: 220px; width: 52px; height: 52px; border: 0; border-radius: 50%; background: {{p.panel}}; color: {{p.ink}}; font-size: 22px; font-weight: 800;">‹</button>
+    <button type="button" onClick="{{nextPage}}" aria-label="Nächste Seite" style="position: absolute; right: -70px; top: 220px; width: 52px; height: 52px; border: 0; border-radius: 50%; background: {{p.accent}}; color: #1a1206; font-size: 22px; font-weight: 800;">›</button>
+  </div>
+  <div style="position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); display: flex; gap: 8px;">
+    <sc-for list="{{chapters}}" as="ch" hint-placeholder-count="5">
+      <button type="button" onClick="{{ch.go}}" style="border: 0; border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight: 800; background: {{ch.bg}}; color: {{ch.fg}};">{{ch.name}}</button>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <!-- ---------- Bibliothek (nach Einführung) ---------- -->
+  <sc-if value="{{tabLib}}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 50%; top: 130px; transform: translateX(-50%); width: 980px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; animation: fadeIn .25s ease-out;">
+    <sc-for list="{{research}}" as="rs" hint-placeholder-count="6">
+      <div style="padding: 18px; border-radius: 18px; background: {{p.panel}}; backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 8px; opacity: {{rs.op}};">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 15px; font-weight: 800;">{{rs.name}}</span><span style="font-size: 12px; color: {{p.accent}}; font-weight: 800;">{{rs.cost}}</span></div>
+        <div style="font-size: 12px; opacity: .8; line-height: 1.5;">{{rs.desc}}</div>
+        <div style="height: 8px; border-radius: 4px; background: rgba(0,0,0,.4); overflow: hidden;"><div style="width: {{rs.pct}}%; height: 100%; background: {{p.good}};"></div></div>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <!-- ---------- Räume, die im Mockup noch folgen ---------- -->
+  <sc-if value="{{tabLater}}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; left: 50%; top: 300px; transform: translateX(-50%); padding: 24px 28px; border-radius: 20px; background: {{p.panel}}; text-align: center; max-width: 520px; animation: fadeIn .25s ease-out;">
+    <div style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">{{tabTitle}}</div>
+    <div style="font-size: 13px; opacity: .8; line-height: 1.6;">Dieser Raum ist im Mockup noch leer. Fertig ausgearbeitet sind Bauplatz, Übungsplatz, Schatzkammer und die Bibliothek mit Einführung.</div>
+  </div>
+  </sc-if>
+
+  <!-- Erfolgs-Toast oben rechts -->
+  <sc-for list="{{toastKey}}" as="tk" hint-placeholder-count="1">
+    <div style="position: absolute; right: 24px; top: 96px; width: 300px; padding: 12px 14px; border-radius: 14px; background: {{p.panel}}; backdrop-filter: blur(8px); display: flex; gap: 10px; align-items: center; animation: toast 4.5s ease-in-out forwards; animation-delay: .8s; transform: translateX(120%); box-shadow: 0 10px 30px rgba(0,0,0,.4);">
+      <div style="width: 38px; height: 38px; border-radius: 10px; background: {{p.accent}}; display: flex; align-items: center; justify-content: center;"><svg class="px" width="22" height="22" viewBox="0 0 8 8" aria-hidden="true"><path fill="#1a1206" d="M1 1h6v2h-1v1h-1v1h-2v-1h-1v-1h-1zM3 5h2v1h1v1h-4v-1h1z"/></svg></div>
+      <div style="display: flex; flex-direction: column;"><span style="font-size: 13px; font-weight: 800;">Mauerbrecher II</span><span style="font-size: 12px; opacity: .8;">Erfolg · +1 % auf alles</span></div>
+    </div>
+  </sc-for>
+</div>
+</sc-if>
+
+<!-- ===== Erzähler (immer, unten links) ===== -->
+<div style="position: absolute; left: 24px; bottom: 22px; display: flex; align-items: flex-end; gap: 10px; z-index: 5;">
+  <button type="button" onClick="{{openLog}}" aria-label="Chronik des Erzählers öffnen" style="border: 0; background: transparent; padding: 0; animation: bob 3s ease-in-out infinite;">
+    <svg class="px" width="64" height="64" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="0" width="1" height="2" fill="#f2b33d"/><rect x="7" y="0" width="2" height="2" fill="#f2b33d"/><rect x="10" y="0" width="1" height="2" fill="#f2b33d"/><rect x="5" y="2" width="6" height="1" fill="#f2b33d"/><rect x="3" y="3" width="10" height="7" fill="#e9eef7"/><rect x="1" y="5" width="14" height="5" fill="#e9eef7"/><rect x="2" y="10" width="12" height="2" fill="#cfd6e6"/><rect x="5" y="6" width="2" height="1" fill="#2b2f3f"/><rect x="9" y="6" width="2" height="1" fill="#2b2f3f"/><rect x="6" y="8" width="4" height="1" fill="#2b2f3f"/><rect x="4" y="12" width="2" height="2" fill="#cfd6e6"/><rect x="10" y="12" width="2" height="2" fill="#cfd6e6"/></svg>
+  </button>
+  <div style="max-width: 360px; padding: 10px 14px; border-radius: 14px 14px 14px 4px; background: {{p.bubble}}; color: {{p.bubbleInk}}; font-size: 13px; line-height: 1.5; margin-bottom: 30px; box-shadow: 0 6px 20px rgba(0,0,0,.35);">{{narration}}</div>
+</div>
+
+<!-- ===== Overlays ===== -->
+<sc-if value="{{showResult}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(4,6,14,.6); display: flex; align-items: center; justify-content: center; z-index: 10;">
+  <div style="width: 520px; padding: 28px; border-radius: 24px; background: {{p.panelSolid}}; display: flex; flex-direction: column; gap: 16px; animation: fadeIn .3s ease-out; box-shadow: 0 30px 80px rgba(0,0,0,.6);">
+    <div style="font-size: 13px; font-weight: 800; color: {{p.good}};">Sieg · Belagerungsstufe 4</div>
+    <div style="font-size: 30px; font-weight: 800; line-height: 1.1;">Die Mauer hält.</div>
+    <div style="font-size: 13px; opacity: .8;">8 Wellen in 3:12 · 46 Aliens besiegt · 2 Bauern leicht verbeult</div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+      <sc-for list="{{loot}}" as="l" hint-placeholder-count="4">
+        <div style="padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,.3); display: flex; justify-content: space-between; font-size: 14px;"><span>{{l.k}}</span><span style="font-weight: 800; color: {{l.color}};">{{l.v}}</span></div>
+      </sc-for>
+    </div>
+    <div style="padding: 10px 12px; border-radius: 12px; border: 1px dashed {{p.accent}}; font-size: 13px;">Neu im Bestiarium: <b>Panzerschnecke</b> · +5 % Schaden gegen diesen Typ</div>
+    <button type="button" onClick="{{goVillage}}" style="border: 0; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 800; background: {{p.accent}}; color: #1a1206; box-shadow: 0 4px 0 {{p.accentDark}};">Ins Dorf zurückkehren</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{showEvent}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(4,6,14,.65); display: flex; align-items: center; justify-content: center; z-index: 10;">
+  <div style="width: 560px; padding: 28px; border-radius: 24px; background: {{p.panelSolid}}; display: flex; flex-direction: column; gap: 14px; animation: fadeIn .3s ease-out;">
+    <div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 13px; font-weight: 800; color: #ff8a5c;">Ereignis</span><span class="chip" style="background: rgba(255,255,255,.1); font-size: 11px;">Spiel pausiert</span></div>
+    <div style="font-size: 28px; font-weight: 800;">Stallfeuer in der Kaserne!</div>
+    <div style="font-size: 14px; opacity: .85; line-height: 1.6;">Ein Pferd hat eine Fackel umgestoßen. Oder ein Alien. Die Pferde schweigen.</div>
+    <sc-for list="{{choices}}" as="ch" hint-placeholder-count="3">
+      <button type="button" onClick="{{closeEvent}}" style="border: 0; border-radius: 14px; padding: 12px 14px; text-align: left; background: rgba(255,255,255,.08); color: {{p.ink}}; display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 14px; font-weight: 800;">{{ch.t}}</span><span style="font-size: 12px; opacity: .75;">{{ch.d}}</span>
+      </button>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{showIntro}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(4,6,14,.82); display: flex; align-items: center; justify-content: center; gap: 36px; z-index: 10;">
+  <div style="animation: bob 2.4s ease-in-out infinite;">
+    <svg class="px" width="180" height="180" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="0" width="1" height="2" fill="#f2b33d"/><rect x="7" y="0" width="2" height="2" fill="#f2b33d"/><rect x="10" y="0" width="1" height="2" fill="#f2b33d"/><rect x="5" y="2" width="6" height="1" fill="#f2b33d"/><rect x="3" y="3" width="10" height="7" fill="#e9eef7"/><rect x="1" y="5" width="14" height="5" fill="#e9eef7"/><rect x="2" y="10" width="12" height="2" fill="#cfd6e6"/><rect x="5" y="6" width="2" height="1" fill="#2b2f3f"/><rect x="9" y="6" width="2" height="1" fill="#2b2f3f"/><rect x="6" y="8" width="4" height="1" fill="#2b2f3f"/><rect x="4" y="12" width="2" height="2" fill="#cfd6e6"/><rect x="10" y="12" width="2" height="2" fill="#cfd6e6"/></svg>
+  </div>
+  <div style="width: 480px; display: flex; flex-direction: column; gap: 14px; animation: fadeIn .4s ease-out;">
+    <div style="font-size: 13px; font-weight: 800; color: {{p.accent}};">Neuer Bereich</div>
+    <div style="font-size: 38px; font-weight: 800; line-height: 1.05;">Die Bibliothek</div>
+    <div style="font-size: 15px; line-height: 1.6; opacity: .9;">„Ein Raum voller Bücher, die niemand gelesen hat. Die Mönche nennen es Forschung. Ich nenne es: endlich ein Grund für Wissen als Ressource.“</div>
+    <div style="font-size: 13px; opacity: .75;">Hier gibst du Wissen für Forschung aus: neue Gebäude, Zauber und Mechaniken. Forschung bleibt bei jedem Zeitsprung erhalten.</div>
+    <button type="button" onClick="{{enterLib}}" style="align-self: flex-start; border: 0; border-radius: 14px; padding: 13px 22px; font-size: 15px; font-weight: 800; background: {{p.accent}}; color: #1a1206; box-shadow: 0 4px 0 {{p.accentDark}};">Bibliothek betreten</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{showLog}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 24px; bottom: 110px; width: 420px; max-height: 420px; overflow: auto; padding: 18px; border-radius: 20px; background: {{p.panelSolid}}; display: flex; flex-direction: column; gap: 10px; z-index: 11; animation: fadeIn .2s ease-out; box-shadow: 0 20px 60px rgba(0,0,0,.5);">
+  <div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 15px; font-weight: 800;">Chronik des Erzählers</span><button type="button" onClick="{{closeLog}}" aria-label="Schließen" style="border: 0; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.1); color: {{p.ink}}; font-weight: 800;">×</button></div>
+  <sc-for list="{{log}}" as="lg" hint-placeholder-count="5">
+    <div style="display: flex; gap: 10px; font-size: 13px; line-height: 1.5;"><span style="opacity: .55; white-space: nowrap;">{{lg.t}}</span><span>{{lg.x}}</span></div>
+  </sc-for>
+</div>
+</sc-if>
+
+<!-- ===== Tor-Übergang ===== -->
+<sc-if value="{{gate}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 20; pointer-events: none;">
+  <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 50%; animation: gateL 1.5s ease-in-out forwards; background: repeating-linear-gradient(90deg, #4a2e1a 0 58px, #3a2414 58px 64px); box-shadow: inset -10px 0 0 #2a190e;">
+    <div style="position: absolute; left: 0; right: 0; top: 140px; height: 22px; background: #2d2f38;"></div>
+    <div style="position: absolute; left: 0; right: 0; bottom: 140px; height: 22px; background: #2d2f38;"></div>
+    <div style="position: absolute; right: 30px; top: 330px; width: 40px; height: 40px; border: 6px solid #2d2f38; border-radius: 50%;"></div>
+  </div>
+  <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 50%; animation: gateR 1.5s ease-in-out forwards; background: repeating-linear-gradient(90deg, #3a2414 0 6px, #4a2e1a 6px 64px); box-shadow: inset 10px 0 0 #2a190e;">
+    <div style="position: absolute; left: 0; right: 0; top: 140px; height: 22px; background: #2d2f38;"></div>
+    <div style="position: absolute; left: 0; right: 0; bottom: 140px; height: 22px; background: #2d2f38;"></div>
+    <div style="position: absolute; left: 30px; top: 330px; width: 40px; height: 40px; border: 6px solid #2d2f38; border-radius: 50%;"></div>
+  </div>
+  <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 30px; font-weight: 800; color: #f2b33d; text-shadow: 0 3px 0 #000; animation: gateGlow 1.5s ease-in-out forwards;">{{gateText}}</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"epoche":{"editor":"enum","options":["Mittelalter","Dampf &amp; Zahnrad","Sternenorden"],"default":"Mittelalter","section":"Stimmung"},"tageszeit":{"editor":"enum","options":["Nacht","Tag"],"default":"Nacht","section":"Stimmung"},"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { screen: 'battle', overlay: null, gate: false, gateText: '', tab: 'bau', sel: 'saege', buildMode: false, buildPick: null, cls: 'bauer', node: 'mg', page: 0, cool: {}, libSeen: false, toastN: 0, upg: 0, narr: 0 };
+    this.timers = [];
+  }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); }
+  later(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
+  go(screen, text) {
+    if (this.state.gate) return;
+    this.setState({ gate: true, gateText: text, overlay: null });
+    this.later(() => this.setState({ screen: screen, toastN: this.state.toastN + (screen === 'village' ? 1 : 0) }), 650);
+    this.later(() => this.setState({ gate: false }), 1500);
+  }
+  palette() {
+    const ep = this.props.epoche || 'Mittelalter';
+    const day = (this.props.tageszeit || 'Nacht') === 'Tag';
+    const P = {
+      Mittelalter: {
+        n: { sky1: '#070b1a', sky2: '#26345a', hill: '#18213a', forest: '#0c1619', ground1: '#1f3a28', ground2: '#0d1a12', accent: '#f2b33d', accentDark: '#a86f14', ink: '#f3ead7', star: '#fff6d8', moon: '#f6efd2', moonGlow: 'rgba(246,239,210,.25)', flake: '#ffffff', crater: 'rgba(110,224,200,.55)' },
+        d: { sky1: '#5f9bd1', sky2: '#d7ebf6', hill: '#7f9bbb', forest: '#2c5338', ground1: '#5b8c48', ground2: '#35612e', accent: '#e9a12a', accentDark: '#9a6410', ink: '#fbf6ea', star: 'rgba(255,255,255,0)', moon: '#fff3c4', moonGlow: 'rgba(255,230,150,.55)', flake: '#ffffff', crater: 'rgba(110,224,200,.45)' }
+      },
+      'Dampf & Zahnrad': {
+        n: { sky1: '#120c08', sky2: '#4a3424', hill: '#2a1d14', forest: '#160f0a', ground1: '#3d2e1f', ground2: '#1c140d', accent: '#d9a24a', accentDark: '#8a5c1c', ink: '#f4e6cf', star: '#ffd9a0', moon: '#e8c48a', moonGlow: 'rgba(232,196,138,.3)', flake: '#bfb4a6', crater: 'rgba(255,150,70,.45)' },
+        d: { sky1: '#8d7a63', sky2: '#e5d3b3', hill: '#9b8468', forest: '#4a3a29', ground1: '#7a6446', ground2: '#4f3f2b', accent: '#c98a2e', accentDark: '#7a4e12', ink: '#fff6e6', star: 'rgba(0,0,0,0)', moon: '#fff0c8', moonGlow: 'rgba(255,220,150,.5)', flake: '#d9cdbd', crater: 'rgba(255,150,70,.4)' }
+      },
+      Sternenorden: {
+        n: { sky1: '#04020c', sky2: '#25104a', hill: '#170c36', forest: '#0b0620', ground1: '#1c1245', ground2: '#08051a', accent: '#4ff0ff', accentDark: '#1f8a9c', ink: '#eef0ff', star: '#d9e4ff', moon: '#ff8ae6', moonGlow: 'rgba(255,79,216,.35)', flake: '#9fdcff', crater: 'rgba(255,79,216,.5)' },
+        d: { sky1: '#100a2e', sky2: '#4a2a8a', hill: '#2a1a5a', forest: '#140c34', ground1: '#2a1d5e', ground2: '#120a30', accent: '#4ff0ff', accentDark: '#1f8a9c', ink: '#eef0ff', star: '#ffffff', moon: '#ffd0f4', moonGlow: 'rgba(255,79,216,.45)', flake: '#9fdcff', crater: 'rgba(255,79,216,.5)' }
+      }
+    };
+    const set = (P[ep] || P.Mittelalter)[day ? 'd' : 'n'];
+    return Object.assign({}, set, {
+      panel: 'rgba(8,10,22,.62)', panelSoft: 'rgba(8,10,22,.38)', panelSolid: ep === 'Sternenorden' ? '#120b2e' : (ep === 'Mittelalter' ? '#141b2e' : '#21170f'),
+      good: '#8fe38f', line: 'rgba(255,255,255,.18)', bubble: '#f4ecd8', bubbleInk: '#2b1d10'
+    });
+  }
+  renderVals() {
+    const s = this.state;
+    const p = this.palette();
+    const isBattle = s.screen === 'battle';
+    let seed = 7;
+    const rnd = () => { seed = seed * 16807 % 2147483647; return (seed % 10000) / 10000; };
+    const stars = Array.from({ length: 46 }, () => ({ x: Math.round(rnd() * 1280), y: Math.round(rnd() * 300), size: rnd() > .8 ? 3 : 2, dur: (2 + rnd() * 3).toFixed(1), delay: (rnd() * 3).toFixed(1) }));
+    const flakes = Array.from({ length: 40 }, () => ({ x: Math.round(rnd() * 1280), size: rnd() > .7 ? 4 : 2, dur: (7 + rnd() * 7).toFixed(1), delay: (-rnd() * 14).toFixed(1) }));
+    const snow = (this.props.epoche || 'Mittelalter') !== 'Sternenorden';
+    const aliens = [
+      { x: 640, y: 440, squid: true, saucer: false, hp: 40, dmg: '12,6', crit: false },
+      { x: 760, y: 470, squid: true, saucer: false, hp: 85, dmg: '38!', crit: true },
+      { x: 880, y: 430, squid: true, saucer: false, hp: 100, dmg: '12,6', crit: false },
+      { x: 700, y: 330, squid: false, saucer: true, hp: 60, dmg: '9,4', crit: false },
+      { x: 900, y: 300, squid: false, saucer: true, hp: 100, dmg: '9,4', crit: false }
+    ].map((a, i) => Object.assign(a, { mdur: (3.5 + i * .6).toFixed(1), bdur: (1.2 + i * .25).toFixed(2), delay: (i * .4).toFixed(1), dmgColor: a.crit ? '#ffd34d' : '#ffffff' }));
+    const troops = [
+      { name: 'Ritter', short: 'R', lv: 14, hp: 82, color: '#b8bccb' },
+      { name: 'Bogenschützin', short: 'B', lv: 12, hp: 100, color: '#7fbf6a' },
+      { name: 'Bauer', short: 'Ba', lv: 9, hp: 34, color: '#c08a50' },
+      { name: 'Bauer', short: 'Ba', lv: 8, hp: 61, color: '#c08a50' },
+      { name: 'Hexenmeister', short: 'H', lv: 6, hp: 90, color: '#b08ae6' }
+    ].map(t => Object.assign(t, { hpColor: t.hp < 40 ? '#ff7a6b' : '#8fe38f' }));
+    const spellDefs = [
+      { id: 'stein', name: 'Steinregen', glyph: '✸', key: '1', bg: 'linear-gradient(135deg,#8d6a4a,#4a3222)', tip: 'Steinregen: 6 × Truppen-Kampfkraft auf alle Gegner · Abklingzeit 20 s' },
+      { id: 'mauer', name: 'Segen der Mauer', glyph: '✚', key: '2', bg: 'linear-gradient(135deg,#d9b24a,#8a6614)', tip: 'Segen der Mauer: heilt 25 % Mauer · Abklingzeit 45 s' },
+      { id: 'bauern', name: 'Rufen der Bauern', glyph: '♞', key: '3', bg: 'linear-gradient(135deg,#6a9a4a,#2f5a22)', tip: 'Rufen der Bauern: 3 Bauern kämpfen 15 s mit · Abklingzeit 60 s' }
+    ];
+    const spells = spellDefs.map(d => Object.assign({}, d, {
+      cooling: !!s.cool[d.id],
+      cast: () => { if (this.state.cool[d.id]) return; this.setState({ cool: Object.assign({}, this.state.cool, { [d.id]: true }) }); this.later(() => this.setState({ cool: Object.assign({}, this.state.cool, { [d.id]: false }) }), 3000); }
+    }));
+
+    // Dorf: Reiter
+    const I = {
+      bau: 'M1 7h6v1h-6zM2 4h4v3h-4zM1 3h6v1h-6zM2 2h4v1h-4zM3 1h2v1h-2z',
+      kaserne: 'M1 3h6v5h-6zM0 2h8v1h-8zM1 1h1v1h-1zM3 1h2v1h-2zM6 1h1v1h-1zM3 5h2v3h-2z',
+      skill: 'M3 0h2v2h-2zM1 3h2v2h-2zM5 3h2v2h-2zM3 6h2v2h-2zM2 2h1v1h-1zM5 2h1v1h-1zM2 5h1v1h-1zM5 5h1v1h-1z',
+      lib: 'M0 1h3v6h-3zM5 1h3v6h-3zM3 2h2v1h-2zM0 7h8v1h-8zM1 2h1v1h-1zM6 2h1v1h-1z',
+      werk: 'M3 0h2v1h-2zM1 1h6v6h-6zM0 3h1v2h-1zM7 3h1v2h-1zM3 7h2v1h-2zM3 3h2v2h-2z',
+      thron: 'M2 0h4v4h-4zM1 4h6v1h-6zM1 5h1v3h-1zM6 5h1v3h-1zM3 1h2v2h-2z',
+      schatz: 'M1 2h6v1h-6zM0 3h8v5h-8zM3 4h2v2h-2z',
+      chronik: 'M3 0h2v8h-2zM2 1h4v1h-4zM1 7h6v1h-6zM2 4h4v1h-4z',
+      archiv: 'M1 0h6v8h-6zM2 1h4v1h-4zM2 3h4v1h-4zM2 5h3v1h-3z',
+      markt: 'M0 1h8v2h-8zM1 3h1v5h-1zM6 3h1v5h-1zM2 5h4v1h-4zM3 6h2v2h-2z'
+    };
+    const tabDefs = [
+      { id: 'bau', name: 'Bauplatz', res: ['Holz', 'Stein', 'Gold'] },
+      { id: 'kaserne', name: 'Kaserne', res: ['Gold', 'Eisen'] },
+      { id: 'skill', name: 'Übungsplatz', res: ['Skillpunkte'] },
+      { id: 'lib', name: 'Bibliothek', res: ['Wissen'], isNew: true },
+      { id: 'werk', name: 'Werkstatt', res: ['Alien-Schrott', 'Eisen'] },
+      { id: 'thron', name: 'Thronsaal', res: ['Gold'] },
+      { id: 'schatz', name: 'Schatzkammer', res: ['Gold'] },
+      { id: 'chronik', name: 'Chronik-Turm', locked: true, res: [] },
+      { id: 'archiv', name: 'Archiv', res: [] },
+      { id: 'markt', name: 'Markt', locked: true, res: [] }
+    ];
+    const RES = { Holz: ['1,84K', '#c08a50', 'Holz · +4,2/s · Lager 2,5K'], Stein: ['932', '#b8bccb', 'Stein · +1,9/s · Lager 2,5K'], Gold: ['2,41K', '#f2b33d', 'Gold · +12,4/s'], Eisen: ['214', '#8f9bb3', 'Eisen · +0,6/s'], Skillpunkte: ['7', '#8fe38f', 'Skillpunkte, verteilt auf alle Klassen'], Wissen: ['486', '#9ab8ff', 'Wissen · +2,1/s aus dem Kloster'], 'Alien-Schrott': ['87', '#6ee0c8', 'Alien-Schrott aus Gegner-Drops'] };
+    const cur = tabDefs.find(t => t.id === s.tab) || tabDefs[0];
+    const tabs = tabDefs.map(t => {
+      const active = t.id === s.tab;
+      const isNew = !!t.isNew && !s.libSeen;
+      return {
+        name: t.name, icon: I[t.id], isNew: isNew,
+        tip: t.locked ? t.name + ' · ab späterer Epoche' : t.name,
+        bg: active ? p.accent : 'rgba(255,255,255,.06)',
+        fg: active ? '#1a1206' : (t.locked ? 'rgba(255,255,255,.35)' : p.ink),
+        opacity: t.locked ? .55 : 1,
+        open: () => {
+          if (t.locked) { this.setState({ narr: 3 }); return; }
+          if (t.id === 'lib' && !this.state.libSeen) { this.setState({ overlay: 'intro' }); return; }
+          this.setState({ tab: t.id, buildMode: false });
+        }
+      };
+    });
+    const tabRes = cur.res.map(r => ({ val: RES[r][0], color: RES[r][1], tip: RES[r][2] }));
+
+    // Bauplatz: isometrisches Raster 6×6
+    const ox = 400, oy = 40;
+    const iso = (c, r) => ({ x: ox + (c - r) * 48, y: oy + (c + r) * 24 });
+    const terrain = { '0,0': 'forest', '0,1': 'forest', '1,0': 'forest', '5,0': 'rock', '5,1': 'rock', '4,0': 'rock', '0,4': 'water', '1,4': 'water', '1,5': 'water', '2,5': 'water' };
+    const tColor = { forest: '#2c5a34', rock: '#5b6070', water: '#2e6fa8', grass: '#4a7a3c' };
+    const blds = [
+      { id: 'holz', c: 1, r: 1, name: 'Holzfällerhütte', lv: 12, h: 30, l: '#7a4a24', ri: '#5a3418', roof: '#b0442e', prod: '+4,2 Holz/s', desc: 'Holzfäller schlagen hier Holz. Wald +50 %, je benachbarte Hütte +15 %.', formula: '0,3 × Stärke × Arbeiter × 1,15^Lv × Boni', boni: [['Wald-Feld', '+50 %'], ['Meilenstein Lv 10', '×2']], ms: 25, msPct: 15, workers: ['Hf', 'Hf'], cost: '1,2K Gold · 300 Stein' },
+      { id: 'saege', c: 2, r: 1, name: 'Sägewerk', lv: 7, h: 38, l: '#8a5a32', ri: '#62401f', roof: '#6b4a2f', prod: '+1,1 Bretter/s', desc: 'Macht aus Holz Bretter für Palisaden und den Mauerausbau.', formula: '2 Holz → 1 Brett · 0,4/s × 1,12^Lv × Boni', boni: [['Neben Holzfällerhütte', '+15 %'], ['Fluss in Reichweite', '+0 %']], ms: 10, msPct: 70, workers: ['Hf'], cost: '640 Gold · 180 Holz' },
+      { id: 'stein', c: 4, r: 1, name: 'Steinbruch', lv: 9, h: 22, l: '#6d7386', ri: '#4c5163', roof: '#8d93a6', prod: '+1,9 Stein/s', desc: 'Bergleute brechen Stein. Fels-Feld +50 %.', formula: '0,25 × Stärke × Arbeiter × 1,15^Lv × Boni', boni: [['Fels-Feld', '+50 %']], ms: 10, msPct: 90, workers: ['Bm', 'Bm'], cost: '800 Gold · 400 Holz' },
+      { id: 'burg', c: 2, r: 3, name: 'Bergfried', lv: 5, h: 70, l: '#6d7386', ri: '#4c5163', roof: '#a33a2e', prod: '+12,4 Gold/s', desc: 'Sitz des Königs. Steuern, Lager und Truppenplätze hängen daran.', formula: '2 × Einwohner × 1,1^Lv', boni: [['Taverne angrenzend', '+10 % Moral']], ms: 10, msPct: 50, workers: [], cost: '5K Gold · 2K Stein' },
+      { id: 'kaserne', c: 4, r: 3, name: 'Kaserne', lv: 6, h: 34, l: '#7d6a55', ri: '#5a4a3a', roof: '#4f5a7a', prod: '+5 Plätze', desc: 'Truppenplätze und Training. Gerade brennt der Stall.', formula: '+2 Truppenplätze je Level', boni: [['Schmiede angrenzend', '+20 % Ausrüstung']], ms: 10, msPct: 60, workers: [], cost: '900 Gold · 300 Stein', fire: true },
+      { id: 'kloster', c: 1, r: 3, name: 'Kloster', lv: 4, h: 44, l: '#c9b48a', ri: '#a08c66', roof: '#5a3a6b', prod: '+2,1 Wissen/s', desc: 'Mönche schreiben, rechnen und kühlen das Rechenorakel mit Weihwasser.', formula: '0,2 × Magie × Mönche × 1,15^Lv', boni: [['Bach-Feld', '+30 %']], ms: 10, msPct: 40, workers: ['Mö', 'Mö'], cost: '400 Gold · 250 Holz' }
+    ];
+    const occupied = {};
+    blds.forEach(b => { occupied[b.c + ',' + b.r] = true; });
+    const previewMap = s.buildPick ? { '2,2': ['+15 %', p.good], '0,2': ['+50 % Wald', p.good], '3,2': ['+0 %', '#c9cfdc'], '3,4': ['+0 %', '#c9cfdc'], '5,4': ['+20 %', p.good] } : {};
+    const tiles = [];
+    for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++) {
+      const k = c + ',' + r;
+      const t = terrain[k] || 'grass';
+      const pos = iso(c, r);
+      const pv = !occupied[k] && previewMap[k];
+      let col = tColor[t];
+      if (s.buildMode && !occupied[k]) col = pv ? 'color-mix(in srgb, ' + tColor[t] + ' 55%, #9cff9c)' : 'color-mix(in srgb, ' + tColor[t] + ' 80%, #ffffff)';
+      tiles.push({ x: pos.x, y: pos.y, color: col, preview: !!pv, previewText: pv ? pv[0] : '', previewColor: pv ? pv[1] : '#fff' });
+    }
+    tiles.sort((a, b) => a.y - b.y);
+    const buildings = blds.map(b => {
+      const pos = iso(b.c, b.r);
+      const h = b.h;
+      return {
+        name: b.name, lv: b.lv, prod: b.prod, fire: !!b.fire && s.overlay !== 'eventDone',
+        x: pos.x, top: pos.y - h, boxH: 48 + h, winTop: 24 + h * .55,
+        left: b.l, right: b.ri, roof: b.roof,
+        clipT: 'polygon(48px 0, 96px 24px, 48px 48px, 0 24px)',
+        clipL: 'polygon(0 24px, 48px 48px, 48px ' + (48 + h) + 'px, 0 ' + (24 + h) + 'px)',
+        clipR: 'polygon(48px 48px, 96px 24px, 96px ' + (24 + h) + 'px, 48px ' + (48 + h) + 'px)',
+        prodColor: p.good,
+        glow: s.sel === b.id ? 'drop-shadow(0 0 10px ' + p.accent + ')' : 'none',
+        pick: () => this.setState({ sel: b.id }),
+        y: pos.y
+      };
+    }).sort((a, b) => a.y - b.y);
+    const sb = blds.find(b => b.id === s.sel) || blds[1];
+    const sel = {
+      name: sb.name, lv: sb.lv + (sb.id === 'saege' ? s.upg : 0), desc: sb.desc, prod: sb.prod, formula: sb.formula, ms: sb.ms, msPct: Math.min(100, sb.msPct + (sb.id === 'saege' ? s.upg * 10 : 0)), cost: sb.cost,
+      boni: sb.boni.map(x => ({ src: x[0], val: x[1] })),
+      workers: sb.workers.map(w => ({ t: w, bg: '#c08a50' })).concat([{ t: '+', bg: 'rgba(255,255,255,.15)' }])
+    };
+    const catalog = [['Holzfällerhütte', '120 Gold · 40 Holz'], ['Lagerhaus', '300 Gold · 200 Holz'], ['Schmiede', '600 Gold · 300 Stein'], ['Taverne', '450 Gold · 150 Holz']].map((c, i) => ({
+      name: c[0], cost: c[1], bg: s.buildPick === i ? 'color-mix(in srgb, ' + p.accent + ' 35%, transparent)' : 'rgba(255,255,255,.07)',
+      pick: () => this.setState({ buildPick: i })
+    }));
+
+    // Übungsplatz
+    const classDefs = [['bauer', 'Bauer', 'Ba', '#c08a50', 2], ['ritter', 'Ritter', 'R', '#b8bccb', 3], ['bogen', 'Bogenschützin', 'B', '#7fbf6a', 1], ['hexer', 'Hexenmeister', 'H', '#b08ae6', 0], ['holz', 'Holzfäller', 'Hf', '#d9a06a', 1]];
+    const classes = classDefs.map(c => ({ name: c[1], short: c[2], color: c[3], pts: c[4], bg: s.cls === c[0] ? 'rgba(255,255,255,.16)' : 'rgba(255,255,255,.05)', pick: () => this.setState({ cls: c[0] }) }));
+    const selClass = { name: (classDefs.find(c => c[0] === s.cls) || classDefs[0])[1] };
+    const NI = { fork: 'M1 0h1v5h-1zM3 0h1v5h-1zM5 0h1v5h-1zM1 4h5v1h-5zM3 5h1v3h-1z', shield: 'M1 1h6v4h-1v1h-1v1h-2v-1h-1v-1h-1z', star: 'M3 0h2v3h3v2h-3v3h-2v-3h-3v-2h3z', fist: 'M1 2h6v4h-6zM2 6h4v2h-4z', bell: 'M3 0h2v1h1v4h1v1h-6v-1h1v-4h1zM3 6h2v2h-2z', heart: 'M1 1h2v1h2v-1h2v3h-1v1h-1v1h-2v-1h-1v-1h-1z' };
+    const nodeDefs = [
+      ['mg', 'Mistgabel-Training', 292, 50, 'fork', 3, 3, 'Mehr Schaden mit der Mistgabel. Das Fundament jeder Bauernarmee.', '+30 % Schaden', '–', '+10 % Schaden je Rang (additiv)'],
+      ['fl', 'Lautes Fluchen', 172, 140, 'bell', 2, 2, 'Aliens verstehen kein Wort, sind aber beleidigt und langsamer.', '−8 % Gegnertempo', '–', '−4 % Gegnertempo je Rang'],
+      ['ds', 'Dickschädel', 292, 140, 'shield', 1, 3, 'Mehr Lebenspunkte durch schiere Sturheit.', '+15 % LP', '+30 % LP', '+15 % LP je Rang'],
+      ['eh', 'Erntehände', 412, 140, 'heart', 0, 3, 'Bauern helfen nach der Schlacht auf dem Feld.', '–', '+5 % Produktion', '+5 % Produktion aller Sammler je Rang'],
+      ['mt', 'Mob-Taktik', 232, 230, 'fist', 1, 3, 'Je mehr Bauern, desto mutiger alle.', '+4 % je Bauer', '+8 % je Bauer', '+4 % Schaden je Bauer je Rang'],
+      ['gk', 'Gunst des Königs', 352, 230, 'star', 0, 5, 'Der König winkt. Moral steigt.', '–', '+3 % auf alles', '+3 % auf alles je Rang'],
+      ['mm', 'Mistgabelmeister', 132, 340, 'fork', 0, 1, 'Spezialisierung A: Bauern werden echte Kämpfer.', '–', '×1,5 Schaden', 'Einmalig ×1,5 Schaden'],
+      ['dw', 'Dorfwache', 452, 340, 'shield', 0, 1, 'Spezialisierung B: Bauern bewachen das Dorf und reparieren die Mauer.', '–', '+2 % Mauer/s', 'Einmalig +2 % Mauerreparatur je Sekunde'],
+      ['sz', 'Spitze Zinken', 82, 440, 'fork', 0, 3, 'Kritische Treffer mit der Mistgabel.', '–', '+5 % Krit', '+5 % Kritchance je Rang'],
+      ['rs', 'Raserei', 182, 440, 'fist', 0, 2, 'Unter 30 % LP doppelt so schnell.', '–', '+50 % Tempo', '+50 % Tempo je Rang bei < 30 % LP'],
+      ['sg', 'Streifengänge', 402, 440, 'bell', 0, 3, 'Bauern finden zwischen Schlachten Schrott.', '–', '+1 Schrott/min', '+1 Alien-Schrott pro Minute je Rang'],
+      ['gl', 'Glöckner', 502, 440, 'bell', 0, 2, 'Warnt früher vor Wellen: Mauer startet voller.', '–', '+10 % Startmauer', '+10 % Startmauer je Rang']
+    ];
+    const nodes = nodeDefs.map(n => {
+      const learned = n[5] > 0, full = n[5] === n[6];
+      const avail = !learned && ['eh', 'gk'].indexOf(n[0]) >= 0;
+      const isSel = s.node === n[0];
+      return {
+        name: n[1], x: n[2], y: n[3], icon: NI[n[4]], rank: n[5] + '/' + n[6],
+        bg: full ? p.accent : (learned ? 'color-mix(in srgb, ' + p.accent + ' 55%, #222)' : (avail ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.07)')),
+        fg: full || learned ? '#1a1206' : (avail ? p.ink : 'rgba(255,255,255,.35)'),
+        shadow: isSel ? '0 0 0 3px ' + p.ink + ', 0 0 24px ' + p.accent : (full ? '0 0 18px ' + p.accent : 'none'),
+        pick: () => this.setState({ node: n[0] })
+      };
+    });
+    const sn = nodeDefs.find(n => n[0] === s.node) || nodeDefs[0];
+    const selNode = { name: sn[1], desc: sn[7], rank: sn[5] + ' / ' + sn[6], now: sn[8], next: sn[9], formula: sn[10] };
+
+    // Schatzkammer
+    const pages = [
+      { chapter: 'Bestiarium · Kapitel I', name: 'Saugling', squid: true, goose: false, saucer: false, quote: 'Staubsauger trifft Tintenfisch. Saugt an der Mauer. Wirklich. Ich habe nachgesehen.', facts: [['Besiegt', '1.204'], ['Leben', '38 × Stufe'], ['Schwäche', 'Feuer, Mistgabeln'], ['Beute', 'Chips, Kabel']], bonus: '+5 % Schaden gegen Saugling. Ganzes Kapitel: +10 % Schaden.', progress: 'Kapitel I: 6 / 8' },
+      { chapter: 'Bestiarium · Kapitel I', name: 'Blechkrieger', squid: false, goose: false, saucer: true, quote: 'Flach, schnell, klappert wie eine Besteckschublade. Fliegt trotzdem. Physik hat heute frei.', facts: [['Besiegt', '612'], ['Leben', '22 × Stufe'], ['Schwäche', 'Pfeile'], ['Beute', 'Schrauben']], bonus: '+5 % Schaden gegen Blechkrieger.', progress: 'Kapitel I: 6 / 8' },
+      { chapter: 'Begleiter', name: 'Kampfgans', squid: false, goose: true, saucer: false, quote: 'Sie hat keine Ausbildung. Sie braucht keine. Die Aliens haben Angst vor ihr, und ehrlich gesagt ich auch.', facts: [['Gefunden', 'Epoche 2'], ['Wirkung', '+8 % Klickschaden'], ['Bleibt', 'bei jedem Sprung'], ['Laune', 'schlecht']], bonus: 'Ganze Sammlung Begleiter: +10 % auf Produktion und Schaden.', progress: 'Begleiter: 3 / 8' }
+    ];
+    const page = pages[s.page % pages.length];
+    const chapterDefs = [['Bestiarium', 0], ['Begleiter', 2], ['Karten', -1], ['Relikte', -1], ['Erfolge', -1]];
+    const chapters = chapterDefs.map(c => ({ name: c[0], bg: c[1] >= 0 && pages[s.page].chapter.indexOf(c[0]) === 0 ? p.accent : 'rgba(255,255,255,.08)', fg: c[1] >= 0 && pages[s.page].chapter.indexOf(c[0]) === 0 ? '#1a1206' : (c[1] < 0 ? 'rgba(255,255,255,.4)' : p.ink), go: () => { if (c[1] >= 0) this.setState({ page: c[1] }); } }));
+
+    const research = [
+      ['Landvermessung I', '120 Wissen', 'Burg-Raster wächst auf 6×6.', 100], ['Spezialisierung', '300 Wissen', 'Klassen wählen ab Level 10 einen Weg.', 100], ['Schmiedekunst', '450 Wissen', 'Schaltet Schmiede und Ausrüstungsstufen frei.', 62],
+      ['Steinregen II', '600 Wissen', 'Steinregen trifft zweimal.', 0], ['Rechenorakel', '1,2K Wissen', 'Alien-Chips sortieren. Weihwasser nicht vergessen.', 0], ['Chronologie', '2K Wissen', 'Bauplan der Zeitmaschine.', 0]
+    ].map(r => ({ name: r[0], cost: r[1], desc: r[2], pct: r[3], op: r[3] === 100 ? .6 : 1 }));
+
+    const narrations = [
+      'Welle fünf. Die Aliens haben sich Mühe gegeben. Ihr nicht so.',
+      'Willkommen zurück im Dorf. Alles noch da. Fast.',
+      'Bau-Modus! Grün heißt Bonus. Rot heißt: Ich habe es dir gesagt.',
+      'Gesperrt. Das ist kein Bug, das ist Spannungsaufbau.',
+      'Ein Stallfeuer. Natürlich. Kaum dreht man der Kaserne den Rücken zu.'
+    ];
+    let narr = s.narr;
+    if (narr === 0 && !isBattle) narr = 1;
+    if (s.buildMode) narr = 2;
+
+    const tabTitles = { bau: 'Bauplatz', kaserne: 'Kaserne', skill: 'Übungsplatz', lib: 'Bibliothek', werk: 'Werkstatt', thron: 'Thronsaal', schatz: 'Schatzkammer', archiv: 'Archiv' };
+
+    return {
+      p: p, stars: stars, flakes: flakes, snow: snow, aliens: aliens, troops: troops, spells: spells,
+      isBattle: isBattle, isVillage: !isBattle,
+      gate: s.gate, gateText: s.gateText,
+      showResult: s.overlay === 'result', showEvent: s.overlay === 'event', showIntro: s.overlay === 'intro', showLog: s.overlay === 'log',
+      endBattle: () => this.setState({ overlay: 'result' }),
+      goVillage: () => this.go('village', 'Ins Dorf …'),
+      toBattle: () => this.go('battle', 'Zur Mauer!'),
+      tabs: tabs, tabRes: tabRes, tabTitle: tabTitles[s.tab] || '',
+      tabBau: !isBattle && s.tab === 'bau', tabSkill: s.tab === 'skill', tabSchatz: s.tab === 'schatz', tabLib: s.tab === 'lib',
+      tabLater: ['kaserne', 'werk', 'thron', 'archiv'].indexOf(s.tab) >= 0,
+      tiles: tiles, buildings: buildings, sel: sel, catalog: catalog,
+      buildMode: s.buildMode,
+      buildBtnText: s.buildMode ? 'Bau-Modus beenden' : 'Bau-Modus',
+      buildBtnBg: s.buildMode ? p.accent : 'rgba(8,10,22,.62)', buildBtnFg: s.buildMode ? '#1a1206' : p.ink,
+      toggleBuild: () => this.setState({ buildMode: !this.state.buildMode, buildPick: this.state.buildMode ? null : 0 }),
+      upgrade: () => this.setState({ upg: this.state.upg + 1 }),
+      openEvent: () => this.setState({ overlay: 'event', narr: 4 }),
+      closeEvent: () => this.setState({ overlay: 'eventDone', narr: 1 }),
+      choices: [{ t: 'Löschen', d: '−150 Holz, Kaserne bleibt ganz' }, { t: 'Brennen lassen', d: 'Kaserne verliert 1 Level, aber du sparst das Holz' }, { t: 'Beten', d: '30 %: Regen. Sonst brennt es trotzdem.' }],
+      classes: classes, selClass: selClass, nodes: nodes, selNode: selNode,
+      page: page, pageNo: (s.page % pages.length) + 1, pageCount: pages.length, bookKey: [{ k: s.page }],
+      prevPage: () => this.setState({ page: (this.state.page + pages.length - 1) % pages.length }),
+      nextPage: () => this.setState({ page: (this.state.page + 1) % pages.length }),
+      chapters: chapters, research: research,
+      enterLib: () => this.setState({ overlay: null, libSeen: true, tab: 'lib' }),
+      toastKey: s.toastN > 0 ? [{ k: s.toastN }] : [],
+      narration: narrations[narr],
+      openLog: () => this.setState({ overlay: this.state.overlay === 'log' ? null : 'log' }),
+      closeLog: () => this.setState({ overlay: null }),
+      loot: [{ k: 'Gold', v: '+318', color: '#f2b33d' }, { k: 'Alien-Schrott', v: '+9', color: '#6ee0c8' }, { k: 'XP je Truppe', v: '+140', color: '#8fe38f' }, { k: 'Zeitmaschinenteil', v: '–', color: '#c9cfdc' }],
+      log: [{ t: '3:12', x: 'Sieg in Belagerungsstufe 4. Die Mauer hat Dellen, aber Charakter.' }, { t: '2:40', x: 'Erfolg: Mauerbrecher II. +1 % auf alles. Ich habe es aufgeschrieben.' }, { t: '2:05', x: 'Die Bogenschützin hat zum ersten Mal getroffen. Wir sind alle sehr stolz.' }, { t: '1:12', x: 'Neues Gesicht im Bestiarium: Panzerschnecke. Langsam, aber nachtragend.' }, { t: '0:30', x: 'Welle eins. Die Bauern halten die Mistgabeln richtig herum. Meistens.' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

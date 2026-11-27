@@ -85,6 +85,10 @@ export interface BattleState {
   /** Finalschlacht gegen das Mutterschiff? Und erreichte Phase des Endgegners. */
   final?: boolean;
   phase?: number;
+  /** Für das Ergebnisfenster mitgezählt. */
+  xpEarned?: number;
+  newEnemies?: EnemyId[];
+  part?: EnemyId | null;
 }
 
 export interface BattleSummary {
@@ -94,6 +98,17 @@ export interface BattleSummary {
   kills: number;
   goldEarned: number;
   seconds: number;
+}
+
+/** Alles, was das Ergebnisfenster nach einer Schlacht zeigt. */
+export interface BattleResult extends BattleSummary {
+  xp: number;
+  /** Alien-Typen, die in dieser Schlacht zum ersten Mal besiegt wurden. */
+  newEnemies: EnemyId[];
+  /** Erbeutetes Zeitmaschinenteil (Elitegegner), falls eines. */
+  part: EnemyId | null;
+  retreat: boolean;
+  final: boolean;
 }
 
 export interface LogEntry {
@@ -277,6 +292,11 @@ export interface GameState {
     best: Record<string, number>;
     startedAt: number;
   };
+  /**
+   * Szene (UI-Umbau): offenes Ergebnisfenster der letzten Schlacht (hält die Kampfphase offen)
+   * und Countdown eines Hofbefehls „Schlacht starten“ (Sekunden, null = keiner).
+   */
+  scene: { result: BattleResult | null; countdown: number | null };
   /** Ereignisse, Drohne, Würfel. */
   events: EventsState;
   /** Hofbefehle (bleiben beim Sprung erhalten). */
@@ -367,6 +387,7 @@ export function createInitialState(seed = Date.now()): GameState {
     relics: {},
     relicPity: 0,
     finale: { wonAt: null, wins: 0 },
+    scene: { result: null, countdown: null },
     loop: { count: 0, curses: [], nextCurses: [], seals: 0, best: {}, startedAt: 0 },
     timeline: [],
     achievementTimer: 0,

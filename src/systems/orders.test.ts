@@ -1,4 +1,5 @@
 import Decimal from 'break_eternity.js';
+import { SCENE } from '../data/scene';
 import { describe, expect, it } from 'vitest';
 import type { OrderRule } from '../data/orders';
 import { dispatch } from './actions';
@@ -10,6 +11,7 @@ import type { GameState } from './state';
 function withOrders(): GameState {
   const s = newGame(51);
   while (s.battle) tick(s, 0.05);
+  s.scene.result = null; // Ergebnisfenster schließen: zurück ins Dorf
   Object.assign(s.unlocked, { orders: true, recruit: true });
   return s;
 }
@@ -34,8 +36,14 @@ describe('Hofbefehle', () => {
     dispatch(s, { type: 'setOrders', rules: [rule(1)] });
     expect(s.battle).toBeNull();
     for (let i = 0; i < 25; i++) tick(s, 0.05);
-    expect(s.battle).not.toBeNull();
+    // Keine Schlacht im Hintergrund: erst ein sichtbarer Countdown im Dorf …
+    expect(s.battle).toBeNull();
+    expect(s.scene.countdown).not.toBeNull();
     expect(s.orders.log.at(-1)).toMatchObject({ ruleId: 1, ok: true });
+    // … dann öffnet sich das Tor.
+    for (let i = 0; i < 20 * SCENE.orderCountdown; i++) tick(s, 0.05);
+    expect(s.battle).not.toBeNull();
+    expect(s.scene.countdown).toBeNull();
   });
 
   it('Stufe 1 erlaubt 2 Regeln mit je einer Bedingung, Stufe 2 mehr', () => {

@@ -8,7 +8,7 @@ import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import { BATTLE, ENEMIES } from '../data/enemies';
 import { epochDef, type EpochPalette } from '../data/epochs';
 import { DRONE } from '../data/events';
-import type { GameState } from '../systems/state';
+import type { FxEvent, GameState } from '../systems/state';
 import { attackInterval, troops } from '../systems/units';
 import { Effects } from './effects';
 import { spriteTexture } from './pixel';
@@ -25,6 +25,8 @@ export interface BattleSceneOptions {
   onEnemyClick: (enemyId: number) => void;
   onDroneClick: () => void;
   onAchievement?: (id: string) => void;
+  /** Jedes Effekt-Ereignis, z. B. für Soundeffekte. */
+  onFx?: (fx: FxEvent) => void;
   reducedMotion: () => boolean;
 }
 
@@ -297,6 +299,7 @@ export class BattleScene {
   private consumeFx(state: GameState): void {
     const reduced = this.options.reducedMotion();
     for (const fx of state.fx) {
+      this.options.onFx?.(fx);
       switch (fx.kind) {
         case 'shot': {
           const from = this.defenderPos(fx.slot, 12);

@@ -1,0 +1,264 @@
+/**
+ * Soundeffekte und Musik als Daten. Jeder Effekt ist eine kleine Folge von Tönen
+ * (siehe audio/engine.ts); jede Epoche hat ein eigenes Musikstück aus zwei Stimmen.
+ * Ändern oder ergänzen geht hier, ohne die Audio-Logik anzufassen.
+ */
+import type { Tone } from '../audio/engine';
+
+export type SfxId =
+  | 'hit'
+  | 'click'
+  | 'kill'
+  | 'crit'
+  | 'wallHit'
+  | 'levelUp'
+  | 'build'
+  | 'buy'
+  | 'deny'
+  | 'spell'
+  | 'heal'
+  | 'battleWon'
+  | 'battleLost'
+  | 'drone'
+  | 'achievement'
+  | 'jump'
+  | 'event';
+
+const note = (semitones: number) => 440 * 2 ** (semitones / 12);
+
+export const SFX: Record<SfxId, Tone[]> = {
+  hit: [{ wave: 'noise', freq: 1800, slideTo: 600, attack: 0.002, decay: 0.06, volume: 0.12 }],
+  click: [{ wave: 'square', freq: 520, slideTo: 260, attack: 0.002, decay: 0.05, volume: 0.1 }],
+  kill: [
+    { wave: 'noise', freq: 900, slideTo: 200, attack: 0.003, decay: 0.18, volume: 0.25 },
+    { wave: 'triangle', freq: 300, slideTo: 80, attack: 0.003, decay: 0.15, volume: 0.15 },
+  ],
+  crit: [{ wave: 'sawtooth', freq: 900, slideTo: 1500, attack: 0.002, decay: 0.08, volume: 0.1 }],
+  wallHit: [{ wave: 'noise', freq: 300, slideTo: 120, attack: 0.003, decay: 0.12, volume: 0.15 }],
+  levelUp: [0, 4, 7, 12].map((s, i) => ({
+    wave: 'square' as const,
+    freq: note(s + 3),
+    attack: 0.005,
+    decay: 0.09,
+    volume: 0.08,
+    delay: i * 0.06,
+  })),
+  build: [
+    { wave: 'noise', freq: 500, attack: 0.002, decay: 0.08, volume: 0.2 },
+    { wave: 'noise', freq: 400, attack: 0.002, decay: 0.08, volume: 0.2, delay: 0.12 },
+  ],
+  buy: [{ wave: 'triangle', freq: note(7), slideTo: note(12), attack: 0.004, decay: 0.1, volume: 0.15 }],
+  deny: [{ wave: 'square', freq: 140, attack: 0.004, decay: 0.12, volume: 0.08 }],
+  spell: [{ wave: 'sawtooth', freq: 200, slideTo: 1200, attack: 0.02, decay: 0.35, volume: 0.1 }],
+  heal: [0, 5, 9].map((s, i) => ({
+    wave: 'sine' as const,
+    freq: note(s + 12),
+    attack: 0.02,
+    decay: 0.3,
+    volume: 0.1,
+    delay: i * 0.08,
+  })),
+  battleWon: [0, 4, 7, 12, 16].map((s, i) => ({
+    wave: 'square' as const,
+    freq: note(s),
+    attack: 0.005,
+    decay: 0.18,
+    volume: 0.1,
+    delay: i * 0.1,
+  })),
+  battleLost: [7, 3, 0, -5].map((s, i) => ({
+    wave: 'triangle' as const,
+    freq: note(s - 5),
+    attack: 0.01,
+    decay: 0.3,
+    volume: 0.15,
+    delay: i * 0.18,
+  })),
+  drone: [{ wave: 'square', freq: 1200, slideTo: 2400, attack: 0.004, decay: 0.15, volume: 0.1 }],
+  achievement: [0, 7, 12].map((s, i) => ({
+    wave: 'triangle' as const,
+    freq: note(s + 15),
+    attack: 0.005,
+    decay: 0.2,
+    volume: 0.12,
+    delay: i * 0.07,
+  })),
+  jump: [
+    { wave: 'sawtooth', freq: 80, slideTo: 2000, attack: 0.3, decay: 1.2, volume: 0.15 },
+    { wave: 'noise', freq: 3000, slideTo: 200, attack: 0.4, decay: 1.4, volume: 0.1 },
+  ],
+  event: [0, 12].map((s, i) => ({
+    wave: 'square' as const,
+    freq: note(s + 10),
+    attack: 0.005,
+    decay: 0.12,
+    volume: 0.08,
+    delay: i * 0.12,
+  })),
+};
+
+/**
+ * Musik: Melodie und Bass als Halbtonschritte relativ zum Grundton (null = Pause).
+ * Jede Epoche bekommt eigenes Tempo, eigene Instrumente und eigene Tonleiter.
+ */
+export interface Song {
+  bpm: number;
+  root: number;
+  lead: OscillatorType;
+  bass: OscillatorType;
+  melody: (number | null)[];
+  bassline: (number | null)[];
+}
+
+export const SONGS: Record<number, Song> = {
+  // Finsteres Mittelalter: dorisch, gemächlich, Rechteck über Dreieck – ein Spielmann vor der Burg.
+  1: {
+    bpm: 96,
+    root: -9,
+    lead: 'square',
+    bass: 'triangle',
+    melody: [
+      0,
+      null,
+      3,
+      5,
+      7,
+      null,
+      5,
+      3,
+      2,
+      null,
+      0,
+      2,
+      3,
+      null,
+      null,
+      null,
+      7,
+      null,
+      10,
+      9,
+      7,
+      null,
+      5,
+      3,
+      5,
+      null,
+      7,
+      5,
+      3,
+      2,
+      0,
+      null,
+    ],
+    bassline: [
+      -12,
+      null,
+      null,
+      null,
+      -9,
+      null,
+      null,
+      null,
+      -10,
+      null,
+      null,
+      null,
+      -12,
+      null,
+      null,
+      null,
+      -5,
+      null,
+      null,
+      null,
+      -7,
+      null,
+      null,
+      null,
+      -10,
+      null,
+      null,
+      null,
+      -12,
+      null,
+      null,
+      null,
+    ],
+  },
+  // Dampf & Zahnrad: schneller, Sägezahn wie eine Dampforgel, Dur mit Swing-Gefühl.
+  2: {
+    bpm: 118,
+    root: -7,
+    lead: 'sawtooth',
+    bass: 'square',
+    melody: [
+      0,
+      4,
+      7,
+      4,
+      9,
+      7,
+      4,
+      null,
+      5,
+      9,
+      12,
+      9,
+      7,
+      null,
+      4,
+      null,
+      0,
+      4,
+      7,
+      12,
+      11,
+      7,
+      4,
+      2,
+      0,
+      null,
+      2,
+      4,
+      0,
+      null,
+      null,
+      null,
+    ],
+    bassline: [
+      -12,
+      null,
+      -5,
+      null,
+      -12,
+      null,
+      -5,
+      null,
+      -7,
+      null,
+      0,
+      null,
+      -7,
+      null,
+      0,
+      null,
+      -12,
+      null,
+      -5,
+      null,
+      -10,
+      null,
+      -3,
+      null,
+      -12,
+      null,
+      -5,
+      null,
+      -12,
+      null,
+      null,
+      null,
+    ],
+  },
+};

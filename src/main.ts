@@ -15,7 +15,7 @@ import { LocalStorageBackend } from './save/storage';
 import { dispatch, type Action } from './systems/actions';
 import { startBattle } from './systems/battle';
 import { newGame, tick } from './systems/game';
-import { addLog, type GameState } from './systems/state';
+import { addLog, type FxEvent, type GameState } from './systems/state';
 import { castleHtml, type CastleUi } from './ui/castle-panel';
 import { el, setHtml } from './ui/dom';
 import { battleHudHtml, logHtml, resourcesHtml } from './ui/panels-top';
@@ -27,6 +27,9 @@ import { spellLevel } from './systems/spells';
 import { researchHtml } from './ui/research-panel';
 import { timeMachineHtml } from './ui/timemachine-panel';
 import { installTooltips } from './ui/tooltip';
+import { audio } from './audio/engine';
+import { sfx, updateMusic } from './audio/player';
+import { applySetting, settingsHtml } from './ui/settings-panel';
 import { showRecap } from './ui/recap';
 import { welcomeBack } from './systems/recap';
 import { chronicleHtml } from './ui/chronicle-panel';
@@ -212,23 +215,84 @@ function confirmJump(): void {
   });
 }
 
+/** Einstellungen anwenden: Schriftgröße, Lautstärken. */
+function applySettings(): void {
+  const s = state.settings;
+  document.documentElement.style.setProperty('--font-scale', String(s.fontScale));
+  audio.setVolumes(s.sfxVolume, s.musicVolume);
+}
+
+function toggleSettings(show?: boolean): void {
+  const box = el('#settings');
+  const visible = show ?? box.hidden;
+  if (visible) setHtml(box, settingsHtml(state.settings));
+  box.hidden = !visible;
+}
+
+/** M: alles stumm bzw. die vorigen Lautstärken zurück. */
+let mutedFrom: { sfx: number; music: number } | null = null;
+function toggleMute(): void {
+  const s = state.settings;
+  if (mutedFrom) {
+    s.sfxVolume = mutedFrom.sfx;
+    s.musicVolume = mutedFrom.music;
+    mutedFrom = null;
+  } else {
+    mutedFrom = { sfx: s.sfxVolume, music: s.musicVolume };
+    s.sfxVolume = 0;
+    s.musicVolume = 0;
+  }
+  applySettings();
+  showToast(t(mutedFrom ? 'settings.muted' : 'settings.unmuted'));
+}
+
+/** Soundeffekte zu den Ereignissen der Schlacht. */
+function soundFor(fx: FxEvent): void {
+  switch (fx.kind) {
+    case 'hit':
+      sfx(fx.byClick ? 'click' : 'hit');
+      break;
+    case 'kill':
+    case 'crit':
+    case 'wallHit':
+    case 'levelUp':
+    case 'drone':
+    case 'achievement':
+    case 'jump':
+      sfx(fx.kind);
+      break;
+    case 'battleEnd':
+      sfx(fx.result === 'won' ? 'battleWon' : 'battleLost');
+      break;
+    case 'spell':
+      sfx(fx.spell === 'blessing' ? 'heal' : 'spell');
+      break;
+    case 'milestone':
+      sfx('levelUp');
+      break;
+  }
+}
+
 function applyStaticTexts(): void {
   document.documentElement.lang = getLocale();
   document.title = t('app.title');
   for (const node of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
     node.textContent = t(node.dataset.i18n as MessageKey);
   }
-  el('#autosave-label').textContent = t('save.autosave', { s: state.settings.autosaveSeconds });
+
   el('#epoch-label').textContent = t('epoch.title', {
     n: state.epoch,
     name: tk(`epoch.${epochDef(state.epoch).id}`),
   });
-  el<HTMLSelectElement>('#autosave').value = String(state.settings.autosaveSeconds);
 }
 
 function run(actionToRun: Action): void {
   const reason = dispatch(state, actionToRun);
   if (reason) showToast(t(reason));
+  // Hörbare Rückmeldung für Käufe; Kampf-Aktionen klingen über ihre Effekte.
+  const quiet = ['clickEnemy', 'castSpell', 'startBattle', 'retreat', 'catchDrone', 'setOrders'];
+  if (!quiet.includes(actionToRun.type))
+    sfx(reason ? 'deny' : actionToRun.type === 'build' ? 'build' : 'buy');
   holdRenderUntil = 0;
   renderPanels();
 }
@@ -305,7 +369,15 @@ function installInput(debug: { toggle(): void }): void {
       if (!state.battle) run({ type: 'startBattle' });
     } else if (e.key.toLowerCase() === 's' && !e.ctrlKey) {
       save(true);
+    } else if (e.key.toLowerCase() === 'r' && state.battle) {
+      run({ type: 'retreat' });
+    } else if (e.key.toLowerCase() === 'm') {
+      toggleMute();
+    } else if (e.key.toLowerCase() === 'o') {
+      toggleSettings();
     } else if (e.key === 'Escape') {
+      toggleSettings(false);
+      document.querySelector('.modal-backdrop')?.remove();
       castleUi.selected = null;
       renderPanels();
     }
@@ -346,10 +418,32 @@ function installInput(debug: { toggle(): void }): void {
       showToast(t('save.importFailed'));
     }
   });
-  el<HTMLSelectElement>('#autosave').addEventListener('change', (e) => {
-    state.settings.autosaveSeconds = Number((e.target as HTMLSelectElement).value);
-    applyStaticTexts();
+  // Einstellungen: eigenes Fenster, Änderungen wirken sofort.
+  el('#settings-toggle').addEventListener('click', () => toggleSettings());
+  el('#settings').addEventListener('input', (e) => {
+    const input = (e.target as HTMLElement).closest<HTMLInputElement | HTMLSelectElement>('[data-setting]');
+    if (!input) return;
+    const before = state.settings.locale;
+    applySetting(state.settings, input);
+    applySettings();
+    if (state.settings.locale !== before) {
+      setLocale(state.settings.locale);
+      applyStaticTexts();
+      renderPanels();
+    }
+    // Nur die Beschriftungen mit Prozentwerten neu schreiben – Schieberegler behalten den Fokus.
+    if (input instanceof HTMLSelectElement || input.type === 'checkbox')
+      setHtml(el('#settings'), settingsHtml(state.settings));
   });
+  el('#settings').addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('[data-settings-close]')) toggleSettings(false);
+  });
+
+  // Audio darf erst nach einer Nutzeraktion starten.
+  const unlockAudio = () => audio.unlock();
+  document.addEventListener('pointerdown', unlockAudio);
+  document.addEventListener('keydown', unlockAudio);
+  document.addEventListener('visibilitychange', () => audio.setHidden(document.hidden));
 
   // Beim Verlassen oder Verstecken des Tabs sofort speichern – kein Spielstandverlust.
   document.addEventListener('visibilitychange', () => document.hidden && save());
@@ -376,6 +470,7 @@ async function start(): Promise<void> {
   const scene = await BattleScene.create(el('#stage'), el('#fx-layer'), {
     onEnemyClick: (enemyId) => run({ type: 'clickEnemy', enemyId }),
     onDroneClick: () => run({ type: 'catchDrone' }),
+    onFx: soundFor,
     onAchievement: (id) => {
       const def = ACHIEVEMENTS.find((a) => a.id === id);
       if (def) showToast(`★ ${achievementTitle(id, def.metric)}`);
@@ -385,11 +480,17 @@ async function start(): Promise<void> {
 
   let last = performance.now();
   let panelTimer = 0;
+  let lastEvent = state.events.active;
+  applySettings();
   const frame = (now: number) => {
     const dt = Math.min(0.25, (now - last) / 1000);
     loop.advance(now - last);
     last = now;
+    // Neues Ereignis? Kurzer Hinweiston.
+    if (state.events.active && state.events.active !== lastEvent) sfx('event');
+    lastEvent = state.events.active;
     scene.update(state, loop.alpha, dt);
+    if (state.settings.musicVolume > 0) updateMusic(state.epoch);
 
     // Panels 5× pro Sekunde reichen; sie ändern ihr DOM ohnehin nur bei echten Änderungen.
     panelTimer += dt;

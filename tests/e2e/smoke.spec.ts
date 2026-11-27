@@ -158,6 +158,24 @@ test('Rückblick nach langer Pause mit Ausgeruht-Bonus', async ({ page }) => {
   await expect(page.locator('.rested')).toContainText('Ausgeruht');
 });
 
+test('Einstellungen: per Taste öffnen, Schriftgröße, Ton aus, Sprache', async ({ page }) => {
+  await page.locator('body').click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press('o');
+  await expect(page.locator('#settings')).toBeVisible();
+  await page.locator('[data-setting="fontScale"]').fill('1.2');
+  expect(await game(page, 'g.state.settings.fontScale')).toBe(1.2);
+  await page.locator('#settings [data-setting="reducedMotion"]').check();
+  expect(await game(page, 'g.state.settings.reducedMotion')).toBe(true);
+  await page.locator('#settings').screenshot({ path: 'test-results/09-einstellungen.png' });
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#settings')).toBeHidden();
+  await page.keyboard.press('m');
+  expect(await game(page, 'g.state.settings.sfxVolume')).toBe(0);
+  await page.keyboard.press('o');
+  await page.locator('[data-setting="locale"]').selectOption('en');
+  await expect(page.locator('h1')).toHaveText('Chronocrown');
+});
+
 test('Sprache lässt sich umschalten', async ({ page }) => {
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.locator('h1')).toHaveText('Chronocrown');

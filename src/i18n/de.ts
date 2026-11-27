@@ -176,7 +176,7 @@ export const de = {
   'save.autosave': 'Autosave alle {s} s',
   'save.loadFailed': 'Der Spielstand war beschädigt – ich habe das letzte Backup geladen.',
 
-  'help.shortcuts': 'Leertaste: Schlacht · 1–3: Zauber · S: Speichern · Strg+Umschalt+D: Debug',
+  'help.shortcuts': 'Leertaste: Schlacht · 1–3: Zauber · S: Speichern · M: Ton · O: Einstellungen',
 
   'debug.title': 'Debug',
   'debug.speed': 'Tempo ×{speed}',
@@ -797,6 +797,29 @@ export const de = {
   'hud.rested': 'Ausgeruht: ×2 Erfahrung · noch {time}',
   'hud.restedTip':
     'Wer mindestens 5 Minuten Pause macht, bekommt 5 Minuten je Stunde Abwesenheit doppelte Erfahrung (mindestens 2, höchstens 15 Minuten).',
+
+  // --- Meilenstein 6a ---
+  'settings.button': '⚙ Einstellungen',
+  'settings.title': 'Einstellungen',
+  'settings.language': 'Sprache',
+  'settings.fontScale': 'Schriftgröße: {pct} %',
+  'settings.reducedMotion': 'Bewegung reduzieren (kein Wackeln, weniger Partikel, keine Animationen)',
+  'settings.sfx': 'Effekte: {pct} %',
+  'settings.music': 'Musik: {pct} %',
+  'settings.autosave': 'Automatisch speichern alle',
+  'settings.keys': 'Tastenkürzel',
+  'settings.close': 'Schließen',
+  'settings.muted': 'Ton aus (M)',
+  'settings.unmuted': 'Ton an',
+  'keys.space': 'Leertaste',
+  'keys.battle': 'Schlacht beginnen',
+  'keys.spells': 'Zauber wirken',
+  'keys.retreat': 'Rückzug',
+  'keys.save': 'Speichern',
+  'keys.mute': 'Ton aus/an',
+  'keys.settings': 'Einstellungen',
+  'keys.close': 'Fenster schließen, Auswahl aufheben',
+  'keys.debug': 'Debug-Panel',
 } as const;
 
 export type MessageKey = keyof typeof de;

@@ -67,8 +67,8 @@ export const EPOCHS: EpochDef[] = [
   {
     id: 2,
     map: EPOCH2_MAP,
-    enemyHp: 6,
-    gold: 5,
+    enemyHp: 20,
+    gold: 8,
     palette: {
       // Messing, Kupfer, Nebel: wärmerer Himmel, Dampfschwaden statt Sternenklarheit.
       sky: ['#1a1410', '#2a1e16', '#3a2a1c', '#4a3824', '#5a4630'],

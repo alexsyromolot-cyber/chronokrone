@@ -174,7 +174,7 @@ export const BATTLE = {
   countBase: 2,
   countPerWave: 1,
   hpGrowthPerWave: 1.45,
-  hpGrowthPerSiege: 1.75,
+  hpGrowthPerSiege: 1.85,
   goldGrowthPerSiege: 1.6,
   goldPerWaveStep: 0.15,
   /** Sekunden zwischen zwei Spawns innerhalb einer Welle. */

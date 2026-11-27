@@ -49,6 +49,7 @@ export function castSpell(state: GameState, id: SpellId): MessageKey | null {
   const b = state.battle!;
   const power = spellPower(state, id);
   b.spellCooldowns[id] = SPELLS[id].cooldown;
+  state.stats.spellsCast++;
   state.fx.push({ kind: 'spell', spell: id });
   if (id === 'stoneRain') {
     // Kopie der Liste, weil getroffene Aliens beim Sterben entfernt werden.

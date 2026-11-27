@@ -24,6 +24,7 @@ const LANE_STEP = 7;
 export interface BattleSceneOptions {
   onEnemyClick: (enemyId: number) => void;
   onDroneClick: () => void;
+  onAchievement?: (id: string) => void;
   reducedMotion: () => boolean;
 }
 
@@ -331,6 +332,9 @@ export class BattleScene {
           break;
         }
         case 'battleEnd':
+          break;
+        case 'achievement':
+          this.options.onAchievement?.(fx.id);
           break;
         case 'drone':
           this.effects.burst(this.drone?.x ?? 160, this.drone?.y ?? 30, '#ffe66d', reduced ? 4 : 16);

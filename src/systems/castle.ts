@@ -16,6 +16,7 @@ import { CLASSES, UNIT_FORMULAS, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { hasResearch, surveyBounds } from './research';
 import { canAfford, exceedsCap, gain, pay, resourceCap, scaledCost, type Cost } from './resources';
+import { achievementMultiplier } from './achievements';
 import { chronicleBonus } from './chronicle';
 import { productionModifier } from './events';
 import { weaponMultiplier } from './gear';
@@ -123,6 +124,7 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
   const milestone = milestoneMultiplier(tile.level);
 
   const chronicle =
+    achievementMultiplier(state) *
     (1 + chronicleBonus(state, 'production')) *
     (def.produces.resource === 'knowledge' ? 1 + chronicleBonus(state, 'knowledge') : 1);
   const season = productionModifier(state, def.produces.resource);
@@ -300,6 +302,7 @@ export function upgrade(state: GameState, tile: Tile): MessageKey | null {
   if (blocker) return blocker;
   pay(state, upgradeCost(tile));
   tile.level++;
+  state.stats.maxBuildingLevel = Math.max(state.stats.maxBuildingLevel, tile.level);
   if ((BUILDING_MILESTONES as readonly number[]).includes(tile.level)) {
     state.fx.push({ kind: 'milestone' });
     addLog(state, 'narrator.buildingMilestone', { level: tile.level });

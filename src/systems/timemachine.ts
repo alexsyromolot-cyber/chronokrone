@@ -9,6 +9,7 @@ import type { MessageKey } from '../i18n/de';
 import { hasResearch } from './research';
 import { canAfford, exceedsCap, pay, type Cost } from './resources';
 import { totalSkillRanks } from './skills';
+import { addTimeline } from './achievements';
 import { addLog, type GameState } from './state';
 
 function toCost(a: ResourceAmounts): Cost {
@@ -70,6 +71,8 @@ export function buildTimeMachine(state: GameState): MessageKey | null {
   if (blocker) return blocker;
   pay(state, timeMachineCost());
   state.timeMachineAt = state.time;
+  state.stats.timeMachines++;
+  addTimeline(state, `timeMachine.${state.epoch}`, { epoch: state.epoch });
   state.fx.push({ kind: 'milestone' });
   addLog(state, 'narrator.timeMachineBuilt');
   return null;

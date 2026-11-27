@@ -101,8 +101,10 @@ export function tickOrders(state: GameState, dt: number): void {
     const reason = action ? dispatch(state, action) : 'reason.unknown';
     // Fehlschläge nur protokollieren, wenn sich der Grund ändert – sonst jede Sekunde dasselbe.
     const last = [...orders.log].reverse().find((l) => l.ruleId === rule.id);
-    if (reason === null) log(orders, { time: state.time, ruleId: rule.id, ok: true });
-    else if (!last || last.ok || last.reason !== reason)
+    if (reason === null) {
+      log(orders, { time: state.time, ruleId: rule.id, ok: true });
+      state.stats.ordersExecuted++;
+    } else if (!last || last.ok || last.reason !== reason)
       log(orders, { time: state.time, ruleId: rule.id, ok: false, reason });
   });
 }

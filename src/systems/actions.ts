@@ -108,6 +108,7 @@ function execute(state: GameState, action: Action): MessageKey | null {
       return startBattle(state, action.siege);
     case 'retreat':
       if (!state.battle) return 'reason.unknown';
+      state.stats.retreats++;
       endBattle(state, 'lost');
       return null;
     case 'clickEnemy':

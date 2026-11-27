@@ -89,7 +89,7 @@ describe('Burg', () => {
     const p = tileProduction(s, tileAt(s, 2, 3)!)!;
     // Wald: 0,15 × Level 1 × Meilenstein 1 × Gelände 1,5 × (1 + 0)
     expect(p.terrain).toBe(1.5);
-    expect(p.total).toBeCloseTo(BUILDINGS.lumberHut.produces!.perLevel * 1.5);
+    expect(p.total).toBeCloseTo(BUILDINGS.lumberHut.produces!.perLevel * 1.5 * p.chronicle); // Chronik & Erfolge
     expect(productionRates(s).wood).toBeCloseTo(p.total);
   });
 

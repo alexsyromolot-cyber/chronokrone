@@ -18,6 +18,8 @@ function isMet(state: GameState, c: UnlockCondition): boolean {
       return state.stats.wins >= c.count;
     case 'hasBuilding':
       return state.tiles.some((t) => t.building === c.building);
+    case 'timeParts':
+      return Object.keys(state.timeParts).length >= c.count;
   }
 }
 

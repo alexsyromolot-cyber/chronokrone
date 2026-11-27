@@ -6,7 +6,8 @@ import type { MessageKey } from '../i18n/de';
 
 import type { BuildingId } from './buildings';
 
-export type UnlockId = 'castle' | 'recruit' | 'skills' | 'wall' | 'bestiary' | 'siege' | 'research';
+export type UnlockId =
+  'castle' | 'recruit' | 'skills' | 'wall' | 'bestiary' | 'siege' | 'research' | 'timeMachine';
 
 export type UnlockCondition =
   | { kind: 'battlesFought'; count: number }
@@ -14,7 +15,8 @@ export type UnlockCondition =
   | { kind: 'skillPointsEarned'; count: number }
   | { kind: 'kills'; count: number }
   | { kind: 'wins'; count: number }
-  | { kind: 'hasBuilding'; building: BuildingId };
+  | { kind: 'hasBuilding'; building: BuildingId }
+  | { kind: 'timeParts'; count: number };
 
 export interface UnlockDef {
   id: UnlockId;
@@ -36,6 +38,7 @@ export const UNLOCKS: UnlockDef[] = [
     condition: { kind: 'hasBuilding', building: 'monastery' },
     narrator: 'narrator.unlockResearch',
   },
+  { id: 'timeMachine', condition: { kind: 'timeParts', count: 1 }, narrator: 'narrator.unlockTimeMachine' },
 ];
 
 /** Wie viele Erzähler-Zeilen im Log aufbewahrt werden. */

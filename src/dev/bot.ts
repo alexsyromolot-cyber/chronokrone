@@ -68,7 +68,8 @@ const RECRUIT_ORDER: ClassId[] = [
 
 /** Kaufwünsche in Prioritätsreihenfolge; der erste, der klappt, wird gekauft. */
 function wishes(state: GameState): Action[] {
-  const list: Action[] = [];
+  // Das große Ziel zuerst: Rechenorakel und Zeitmaschine, sobald möglich.
+  const list: Action[] = [{ type: 'buildTimeMachine' }, { type: 'buildOracle' }];
   for (const s of SKILLS) list.push({ type: 'buySkill', skillId: s.id });
 
   // Forschung: die günstigste verfügbare zuerst.

@@ -4,9 +4,9 @@
 import { BATTLE } from '../data/enemies';
 import { RESOURCES, RESOURCE_IDS, type ResourceId } from '../data/resources';
 import { UNIT_FORMULAS } from '../data/units';
-import { t } from '../i18n';
+import { t, tk } from '../i18n';
 import { wallUpgradeBlocker, wallUpgradeCost, type Action } from '../systems/actions';
-import { clickDamage, wallMaxHp } from '../systems/battle';
+import { clickDamage, eliteForSiege, enrageFactor, wallMaxHp } from '../systems/battle';
 import { productionRates } from '../systems/castle';
 import { keepLevel, resourceCap } from '../systems/resources';
 import { skillBonus } from '../systems/skills';
@@ -18,16 +18,20 @@ export function action(a: Action): string {
   return `data-action="${esc(JSON.stringify(a))}"`;
 }
 
-function resourceVisible(state: GameState, id: ResourceId): boolean {
+/**
+ * Eine Ressource erscheint erst, wenn sie eine Rolle spielt: Gold nach dem ersten Abschuss,
+ * Holz und Stein mit der Burg, alles andere sobald man etwas davon hat oder produziert.
+ * So wächst die Leiste mit dem Spiel, statt am Anfang mit 13 Nullen zu erschlagen.
+ */
+function resourceVisible(state: GameState, id: ResourceId, rate: number): boolean {
+  if (state.resources[id].gt(0) || rate !== 0) return true;
   if (id === 'gold') return state.stats.kills > 0;
-  if (id === 'scrap')
-    return state.resources.scrap.gt(0) || !!state.log.find((l) => l.key === 'narrator.firstScrap');
-  return !!state.unlocked.castle;
+  return (id === 'wood' || id === 'stone') && !!state.unlocked.castle;
 }
 
 export function resourcesHtml(state: GameState): string {
   const rates = productionRates(state);
-  return RESOURCE_IDS.filter((id) => resourceVisible(state, id))
+  return RESOURCE_IDS.filter((id) => resourceVisible(state, id, rates[id]))
     .map((id) => {
       const cap = resourceCap(state, id);
       const value = state.resources[id];
@@ -69,8 +73,20 @@ export function battleHudHtml(state: GameState): string {
       <span class="tag">${esc(t('battle.wave', { wave: Math.max(1, b.wave), total: BATTLE.wavesPerBattle }))}</span>
       <div class="bar wall-bar" ${tip(wallTip)}><div class="fill" style="width:${(wallPct * 100).toFixed(1)}%"></div>
         <span>${esc(t('battle.wall', { hp: Math.ceil(b.wallHp), max: b.wallMaxHp }))}</span></div>
+      ${
+        enrageFactor(b.elapsed) > 1
+          ? `<span class="tag bad" ${tip(t('battle.enrageTip', { after: BATTLE.enrageAfter, doubling: BATTLE.enrageDoubling }))}>${esc(
+              t('battle.enrage', { x: num(enrageFactor(b.elapsed), 1) }),
+            )}</span>`
+          : ''
+      }
       <button class="btn small" ${action({ type: 'retreat' })}>${esc(t('battle.retreat'))}</button>
     </div>`);
+    const elite = eliteForSiege(b.siege);
+    if (elite && b.wave < BATTLE.wavesPerBattle) {
+      const name = state.bestiary[elite] ? tk(`enemy.${elite}`) : '???';
+      parts.push(`<div class="hint elite-hint">${esc(t('battle.eliteHint', { name }))}</div>`);
+    }
     parts.push(
       `<div class="hint" ${tip(t('battle.clickTip', { base: BATTLE.clickDamage, keep: keepLevel(state) }))}>${esc(
         t('battle.clickHint', { dmg: num(clickDamage(state)) }),

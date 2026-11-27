@@ -238,6 +238,18 @@ Geklärt am 27.11.2026:
 | Offline-Fortschritt  | keiner; stattdessen Rückblick und Ausgeruht-Bonus                                                                     |
 | Repository / Hosting | öffentliches Repo `alexsyromolot-cyber/chronokrone`, GitHub Pages: https://alexsyromolot-cyber.github.io/chronokrone/ |
 
+Technische Umsetzungsentscheidungen aus Meilenstein 3 (vorläufig, Spieldesign wird noch überarbeitet):
+
+| Thema              | Umsetzung                                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Burgkarte Epoche 1 | 8×8, startet als 4×4 in der Mitte, Landvermessung I/II erweitert auf 6×6 / 8×8                                 |
+| Skilltrees         | 12 Knoten je Klasse (statt ~30) – 6 allgemeine, je 3 pro Spezialisierungsweg; Ausbau auf ~30 bei Bedarf        |
+| Ausrüstung         | Stufe je Klasse und Slot statt je Einheit (übersichtlich auch mit vielen Einheiten)                            |
+| Zauber             | Angriffszauber skalieren mit der Truppen-Kampfkraft, nicht mit Gegner-LP (sonst wird jede Stufe gleich leicht) |
+| Elitegegner        | Letzter Gegner der Belagerungsstufen 3, 5, 7, 9; je ein Zeitmaschinenteil                                      |
+| Schlachtdauer      | „Wut“: nach 150 s verdoppelt sich der Mauerschaden alle 20 s                                                   |
+| Zeitmaschine       | 4 Teile + Rechenorakel + Chronologie + 40 Skill-Stufen; Bot-Simulation: fertig nach ~56 Minuten                |
+
 ## 20. Offene Fragen
 
-Keine. Neue Fragen werden hier gesammelt, bis sie geklärt sind.
+- Balancing: Vor dem letzten Elitegegner (Stufe 9) liegt in der Simulation eine ~20-minütige Phase ohne Sieg (Käufe laufen weiter). Gewollt als „Endspurt“ oder glätten?

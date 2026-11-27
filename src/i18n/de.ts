@@ -464,6 +464,53 @@ export const de = {
   'reason.otherSpec': 'Die andere Spezialisierung ist schon gewählt.',
   'reason.specLevel': 'Braucht eine Einheit dieser Klasse auf Level 10.',
   'narrator.specChosen': 'Die {cls} spezialisieren sich: {spec}. Kein Zurück – bis zum nächsten Zeitsprung.',
+
+  // --- Meilenstein 3c ---
+  'enemy.schildling': 'Schildling',
+  'enemy.schildling.desc': 'Trägt einen Topfdeckel als Schild. Nahkampf macht 60 % weniger Schaden.',
+  'enemy.muttersauger': 'Muttersauger',
+  'enemy.muttersauger.desc': 'Elite. Saugt ganze Zinnen weg. Trägt das erste Zeitmaschinenteil im Bauch.',
+  'enemy.blechkoloss': 'Blechkoloss',
+  'enemy.blechkoloss.desc': 'Elite. Ein Schrotthaufen mit Selbstbewusstsein. Nahkampf macht halben Schaden.',
+  'enemy.brummkoenigin': 'Brummkönigin',
+  'enemy.brummkoenigin.desc': 'Elite. Schnell, laut, eitel. Trägt eine Krone aus Kupferdraht.',
+  'enemy.kommandant': 'Der Kommandant',
+  'enemy.kommandant.desc': 'Elite. Gibt Befehle, die niemand versteht. Nicht einmal er selbst.',
+  'narrator.enemy.schildling':
+    'Neuer Eintrag: Schildling. Der Topfdeckel ist erstaunlich robust. Bogenschützen helfen.',
+  'narrator.enemy.muttersauger':
+    'Der Muttersauger ist besiegt. Er hinterlässt eine Pfütze und ein Zahnrad, das summt.',
+  'narrator.enemy.blechkoloss':
+    'Der Blechkoloss liegt am Boden. Jemand sollte ihm sagen, dass das sein Ende war.',
+  'narrator.enemy.brummkoenigin': 'Die Brummkönigin brummt nicht mehr. Die Stille ist fast unheimlich.',
+  'narrator.enemy.kommandant': 'Der Kommandant fällt. Seine letzten Worte: „Bip.“ Ergreifend.',
+  'narrator.eliteArrives': 'Achtung! {name} betritt das Schlachtfeld. Ich hole schon mal Popcorn.',
+  'narrator.partFound': 'Zeitmaschinenteil erbeutet ({n}/{total}) – von {name}. Es tickt. Rückwärts.',
+  'narrator.unlockTimeMachine':
+    'Ein seltsames Bauteil. Die Mönche nennen es „Zeitmaschine, Teil 1“. Ich nenne es Hoffnung.',
+  'narrator.oracleBuilt':
+    'Das Rechenorakel steht. Es wird mit Weihwasser gekühlt und antwortet auf alles mit „42“.',
+  'narrator.timeMachineBuilt':
+    'Die Zeitmaschine steht! Holz, Seile, Alien-Chips und Gottvertrauen. Ich suche noch den Startknopf – der kommt mit dem nächsten Update.',
+  'reason.missingParts': 'Es fehlen noch Zeitmaschinenteile – Elitegegner besiegen.',
+  'reason.needsOracle': 'Erst das Rechenorakel bauen.',
+  'reason.needsSkills': 'Deine Leute brauchen mehr Skill-Fortschritt.',
+  'tm.title': 'Zeitmaschine',
+  'tm.parts': 'Teile von Elitegegnern: {have}/{need}',
+  'tm.partHint': 'Belagerungsstufe {siege}: {name}',
+  'tm.oracle': 'Rechenorakel',
+  'tm.chronology': 'Forschung „Chronologie“',
+  'tm.skills': 'Skill-Fortschritt: {have}/{need} Stufen',
+  'tm.buildOracle': 'Rechenorakel bauen',
+  'tm.build': 'Zeitmaschine bauen',
+  'tm.done': 'Fertig nach {time}. Der Sprung in die nächste Epoche folgt mit Meilenstein 4.',
+  'bestiary.bonus': '+{pct} % Schaden gegen diesen Typ',
+  'bestiary.bonusTip': 'Je Abschuss-Stufe ({tiers}) +5 % Schaden gegen diesen Typ. Elitegegner: sofort voll.',
+  'bestiary.elite': 'Elite',
+  'battle.enrage': 'Wut ×{x}',
+  'battle.enrageTip':
+    'Nach {after} s werden die Aliens wütend: Ihr Mauerschaden verdoppelt sich alle {doubling} s.',
+  'battle.eliteHint': 'In der letzten Welle: {name}',
 } as const;
 
 export type MessageKey = keyof typeof de;

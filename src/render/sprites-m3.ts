@@ -175,3 +175,44 @@ export const M3_BUILDING_SPRITES: Partial<Record<BuildingId, PixelSprite>> = {
   workshop: building('#2f4a4a', STONE, '#5fe0a0', 'gear'),
   mageTower: building('#5a2f8a', '#6b6f88', '#ffe66d', 'star'),
 };
+
+/** Gleiche Form, andere Farben – so entstehen die Elitegegner aus ihren normalen Verwandten. */
+function recolor(base: PixelSprite, palette: Record<string, string>): PixelSprite {
+  return { rows: base.rows, palette: { ...base.palette, ...palette } };
+}
+
+export const SCHILDLING_SPRITE: PixelSprite = {
+  rows: [
+    '..LL........',
+    '.LLLL.bbbb..',
+    'LLLLLbbbbbb.',
+    'LLLLLbybbbb.',
+    'LLLLLbbbbbb.',
+    'LLLLLbbbbbb.',
+    '.LLLLbbbbbb.',
+    '..LL.bbbbbb.',
+    '.....k.k.k..',
+    '....k.k.k...',
+  ],
+  palette: { L: '#b8bccb', b: '#8fa0c0', y: '#ff5d5d', k: '#4a4e60' },
+};
+
+/** Elitegegner (werden in der Schlacht doppelt so groß gezeichnet). */
+export function eliteSprites(base: {
+  saugling: PixelSprite;
+  blechkriecher: PixelSprite;
+  brummdrohne: PixelSprite;
+}): Record<'muttersauger' | 'blechkoloss' | 'brummkoenigin' | 'kommandant', PixelSprite> {
+  return {
+    muttersauger: recolor(base.saugling, { o: '#5fc8d0', q: '#2f7a88', t: '#4fa0a8', y: '#ff5d5d' }),
+    blechkoloss: recolor(base.blechkriecher, { a: '#a0a6c0', d: '#565c78', y: '#ffe66d' }),
+    brummkoenigin: recolor(base.brummdrohne, { p: '#f070c0', q: '#a03a80', r: '#f2b33d' }),
+    kommandant: recolor(base.saugling, {
+      o: '#ff6a5d',
+      q: '#a03a3a',
+      t: '#c04a4a',
+      n: '#3a3d50',
+      y: '#ffe66d',
+    }),
+  };
+}

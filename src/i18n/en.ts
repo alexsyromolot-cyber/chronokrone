@@ -458,4 +458,50 @@ export const en: Messages = {
   'reason.otherSpec': 'The other specialisation is already chosen.',
   'reason.specLevel': 'Needs a unit of this class at level 10.',
   'narrator.specChosen': 'The {cls} specialise: {spec}. No way back – until the next time jump.',
+
+  // --- Meilenstein 3c ---
+  'enemy.schildling': 'Shieldling',
+  'enemy.schildling.desc': 'Carries a pot lid as a shield. Melee deals 60 % less damage.',
+  'enemy.muttersauger': 'Mother sucker',
+  'enemy.muttersauger.desc':
+    'Elite. Sucks away whole battlements. Carries the first time machine part in its belly.',
+  'enemy.blechkoloss': 'Tin colossus',
+  'enemy.blechkoloss.desc': 'Elite. A scrap heap with self-confidence. Melee deals half damage.',
+  'enemy.brummkoenigin': 'Hum queen',
+  'enemy.brummkoenigin.desc': 'Elite. Fast, loud, vain. Wears a crown of copper wire.',
+  'enemy.kommandant': 'The Commander',
+  'enemy.kommandant.desc': 'Elite. Gives orders nobody understands. Not even him.',
+  'narrator.enemy.schildling': 'New entry: Shieldling. The pot lid is surprisingly sturdy. Archers help.',
+  'narrator.enemy.muttersauger': 'The Mother sucker is defeated. It leaves a puddle and a humming cog.',
+  'narrator.enemy.blechkoloss':
+    'The Tin colossus lies on the ground. Someone should tell it that was the end.',
+  'narrator.enemy.brummkoenigin': 'The Hum queen hums no more. The silence is almost eerie.',
+  'narrator.enemy.kommandant': 'The Commander falls. Last words: "Beep." Moving.',
+  'narrator.eliteArrives': "Attention! {name} enters the battlefield. I'll get the popcorn.",
+  'narrator.partFound': 'Time machine part captured ({n}/{total}) – from {name}. It ticks. Backwards.',
+  'narrator.unlockTimeMachine':
+    'A strange component. The monks call it "time machine, part 1". I call it hope.',
+  'narrator.oracleBuilt':
+    'The computing oracle stands. It is cooled with holy water and answers everything with "42".',
+  'narrator.timeMachineBuilt':
+    "The time machine stands! Wood, ropes, alien chips and faith. I'm still looking for the start button – it comes with the next update.",
+  'reason.missingParts': 'Time machine parts are still missing – defeat elite enemies.',
+  'reason.needsOracle': 'Build the computing oracle first.',
+  'reason.needsSkills': 'Your people need more skill progress.',
+  'tm.title': 'Time machine',
+  'tm.parts': 'Parts from elite enemies: {have}/{need}',
+  'tm.partHint': 'Siege level {siege}: {name}',
+  'tm.oracle': 'Computing oracle',
+  'tm.chronology': 'Research "Chronology"',
+  'tm.skills': 'Skill progress: {have}/{need} ranks',
+  'tm.buildOracle': 'Build computing oracle',
+  'tm.build': 'Build time machine',
+  'tm.done': 'Finished after {time}. The jump to the next epoch follows with milestone 4.',
+  'bestiary.bonus': '+{pct} % damage against this type',
+  'bestiary.bonusTip':
+    'Each kill tier ({tiers}) gives +5 % damage against this type. Elite enemies: full at once.',
+  'bestiary.elite': 'Elite',
+  'battle.enrage': 'Rage ×{x}',
+  'battle.enrageTip': 'After {after} s the aliens get angry: their wall damage doubles every {doubling} s.',
+  'battle.eliteHint': 'In the last wave: {name}',
 };

@@ -7,6 +7,8 @@ async function game<T>(page: Page, fn: string): Promise<T> {
 
 /** Erste Schlacht vorspulen und das Ergebnisfenster schließen: Wir stehen im Dorf. */
 async function toVillage(page: Page): Promise<void> {
+  // Zufällige Ereignisse abschalten: Ihr Fenster würde sonst je nach Startzeit mitten im Test aufgehen.
+  await game(page, '(g.state.events.timer = 1e9)');
   await game(page, 'g.loop.fastForward(120)');
   await game(page, `g.run({ type: 'dismissResult' })`);
   await expect(page.locator('#village')).toBeVisible();
@@ -112,10 +114,10 @@ test('Zeitsprung: Dialog, Feier, Epoche 2 mit Chronik', async ({ page }) => {
   await page.waitForTimeout(400);
   await openRoom(page, 'werkstatt');
   await page.locator('[data-jump]').click();
-  await expect(page.locator('.modal')).toContainText('Zeitsprung');
+  await expect(page.locator('.modal-backdrop .modal')).toContainText('Zeitsprung');
   await page.getByRole('button', { name: 'Springen' }).click();
   await expect(page.locator('.modal-backdrop.celebrate')).toBeVisible();
-  await expect(page.locator('.modal')).toContainText('Dampf & Zahnrad');
+  await expect(page.locator('.modal-backdrop .modal')).toContainText('Dampf & Zahnrad');
   await page.screenshot({ path: 'test-results/04-sprung.png' });
   await page.getByRole('button', { name: 'Los geht’s' }).click();
   expect(await game(page, 'g.state.epoch')).toBe(2);

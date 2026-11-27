@@ -128,3 +128,10 @@ describe('Alte Spielstände', () => {
     expect(phase(loaded)).toBe('village');
   });
 });
+
+describe('Römische Level-Zahlen im Kampf-Overlay', () => {
+  it('rechnet richtig', async () => {
+    const { roman } = await import('../ui/arena');
+    expect([1, 4, 9, 14, 40, 99, 2026].map(roman)).toEqual(['I', 'IV', 'IX', 'XIV', 'XL', 'XCIX', 'MMXXVI']);
+  });
+});

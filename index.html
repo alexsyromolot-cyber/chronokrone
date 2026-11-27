@@ -21,15 +21,36 @@
     -->
     <main id="app" data-phase="battle">
       <header class="topbar">
-        <h1 data-i18n="app.title">Chronokrone</h1>
-        <span id="epoch-label" class="epoch-label"></span>
-        <span id="season-label"></span>
+        <!-- Der Titel steht im Browser-Tab; sichtbar wäre er nur Platzverschwendung. -->
+        <h1 class="sr-only" data-i18n="app.title">Chronokrone</h1>
+        <div class="realm">
+          <span id="epoch-label" class="epoch-label"></span>
+          <span id="season-label"></span>
+        </div>
         <div id="resources" class="resources"></div>
         <div class="top-actions">
-          <button id="save" class="btn small" type="button" data-i18n="save.save"></button>
-          <button id="lang" class="btn small" type="button" data-i18n="lang.switch"></button>
-          <button id="settings-toggle" class="btn small" type="button" data-i18n="settings.button"></button>
-          <button id="fullscreen" class="btn small icon-btn" type="button" aria-label="Vollbild">⛶</button>
+          <button
+            id="save"
+            class="iconbtn"
+            type="button"
+            data-i18n-label="save.save"
+            data-icon="save"
+          ></button>
+          <button id="lang" class="iconbtn lang" type="button" data-i18n-label="lang.switch"></button>
+          <button
+            id="settings-toggle"
+            class="iconbtn"
+            type="button"
+            data-i18n-label="settings.button"
+            data-icon="settings"
+          ></button>
+          <button
+            id="fullscreen"
+            class="iconbtn"
+            type="button"
+            data-i18n-label="ui.fullscreen"
+            data-icon="fullscreen"
+          ></button>
         </div>
       </header>
 
@@ -38,9 +59,9 @@
           <div class="stage-wrap">
             <div id="stage"><div id="fx-layer" aria-hidden="true"></div></div>
           </div>
-          <div id="battle-hud" class="float hud-card"></div>
-          <aside id="troop-list" class="float troop-list"></aside>
-          <div id="spell-bar" class="float spell-bar"></div>
+          <div id="battle-hud" class="board hud-card"></div>
+          <aside id="troop-list" class="board troop-list"></aside>
+          <div id="spell-bar" class="board spell-bar"></div>
         </section>
 
         <section id="village" class="scene" hidden>

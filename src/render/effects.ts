@@ -12,6 +12,7 @@ import { Graphics } from 'pixi.js';
 import { formatNumber } from '../core/format';
 import { decimalSeparator } from '../i18n';
 import { VIEW_H, VIEW_W } from './view';
+import { uiIcon } from '../ui/ui-icons';
 
 interface Particle {
   g: Graphics;
@@ -24,12 +25,17 @@ interface Particle {
 
 const PARTICLES = 96;
 const FLOATERS = 40;
+/** Münzen, die von einem Abschuss in die Währungsleiste fliegen (Pool). */
+const COINS = 16;
+const COIN_MS = 650;
 
 export class Effects {
   private readonly particles: Particle[] = [];
   private nextParticle = 0;
   private readonly floaters: HTMLSpanElement[] = [];
   private nextFloater = 0;
+  private readonly coins: HTMLImageElement[] = [];
+  private nextCoin = 0;
 
   constructor(layer: Container, domLayer: HTMLElement) {
     for (let i = 0; i < PARTICLES; i++) {
@@ -46,6 +52,57 @@ export class Effects {
       domLayer.appendChild(span);
       this.floaters.push(span);
     }
+    const coinUrl = uiIcon('res-gold');
+    for (let i = 0; coinUrl && i < COINS; i++) {
+      const img = document.createElement('img');
+      img.src = coinUrl;
+      img.className = 'flying-coin';
+      img.alt = '';
+      img.hidden = true;
+      document.body.appendChild(img);
+      this.coins.push(img);
+    }
+  }
+
+  /**
+   * Münze fliegt vom Schlachtfeld (Logik-Koordinaten) zum Gold in der Währungsleiste.
+   * Fliegt in einem Bogen (Web Animations API) und ploppt am Ziel kurz auf.
+   */
+  flyCoin(x: number, y: number, canvas: HTMLElement): void {
+    const coin = this.coins[this.nextCoin];
+    const target = document.querySelector<HTMLElement>('.res-gold .res-icon, .res-gold');
+    if (!coin || !target) return;
+    this.nextCoin = (this.nextCoin + 1) % this.coins.length;
+    const from = canvas.getBoundingClientRect();
+    const to = target.getBoundingClientRect();
+    const sx = from.left + (x / VIEW_W) * from.width;
+    const sy = from.top + (y / VIEW_H) * from.height;
+    const tx = to.left + to.width / 2 - sx;
+    const ty = to.top + to.height / 2 - sy;
+    coin.hidden = false;
+    coin.style.left = `${sx - 12}px`;
+    coin.style.top = `${sy - 12}px`;
+    // Erst nach oben ausholen, dann in die Leiste – wirkt wie ein Wurf, nicht wie ein Lineal.
+    const anim = coin.animate(
+      [
+        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+        { transform: `translate(${tx * 0.35}px, ${ty * 0.35 - 60}px) scale(1.2)`, opacity: 1, offset: 0.4 },
+        { transform: `translate(${tx}px, ${ty}px) scale(0.7)`, opacity: 0.9 },
+      ],
+      { duration: COIN_MS, easing: 'ease-in' },
+    );
+    // Am Ziel kurz aufploppen und verglühen – die Leiste selbst wird ständig neu geschrieben,
+    // ein Effekt dort ginge verloren.
+    anim.onfinish = () => {
+      const pop = coin.animate(
+        [
+          { transform: `translate(${tx}px, ${ty}px) scale(0.7)`, opacity: 1 },
+          { transform: `translate(${tx}px, ${ty}px) scale(1.8)`, opacity: 0 },
+        ],
+        { duration: 220, easing: 'ease-out' },
+      );
+      pop.onfinish = () => (coin.hidden = true);
+    };
   }
 
   burst(x: number, y: number, color: string, count: number): void {

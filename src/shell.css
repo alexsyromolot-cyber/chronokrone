@@ -704,3 +704,8 @@ body {
     animation: none;
   }
 }
+
+/* In der Arena steht rechts die Truppenleiste – Meldungen rücken daneben. */
+body:has(#app[data-phase='battle']) .toasts {
+  right: 262px;
+}

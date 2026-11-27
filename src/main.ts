@@ -5,6 +5,7 @@
  */
 import './style.css';
 import './shell.css';
+import './hud.css';
 import { FixedStepLoop } from './core/loop';
 import { installDebugPanel } from './dev/debug-panel';
 import { getLocale, setLocale, t, tk } from './i18n';
@@ -49,6 +50,7 @@ import { narratorHtml, narratorLogHtml } from './ui/narrator';
 import { arenaHudHtml, troopListHtml } from './ui/arena';
 import { currentRoom, prepHtml, roomResources, tabsHtml, type VillageUi } from './ui/village';
 import { renderRoom, showRoom } from './ui/rooms-render';
+import { uiIcon } from './ui/ui-icons';
 
 const saves = new SaveManager(defaultStorage());
 
@@ -326,6 +328,16 @@ function applyStaticTexts(): void {
   for (const node of document.querySelectorAll<HTMLElement>('[data-i18n]')) {
     node.textContent = t(node.dataset.i18n as MessageKey);
   }
+  // Knöpfe mit Pixel-Symbol: Beschriftung als Tooltip und für Screenreader.
+  for (const node of document.querySelectorAll<HTMLElement>('[data-i18n-label]')) {
+    const label = t(node.dataset.i18nLabel as MessageKey);
+    node.setAttribute('aria-label', label);
+    node.dataset.tip = label;
+    const url = node.dataset.icon ? uiIcon(`btn-${node.dataset.icon}`) : null;
+    // Sprachknopf zeigt das Kürzel der anderen Sprache (EN/DE), die anderen ihr Symbol.
+    if (url) node.innerHTML = `<img src="${url}" alt="">`;
+    else node.textContent = label.slice(0, 2).toUpperCase();
+  }
 
   el('#epoch-label').textContent = t('epoch.title', {
     n: state.epoch,
@@ -573,7 +585,7 @@ async function start(): Promise<void> {
     onFx: soundFor,
     onAchievement: (id) => {
       const def = ACHIEVEMENTS.find((a) => a.id === id);
-      if (def) showToast(`★ ${achievementTitle(id, def.metric)}`, 'achievement');
+      if (def) showToast(achievementTitle(id, def.metric), 'achievement');
     },
     reducedMotion,
   });

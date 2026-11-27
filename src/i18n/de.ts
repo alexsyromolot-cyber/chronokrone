@@ -1311,6 +1311,9 @@ export const de = {
 
   // --- UI-Umbau Etappe 1b ---
   'save.title': 'Spielstand',
+
+  // --- Kampf-Overlay ---
+  'hud.rageIn': 'Wut in {s} s',
 } as const;
 
 export type MessageKey = keyof typeof de;

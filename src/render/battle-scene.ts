@@ -2,9 +2,12 @@
  * Darstellung der Abwehrschlacht (PixiJS). Liest den Spielzustand, verändert ihn nie –
  * Klicks auf Aliens werden als Rückruf nach außen gemeldet und dort als Aktion ausgeführt.
  *
- * Interne Auflösung 320×180, auf ein ganzzahliges Vielfaches skaliert (scharfe Pixel).
+ * Logik-Koordinaten 320×180, gezeichnet intern in 640×360 (siehe view.ts) und auf ein
+ * ganzzahliges Vielfaches skaliert (scharfe Pixel). Epoche 1 nutzt die neuen 32×32-Sprites
+ * und die Kulisse aus `npm run sprites`; spätere Epochen vorerst die alte Grafik.
  */
-import { Application, Container, Graphics, Sprite } from 'pixi.js';
+import { AnimatedSprite, Application, Container, Graphics, Sprite, type Texture } from 'pixi.js';
+import { Atlas, type AnimName } from './atlas';
 import { BATTLE, ENEMIES } from '../data/enemies';
 import { t } from '../i18n';
 import { epochDef, type EpochPalette } from '../data/epochs';
@@ -14,9 +17,18 @@ import { attackInterval, troops } from '../systems/units';
 import { Effects } from './effects';
 import { spriteTexture } from './pixel';
 import { ENEMY_SPRITES, UNIT_SPRITES } from './sprites';
-import { VIEW_H, VIEW_W } from './view';
+import { RENDER_H, RENDER_SCALE, RENDER_W, VIEW_H, VIEW_W } from './view';
 
 export { VIEW_H, VIEW_W };
+/** Neue Sprites sind doppelt so fein wie die Logik-Pixel: in der Welt mit ½ skaliert. */
+const HD = 1 / RENDER_SCALE;
+
+/** Eine Figur der neuen Grafik: spielt eine Animation, merkt sich, welche. */
+interface Animated {
+  sprite: AnimatedSprite;
+  id: string;
+  anim: AnimName;
+}
 const GROUND_Y = 146;
 const WALL_LEFT = 40;
 const WALL_TOP = 100;
@@ -32,11 +44,22 @@ export interface BattleSceneOptions {
 }
 
 export class BattleScene {
-  private readonly defenders = new Map<number, Sprite>();
+  private readonly defenders = new Map<number, { sprite: Sprite; anim: Animated | null; lastCd: number }>();
   private readonly enemies = new Map<
     number,
-    { sprite: Sprite; hpBar: Graphics; glow: Graphics; lastHp: number; flash: number; base: number }
+    {
+      sprite: Sprite;
+      anim: Animated | null;
+      hpBar: Graphics;
+      glow: Graphics;
+      shadow: Graphics;
+      lastHp: number;
+      flash: number;
+      base: number;
+    }
   >();
+  /** Alles in Logik-Koordinaten; die Welt ist doppelt skaliert (640×360 intern). */
+  private readonly world = new Container();
   private readonly defenderLayer = new Container();
   private readonly enemyLayer = new Container();
   private readonly torches: Graphics[] = [];
@@ -52,6 +75,8 @@ export class BattleScene {
   private wall = new Container();
   private palette: EpochPalette = epochDef(1).palette;
   private paletteEpoch = 1;
+  /** Glut des Meteorkraters (nur neue Kulisse). */
+  private craterGlow: Graphics | null = null;
   /** Wolken ziehen langsam über den Himmel (Parallaxe). */
   private clouds = new Container();
 
@@ -60,12 +85,15 @@ export class BattleScene {
     host: HTMLElement,
     fxLayer: HTMLElement,
     private readonly options: BattleSceneOptions,
+    private readonly atlas: Atlas | null,
   ) {
     this.sizer = host.parentElement ?? host;
     const particleLayer = new Container();
     this.background = this.drawBackground();
     this.wall = this.drawWall();
-    app.stage.addChild(this.background, this.enemyLayer, this.wall, this.defenderLayer, particleLayer);
+    this.world.scale.set(RENDER_SCALE);
+    app.stage.addChild(this.world);
+    this.world.addChild(this.background, this.enemyLayer, this.wall, this.defenderLayer, particleLayer);
     this.effects = new Effects(particleLayer, fxLayer);
     app.canvas.addEventListener('pointerdown', (e) => this.handlePointer(e));
     new ResizeObserver(() => this.resize()).observe(this.sizer);
@@ -79,8 +107,8 @@ export class BattleScene {
   ): Promise<BattleScene> {
     const app = new Application();
     await app.init({
-      width: VIEW_W,
-      height: VIEW_H,
+      width: RENDER_W,
+      height: RENDER_H,
       background: '#0b0f1a',
       antialias: false,
       autoStart: false,
@@ -89,10 +117,16 @@ export class BattleScene {
     });
     app.ticker.stop();
     host.prepend(app.canvas);
-    return new BattleScene(app, host, fxLayer, options);
+    // Fehlt der Atlas (z. B. kaputte Datei), läuft das Spiel mit der alten Grafik weiter.
+    const atlas = await Atlas.load().catch(() => null);
+    return new BattleScene(app, host, fxLayer, options, atlas);
   }
 
-  /** Größtes ganzzahliges Vielfaches von 320×180, das in den Container passt. */
+  /**
+   * Größtes ganzzahliges Vielfaches von 320×180, das in den Container passt. Bei geraden
+   * Faktoren ist jedes Pixel der neuen Sprites exakt quadratisch; bei ungeraden (z. B. 3)
+   * werden sie abwechselnd 1 und 2 Bildschirmpixel breit – kaum sichtbar, aber größer.
+   */
   resize(): void {
     // Ganzzahlig skalieren (scharfe Pixel) – passend in Breite UND Höhe der Arena.
     const byHeight = this.sizer.clientHeight > 0 ? this.sizer.clientHeight / VIEW_H : Infinity;
@@ -102,7 +136,49 @@ export class BattleScene {
     style.height = `${VIEW_H * scale}px`;
   }
 
+  /** Epoche 1, neue Grafik: Ebenen aus dem Sprite-Skript; Wolken ziehen zwischen Bergen und Wald. */
+  private drawBackdropHd(): Container {
+    const bg = new Container();
+    const layer = (tex: Texture) => {
+      const s = new Sprite(tex);
+      s.scale.set(HD);
+      return s;
+    };
+    const b = this.atlas!.backdrop;
+    this.clouds = new Container();
+    for (let i = 0; i < 5; i++) {
+      const c = new Graphics();
+      const w = 34 + ((i * 17) % 30);
+      c.rect(0, 2, w, 3)
+        .fill({ color: '#8a96c0', alpha: 0.16 })
+        .rect(5, 0, w - 12, 3)
+        .fill({ color: '#aab4d8', alpha: 0.12 });
+      c.position.set((i * 83) % VIEW_W, 12 + i * 11);
+      this.clouds.addChild(c);
+    }
+    // Warmer Lichtschein der Fackeln auf dem Boden vor der Mauer.
+    const lightPool = new Graphics()
+      .ellipse(BATTLE.wallX - 10, GROUND_Y + 2, 46, 8)
+      .fill({ color: '#f2b33d', alpha: 0.07 })
+      .ellipse(BATTLE.wallX - 10, GROUND_Y + 2, 24, 4)
+      .fill({ color: '#f2b33d', alpha: 0.08 });
+    // Glut des Meteorkraters pulsiert (siehe update).
+    this.craterGlow = new Graphics().ellipse(240, 126, 16, 4).fill({ color: '#ff8a3a', alpha: 0.25 });
+    bg.addChild(
+      layer(b.sky),
+      this.clouds,
+      layer(b.far),
+      layer(b.forest),
+      layer(b.ground),
+      this.craterGlow,
+      lightPool,
+    );
+    return bg;
+  }
+
   private drawBackground(): Container {
+    this.craterGlow = null;
+    if (this.paletteEpoch === 1 && this.atlas) return this.drawBackdropHd();
     const bg = new Container();
     const sky = new Graphics();
     // Nachthimmel in Bändern statt Verlauf – passt zur Pixelart.
@@ -173,6 +249,13 @@ export class BattleScene {
     const g = new Graphics();
     const p = this.palette;
     this.torches.length = 0;
+    if (this.paletteEpoch === 1 && this.atlas) {
+      const castle = new Sprite(this.atlas.backdrop.castle);
+      castle.scale.set(HD);
+      wall.addChild(castle);
+      this.addTorches(wall);
+      return wall;
+    }
     g.rect(WALL_LEFT, WALL_TOP, BATTLE.wallX - WALL_LEFT, GROUND_Y - WALL_TOP).fill(p.wall);
     for (let y = WALL_TOP + 4; y < GROUND_Y; y += 8) {
       const offset = (y / 8) % 2 ? 0 : 4;
@@ -181,7 +264,12 @@ export class BattleScene {
     for (let x = WALL_LEFT; x < BATTLE.wallX; x += 8) g.rect(x, WALL_TOP - 5, 5, 5).fill(p.wall);
     g.rect(0, WALL_TOP + 20, WALL_LEFT, GROUND_Y - WALL_TOP - 20).fill('#2a2d3b');
     wall.addChild(g);
-    // Fackeln: warmes Licht gegen die kalte Nacht.
+    this.addTorches(wall);
+    return wall;
+  }
+
+  /** Fackeln: warmes Licht gegen die kalte Nacht (flackern in update). */
+  private addTorches(wall: Container): void {
     for (const x of [WALL_LEFT + 2, BATTLE.wallX - 4]) {
       const torch = new Graphics()
         .circle(x + 1, WALL_TOP - 9, 6)
@@ -193,13 +281,15 @@ export class BattleScene {
       this.torches.push(torch);
       wall.addChild(torch);
     }
-    return wall;
   }
 
   /** Nach einem Epochenwechsel Himmel, Boden und Mauer in der neuen Palette zeichnen. */
   private applyEpoch(epoch: number): void {
     if (epoch === this.paletteEpoch) return;
     this.paletteEpoch = epoch;
+    // Figuren der alten Epoche abräumen – die neue bringt eigene Grafik (und neue Einheiten-IDs).
+    for (const view of this.defenders.values()) view.sprite.destroy();
+    this.defenders.clear();
     this.palette = epochDef(epoch).palette;
     const stage = this.app.stage;
     const bgIndex = stage.getChildIndex(this.background);
@@ -241,30 +331,70 @@ export class BattleScene {
     return GROUND_Y - height - lane * LANE_STEP;
   }
 
+  /**
+   * Neue Grafik (Epoche 1): animierte Figur, unten mittig verankert, mit ½ skaliert.
+   * Gibt null zurück, wenn es für diese Figur noch keine neue Grafik gibt.
+   */
+  private makeAnimated(id: string, anim: AnimName): Animated | null {
+    if (this.paletteEpoch !== 1) return null;
+    const frames = this.atlas?.anim(id, anim);
+    if (!frames) return null;
+    const sprite = new AnimatedSprite(frames);
+    sprite.anchor.set(0.5, 1);
+    sprite.scale.set(HD);
+    sprite.animationSpeed = 0.1;
+    if (!this.options.reducedMotion()) sprite.play();
+    return { sprite, id, anim };
+  }
+
+  /** Animation wechseln; `once` spielt sie einmal und kehrt dann zu `back` zurück. */
+  private setAnim(a: Animated, anim: AnimName, once = false, back: AnimName = 'idle'): void {
+    if (a.anim === anim && !once) return;
+    const frames: Texture[] | null = this.atlas?.anim(a.id, anim) ?? null;
+    if (!frames) return;
+    a.anim = anim;
+    a.sprite.textures = frames;
+    a.sprite.loop = !once;
+    a.sprite.animationSpeed = anim === 'attack' ? 0.25 : anim === 'walk' ? 0.15 : 0.08;
+    if (once) a.sprite.onComplete = () => this.setAnim(a, back);
+    else delete a.sprite.onComplete;
+    if (this.options.reducedMotion()) a.sprite.gotoAndStop(0);
+    else a.sprite.gotoAndPlay(0);
+  }
+
   private syncDefenders(state: GameState): void {
     const team = troops(state);
     const alive = new Set(team.map((u) => u.id));
-    for (const [id, sprite] of this.defenders) {
+    for (const [id, view] of this.defenders) {
       if (!alive.has(id)) {
-        sprite.destroy();
+        view.sprite.destroy();
         this.defenders.delete(id);
       }
     }
+    const reduced = this.options.reducedMotion();
     team.forEach((unit, i) => {
-      let sprite = this.defenders.get(unit.id);
-      if (!sprite) {
-        sprite = new Sprite(spriteTexture(UNIT_SPRITES[unit.classId]));
-        this.defenders.set(unit.id, sprite);
+      let view = this.defenders.get(unit.id);
+      if (!view) {
+        const anim = this.makeAnimated(unit.classId, 'idle');
+        const sprite = anim?.sprite ?? new Sprite(spriteTexture(UNIT_SPRITES[unit.classId]));
+        view = { sprite, anim, lastCd: 0 };
+        this.defenders.set(unit.id, view);
         this.defenderLayer.addChild(sprite);
       }
-      const pos = this.defenderPos(i, sprite.height);
-      // Kurzer Ausfallschritt direkt nach einem Schlag.
       const cd = state.battle?.cooldowns[unit.id] ?? 0;
-      const lunge = !this.options.reducedMotion() && cd > attackInterval(state, unit) * 0.8 ? 2 : 0;
-      const breathe = this.options.reducedMotion()
-        ? 0
-        : Math.round(Math.sin(this.time * 2.5 + unit.id) * 0.6);
-      sprite.position.set(pos.x + lunge, pos.y + breathe);
+      if (view.anim) {
+        // Neue Grafik: Angriff abspielen, sobald die Abklingzeit neu startet (= gerade geschlagen).
+        if (cd > view.lastCd + 0.05) this.setAnim(view.anim, 'attack', true);
+        view.lastCd = cd;
+        const pos = this.defenderPos(i, 16);
+        view.sprite.position.set(pos.x + 8, pos.y + 16);
+        return;
+      }
+      const pos = this.defenderPos(i, view.sprite.height);
+      // Alte Grafik: kurzer Ausfallschritt direkt nach einem Schlag, sanftes Atmen.
+      const lunge = !reduced && cd > attackInterval(state, unit) * 0.8 ? 2 : 0;
+      const breathe = reduced ? 0 : Math.round(Math.sin(this.time * 2.5 + unit.id) * 0.6);
+      view.sprite.position.set(pos.x + lunge, pos.y + breathe);
     });
   }
 
@@ -275,9 +405,12 @@ export class BattleScene {
       return;
     }
     if (!this.drone) {
-      this.drone = new Sprite(spriteTexture(ENEMY_SPRITES.brummdrohne));
+      const anim = this.makeAnimated('brummdrohne', 'idle');
+      this.drone = anim?.sprite ?? new Sprite(spriteTexture(ENEMY_SPRITES.brummdrohne));
+      // Neue Grafik ist unten mittig verankert – für die Klickabfrage wie die alte oben links behandeln.
+      this.drone.anchor.set(0, 0);
       this.drone.tint = 0xffe66d;
-      this.app.stage.addChild(this.drone);
+      this.world.addChild(this.drone);
     }
     const progress = 1 - d.left / DRONE.flightTime;
     this.drone.visible = true;
@@ -302,23 +435,28 @@ export class BattleScene {
         view.sprite.destroy();
         view.hpBar.destroy();
         view.glow.destroy();
+        view.shadow.destroy();
         this.enemies.delete(id);
       }
     }
     for (const e of list) {
       let view = this.enemies.get(e.id);
       if (!view) {
-        const sprite = new Sprite(spriteTexture(ENEMY_SPRITES[e.type]));
+        const anim = this.makeAnimated(e.type, 'walk');
+        const sprite = anim?.sprite ?? new Sprite(spriteTexture(ENEMY_SPRITES[e.type]));
         const elite = !!ENEMIES[e.type].elite;
         // Anker unten mittig: Stauchen und Wippen passieren dann „auf dem Boden“.
         sprite.anchor.set(0.5, 1);
-        const base = ENEMIES[e.type].boss ? 3 : elite ? 2 : 1;
+        // Neue Grafik ist doppelt so fein – deshalb ½ (Elite 1, Endgegner bleibt alt bei 3).
+        const base = (ENEMIES[e.type].boss ? 3 : elite ? 2 : 1) * (anim ? HD : 1);
         sprite.scale.set(base);
         const hpBar = new Graphics();
         const glow = new Graphics();
-        if (elite) glow.circle(0, 0, 18 * (base / 2)).fill({ color: ENEMIES[e.type].color, alpha: 0.25 });
-        this.enemyLayer.addChild(glow, sprite, hpBar);
-        view = { sprite, hpBar, glow, lastHp: e.hp, flash: 0, base };
+        const shadow = new Graphics().ellipse(0, 0, 6, 1.5).fill({ color: '#000000', alpha: 0.35 });
+        if (elite)
+          glow.circle(0, 0, 18 * (elite ? 1 : 0.5)).fill({ color: ENEMIES[e.type].color, alpha: 0.25 });
+        this.enemyLayer.addChild(shadow, glow, sprite, hpBar);
+        view = { sprite, anim, hpBar, glow, shadow, lastHp: e.hp, flash: 0, base };
         this.enemies.set(e.id, view);
       }
       if (e.hp < view.lastHp) view.flash = 0.12;
@@ -328,23 +466,31 @@ export class BattleScene {
       const reduced = this.options.reducedMotion();
       const moving = e.x > BATTLE.wallX;
       const flying = e.type === 'brummdrohne' || e.type === 'brummkoenigin';
+      if (view.anim) {
+        // Treffer-Blitz als eigenes Bild, sonst Laufen bzw. an der Mauer Hämmern (Idle-Wackeln).
+        this.setAnim(view.anim, view.flash > 0 ? 'hit' : moving ? 'walk' : 'idle');
+      }
       const h = view.sprite.height;
       // Gehen: kleines Wippen im Schritt; Fliegen: sanftes Schweben; an der Mauer: Hämmern.
+      // In halben Logik-Pixeln, weil die neue Grafik so fein ist.
+      const half = (v: number) => Math.round(v * 2) / 2;
       const bob = reduced
         ? 0
         : flying
-          ? Math.round(Math.sin(this.time * 6 + e.id) * 2) - 8
+          ? half(Math.sin(this.time * 6 + e.id) * 2) - 8
           : moving
-            ? -Math.round(Math.abs(Math.sin(this.time * 8 + e.id)) * 1.5)
-            : -Math.round(Math.max(0, Math.sin(this.time * 14 + e.id)) * 2);
+            ? -half(Math.abs(Math.sin(this.time * 8 + e.id)) * 1.5)
+            : -half(Math.max(0, Math.sin(this.time * 14 + e.id)) * 2);
       const x = e.prevX + (e.x - e.prevX) * alpha;
       const w = view.sprite.width;
       const footY = this.enemyY(e.lane, h) + h + bob;
-      view.sprite.position.set(Math.round(x + w / 2), Math.round(footY));
-      // Treffer: kurz gestaucht und durchscheinend.
+      view.sprite.position.set(half(x + w / 2), half(footY));
+      view.shadow.position.set(half(x + w / 2), this.enemyY(e.lane, 0));
+      view.shadow.scale.set(w / 14, 1);
+      // Treffer: kurz gestaucht (alte Grafik zusätzlich durchscheinend, die neue hat ein Blitz-Bild).
       const squash = view.flash > 0 && !reduced ? 0.85 : 1;
       view.sprite.scale.set(view.base * (2 - squash), view.base * squash);
-      view.sprite.alpha = view.flash > 0 ? 0.65 : 1;
+      view.sprite.alpha = view.flash > 0 && !view.anim ? 0.65 : 1;
       if (view.base > 1) {
         view.glow.position.set(Math.round(x + w / 2), Math.round(footY - h / 2));
         view.glow.alpha = reduced ? 0.6 : 0.6 + 0.4 * Math.sin(this.time * 4);
@@ -390,6 +536,8 @@ export class BattleScene {
             reduced ? 4 : 12,
           );
           this.effects.loot(fx.x + 6, this.enemyY(fx.lane, 10) - 12, fx.gold, fx.scrap);
+          // Münzen fliegen in die Währungsleiste: Beute sieht man ankommen.
+          if (!reduced) this.effects.flyCoin(fx.x + 6, this.enemyY(fx.lane, 10), this.app.canvas);
           break;
         case 'wallHit':
           this.shake = Math.max(this.shake, 2);
@@ -398,8 +546,16 @@ export class BattleScene {
           this.shake = Math.max(this.shake, 6);
           break;
         case 'levelUp': {
-          const sprite = this.defenders.get(fx.unitId);
-          if (sprite) this.effects.text(sprite.x + 6, sprite.y - 4, t('fx.levelUp'), 'level');
+          const view = this.defenders.get(fx.unitId);
+          if (view) {
+            // Neue Grafik ist unten mittig verankert, die alte oben links.
+            const [x, y] = view.anim
+              ? [view.sprite.x, view.sprite.y - 16]
+              : [view.sprite.x + 6, view.sprite.y];
+            this.effects.text(x, y - 4, t('fx.levelUp'), 'level');
+            // Glühen bei Level-Up: goldene Funken um die Figur.
+            this.effects.burst(x, y + 6, '#ffe66d', reduced ? 4 : 14);
+          }
           break;
         }
         case 'battleEnd':
@@ -448,6 +604,7 @@ export class BattleScene {
 
     const reduced = this.options.reducedMotion();
     this.torches.forEach((t, i) => (t.alpha = reduced ? 1 : 0.8 + 0.2 * Math.sin(this.time * 9 + i * 2)));
+    if (this.craterGlow) this.craterGlow.alpha = reduced ? 0.8 : 0.6 + 0.4 * Math.sin(this.time * 1.7);
     if (!reduced) {
       this.clouds.children.forEach((c, i) => {
         c.x -= dtSeconds * (2 + i * 0.8);
@@ -455,9 +612,10 @@ export class BattleScene {
       });
     }
     if (this.shake > 0 && !reduced) {
+      // Wackeln in Logik-Pixeln, die Bühne ist aber doppelt aufgelöst.
       this.app.stage.position.set(
-        Math.round((Math.random() - 0.5) * this.shake),
-        Math.round((Math.random() - 0.5) * this.shake),
+        Math.round((Math.random() - 0.5) * this.shake) * RENDER_SCALE,
+        Math.round((Math.random() - 0.5) * this.shake) * RENDER_SCALE,
       );
       this.shake = Math.max(0, this.shake - dtSeconds * 20);
     } else {

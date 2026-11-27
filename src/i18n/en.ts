@@ -1290,4 +1290,7 @@ export const en: Messages = {
 
   // --- UI-Umbau Etappe 1b ---
   'save.title': 'Save game',
+
+  // --- Kampf-Overlay ---
+  'hud.rageIn': 'Rage in {s} s',
 };

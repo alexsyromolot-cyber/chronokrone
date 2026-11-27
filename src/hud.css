@@ -1,0 +1,540 @@
+/*
+ * Kampf-Overlay: Holztafeln mit Eisenbeschlag und Messing-Zahnrädern (Mittelalter mit
+ * Zeitreise-Erbe). Rahmen und Band sind Pixelart-Bilder aus `npm run sprites`, doppelt
+ * vergrößert und pixelgenau (border-image-Slices 8 px → 16 px).
+ */
+
+.board {
+  position: absolute;
+  border: 16px solid transparent;
+  border-image: url('./assets/ui/frame.png') 8 fill / 16px / 0 round;
+  image-rendering: pixelated;
+  padding: 2px 6px 4px;
+  color: #f3ead7;
+  text-shadow: 0 1px 0 #1a0f08;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+}
+
+.board:empty {
+  display: none;
+}
+
+.board img {
+  image-rendering: pixelated;
+}
+
+/* Pergamentband als Überschrift – ragt über die Tafel hinaus wie ein angenageltes Schild. */
+.ribbon {
+  margin: -6px -14px 8px;
+  height: 24px;
+  border: solid transparent;
+  border-width: 0 16px;
+  border-image: url('./assets/ui/banner.png') 0 8 fill / 0 16px / 0 round;
+  image-rendering: pixelated;
+  color: #3a2410;
+  text-shadow: none;
+  font-weight: 800;
+  font-size: 0.82em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* ---------- Belagerung (links oben) ---------- */
+#battle-hud {
+  left: 16px;
+  top: 12px;
+  width: min(380px, 40vw);
+  display: grid;
+  gap: 6px;
+  background: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.hud-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+}
+
+.hud-line.angry {
+  color: #ffb3a8;
+  font-weight: 700;
+}
+
+.gears {
+  display: flex;
+  gap: 2px;
+}
+
+.gears img {
+  width: 18px;
+  height: 18px;
+}
+
+.hg {
+  width: 24px;
+  height: 32px;
+}
+
+.pouch {
+  width: 24px;
+  height: 24px;
+}
+
+.hud-line.loot {
+  color: #ffe08a;
+  font-weight: 700;
+}
+
+/* Mauer als Reihe Steinquader: je weniger Mauer, desto weniger Quader. */
+.stonebar {
+  position: relative;
+  flex: 1;
+  height: 14px;
+  background: #1a1410;
+  box-shadow:
+    inset 0 0 0 2px #3a2a1a,
+    0 0 0 2px #0e0906;
+}
+
+.stonebar i {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  bottom: 2px;
+  max-width: calc(100% - 4px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px),
+    repeating-linear-gradient(90deg, #8d93a6 0 14px, #5d6274 14px 16px);
+}
+
+.stonebar.low i {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0 2px, transparent 2px),
+    repeating-linear-gradient(90deg, #b86a5a 0 14px, #7a3a2a 14px 16px);
+}
+
+.hud-note {
+  font-size: 0.8em;
+  color: #d8c8a0;
+  opacity: 0.9;
+}
+
+.hud-note.elite-hint {
+  color: #ffb3a8;
+}
+
+.hud-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* Knopf als Holzschild mit Eisenkante. */
+.sign {
+  font: inherit;
+  font-size: 0.82em;
+  font-weight: 800;
+  color: #f3ead7;
+  background: linear-gradient(180deg, #7a4a2a, #5a3420);
+  border: 0;
+  box-shadow:
+    inset 0 2px 0 #9a6a42,
+    inset 0 -2px 0 #3a2010,
+    0 0 0 2px #2a1a0e;
+  padding: 4px 10px;
+  cursor: pointer;
+  text-shadow: 0 1px 0 #1a0f08;
+}
+
+.sign:hover {
+  filter: brightness(1.15);
+}
+
+/* ---------- Truppen (rechts oben) ---------- */
+.troop-list {
+  right: 16px;
+  top: 12px;
+  width: 250px;
+  max-height: calc(100% - 140px);
+  overflow: auto;
+  background: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.troop-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.troop-list li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Taschenuhr-Medaillon mit Porträt (Kopf und Schultern aus dem Figuren-Atlas). */
+.medal {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  background: url('./assets/ui/medallion.png') center / 44px 44px no-repeat;
+  image-rendering: pixelated;
+}
+
+.medal .portrait {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #2a3148;
+  /* Atlas 512×352, dreifach – passend zum Ausschnitt in ui/arena.ts. */
+  background-size: 1536px 1056px;
+  image-rendering: pixelated;
+  z-index: -1;
+}
+
+.medal img.portrait {
+  background: #2a3148;
+  object-fit: contain;
+}
+
+.troop-info {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 3px 6px;
+  font-size: 0.85em;
+}
+
+.troop-info .lvl {
+  color: #e8c070;
+  font-family: Georgia, 'Times New Roman', serif;
+  letter-spacing: 0.04em;
+}
+
+/* Erfahrung als Messing-Messstreifen. */
+.gauge {
+  grid-column: 1 / -1;
+  height: 6px;
+  background: #1a1410;
+  box-shadow: 0 0 0 2px #6a4a20;
+}
+
+.gauge span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, #ffe6a0 0 2px, #c8963a 2px);
+}
+
+/* ---------- Zauber (unten) ---------- */
+.spell-bar {
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  background: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0 4px;
+}
+
+.spell-bar .hud-row {
+  margin: 0;
+  gap: 8px;
+}
+
+.spell-bar .btn.spell {
+  border-radius: 0;
+  border: 0;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 2px #2a1a0e;
+  background: linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--spell) 55%, #3a2410) var(--fill),
+    #2a1c12 var(--fill)
+  );
+  color: #f3ead7;
+}
+
+.spell-bar .btn.spell kbd {
+  color: #e8c070;
+  opacity: 1;
+}
+
+/* ---------- Kopfleiste: Reich, Währungsleiste, Knöpfe ---------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.topbar {
+  background: none;
+  backdrop-filter: none;
+  gap: 10px 14px;
+  align-items: center;
+  padding: 10px 16px 4px;
+}
+
+/* Epoche und Jahreszeit auf einem Pergamentband. */
+.realm {
+  height: 24px;
+  border: solid transparent;
+  border-width: 0 16px;
+  border-image: url('./assets/ui/banner.png') 0 8 fill / 0 16px / 0 round;
+  image-rendering: pixelated;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+  color: #3a2410;
+  font-weight: 800;
+  font-size: 0.8em;
+  white-space: nowrap;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4));
+}
+
+.realm .epoch-label {
+  color: #3a2410;
+  font-size: 1em;
+}
+
+.realm .season {
+  color: #7a2a2a;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+
+/* Währungen auf einer schmalen Holzleiste mit Eisenrand. */
+.resources {
+  flex: 0 1 auto;
+  border: 10px solid transparent;
+  border-image: url('./assets/ui/strip.png') 5 fill / 10px / 0 round;
+  image-rendering: pixelated;
+  padding: 0 4px;
+  gap: 2px 14px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4));
+}
+
+.resources:empty {
+  display: none;
+}
+
+.resources .res {
+  background: none;
+  border: 0;
+  padding: 0;
+  gap: 5px;
+  align-items: center;
+  color: #f3ead7;
+  text-shadow: 0 1px 0 #1a0f08;
+}
+
+.res-icon {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+}
+
+/* Name steckt im Tooltip – auf der Leiste reichen Icon und Zahl. */
+.resources .res-name {
+  display: none;
+}
+
+.resources .res-val {
+  color: #ffe6a0;
+}
+
+.resources .res-cap,
+.resources .res-rate {
+  color: #c8b890;
+}
+
+.top-actions {
+  margin-left: auto;
+  gap: 8px;
+}
+
+.iconbtn {
+  width: 44px;
+  height: 44px;
+  border: 10px solid transparent;
+  border-image: url('./assets/ui/strip.png') 5 fill / 10px / 0 round;
+  image-rendering: pixelated;
+  background: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffe6a0;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.85em;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4));
+  transition: transform 0.1s;
+}
+
+.iconbtn img {
+  width: 24px;
+  height: 24px;
+}
+
+.iconbtn:hover {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.5)) brightness(1.15);
+}
+
+/* ---------- Meldungen als Pergamentzettel ---------- */
+.toast-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 300px;
+  border: 12px solid transparent;
+  border-image: url('./assets/ui/note.png') 8 fill / 12px / 0 round;
+  image-rendering: pixelated;
+  border-radius: 0;
+  background: none;
+  padding: 0 4px;
+  color: #3a2410;
+  font-weight: 700;
+  box-shadow: none;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+.toast-card.achievement,
+.toast-card.good,
+.toast-card.bad {
+  border-left: 12px solid transparent;
+}
+
+.toast-card.bad {
+  color: #7a2a2a;
+}
+
+.toast-card .seal {
+  width: 28px;
+  height: 24px;
+  flex: none;
+  margin: -6px 0;
+}
+
+.toasts {
+  top: 78px;
+}
+
+/* Sprechblase des Erzählers ebenfalls als Pergament. */
+.narrator .bubble {
+  border: 12px solid transparent;
+  border-image: url('./assets/ui/note.png') 8 fill / 12px / 0 round;
+  image-rendering: pixelated;
+  border-radius: 0;
+  background: none;
+  padding: 0 4px;
+  color: #3a2410;
+  box-shadow: none;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+/* ---------- Dorf: „Zur Mauer“ und Reiterleiste im gleichen Stil ---------- */
+.prep .to-wall {
+  border: 0;
+  border-radius: 0;
+  font-weight: 800;
+  font-size: 1em;
+  padding: 10px 18px;
+  color: #f3ead7;
+  text-shadow: 0 1px 0 #1a0f08;
+  background: linear-gradient(180deg, #8a5a2a, #5a3420);
+  box-shadow:
+    inset 0 2px 0 #b07a42,
+    inset 0 -3px 0 #3a2010,
+    0 0 0 2px #2a1a0e,
+    0 0 0 4px #5d6274,
+    0 6px 10px rgba(0, 0, 0, 0.45);
+}
+
+.prep .to-wall:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
+.prep .siege-select {
+  border-radius: 0;
+  background: #3e2716;
+  color: #ffe6a0;
+  box-shadow:
+    0 0 0 2px #2a1a0e,
+    0 0 0 4px #5d6274;
+}
+
+.room-tabs {
+  border: 10px solid transparent;
+  border-image: url('./assets/ui/strip.png') 5 fill / 10px / 0 round;
+  image-rendering: pixelated;
+  border-radius: 0;
+  background: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  flex: 0 1 auto;
+  margin: 0 auto;
+  padding: 0 4px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4));
+}
+
+.room-tabs .tab {
+  border-radius: 0;
+  background: none;
+}
+
+.room-tabs .tab:hover {
+  background: rgba(255, 230, 160, 0.08);
+}
+
+/* Offener Raum: Messingrahmen statt Glas. */
+.room-tabs .tab.active {
+  background: rgba(200, 150, 58, 0.22);
+  box-shadow:
+    inset 0 0 0 2px #c8963a,
+    inset 0 0 0 4px #5a3a1a;
+}
+
+.room-title {
+  color: #e8c070;
+  text-shadow: 0 2px 0 #1a0f08;
+}
+
+/* Fliegende Münze (Pool in render/effects.ts). */
+.flying-coin {
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 45;
+  filter: drop-shadow(0 0 4px rgba(255, 210, 90, 0.8));
+}

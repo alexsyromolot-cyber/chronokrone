@@ -264,6 +264,15 @@ Warum Waffen multiplikativ? Gegner wachsen je Belagerungsstufe ×1,75. Mit nur a
 Kampfkraft linear, die Wirtschaft lief über (Hunderttausende Holz), und der Bot verlor 24 Schlachten in Folge
 am letzten Elitegegner. Mit multiplikativen Waffen fließt die Wirtschaft wieder in Kampfkraft.
 
+### M7a – Epoche 2 „Dampf & Zahnrad“
+
+- Neue Rohstoffe Kohle und Zahnräder, neue Gebäude Kohlegrube, Zahnradwerk, Markt, Dampfgießerei (Forschung nur ab Epoche 2 sichtbar).
+- Neue Klassen: Heizer (Sammler, Hauptattribut Ausdauer) und Dampfritter (Reichweite 60, Flächenschaden).
+- Markt: Preise schwanken alle 10 s (±12 %, Zug zum Grundpreis), Spanne 10 % minus 1 % je Level (min. 2 %), damit Hin-und-her-Handel kein Gelddrucken ist.
+- Sammlung „Begleiter“: 8 Tiere, je Sieg 35 % Fundchance, Glücksschutz nach 3 Siegen, bleiben bei jedem Sprung; volle Sammlung +10 % auf alles.
+- Bot-Ergebnis: Epoche 2 dauert 69 Min. (vorher 2:16 h), keine Wartezeit über 60 s.
+- Offen: Heizer und Dampfritter haben erst 6 Skillknoten ohne Spezialisierung.
+
 ## 20. Offene Fragen
 
 Keine. (Die Balancing-Frage aus M3 – zähe Phase vor dem letzten Elitegegner – ist mit den multiplikativen Waffen gelöst.)

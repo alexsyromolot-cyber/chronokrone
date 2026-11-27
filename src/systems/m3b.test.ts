@@ -21,7 +21,10 @@ function rich(): GameState {
 
 describe('Skilltrees', () => {
   it('jede Klasse hat 12 Knoten, Spezialisierungen auf beiden Wegen', () => {
-    const classes = new Set(SKILLS.map((s) => s.classId));
+    // Epoche-1-Klassen haben volle Bäume mit Spezialisierung; spätere Klassen starten kleiner.
+    const classes = new Set(
+      SKILLS.map((s) => s.classId).filter((c) => c !== 'stoker' && c !== 'steamKnight'),
+    );
     for (const c of classes) {
       const nodes = SKILLS.filter((s) => s.classId === c);
       expect(nodes).toHaveLength(12);

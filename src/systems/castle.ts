@@ -18,6 +18,7 @@ import { hasResearch, surveyBounds } from './research';
 import { canAfford, exceedsCap, gain, pay, resourceCap, scaledCost, type Cost } from './resources';
 import { achievementMultiplier } from './achievements';
 import { chronicleBonus } from './chronicle';
+import { companionBonus, companionSetMultiplier } from './trade';
 import { productionModifier } from './events';
 import { weaponMultiplier } from './gear';
 import { globalBonus, skillBonus } from './skills';
@@ -118,13 +119,17 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
   const terrain = 1 + (terrainBase - 1) * (1 + terrainSkill);
   const neighbor = neighborBonus(state, tile);
   const workers = workersAt(state, tile).reduce((sum, u) => sum + workPower(u), 0);
-  const skills = cls ? skillBonus(state, cls, 'productionMult') : 0;
+  // Skills und Begleiter der Arbeiterklasse zählen zusammen.
+  const skills = cls
+    ? skillBonus(state, cls, 'productionMult') + companionBonus(state, cls, 'production')
+    : 0;
   const tavern = cls ? tavernBonus(state, tile) : 0;
   const gear = cls ? weaponMultiplier(state, cls, 'gatherer') : 1;
   const milestone = milestoneMultiplier(tile.level);
 
   const chronicle =
     achievementMultiplier(state) *
+    companionSetMultiplier(state) *
     (1 + chronicleBonus(state, 'production')) *
     (def.produces.resource === 'knowledge' ? 1 + chronicleBonus(state, 'knowledge') : 1);
   const season = productionModifier(state, def.produces.resource);

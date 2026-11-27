@@ -26,7 +26,12 @@ export type ResearchId =
   | 'spellBlessing'
   | 'spellMilitia'
   | 'oracle'
-  | 'chronology';
+  | 'chronology'
+  // Epoche 2
+  | 'steamPower'
+  | 'gearCraft'
+  | 'trade'
+  | 'steamFoundry';
 
 export interface ResearchDef {
   id: ResearchId;
@@ -36,6 +41,8 @@ export interface ResearchDef {
   buildings?: BuildingId[];
   /** Position im Forschungsbaum (Spalte, Zeile) – nur für die Darstellung. */
   pos: [number, number];
+  /** Erst ab dieser Epoche sichtbar und erforschbar. */
+  epoch?: number;
 }
 
 export const RESEARCH: ResearchDef[] = [
@@ -59,6 +66,18 @@ export const RESEARCH: ResearchDef[] = [
   { id: 'arcana', cost: 150, requires: ['writing', 'scrapLore'], buildings: ['mageTower'], pos: [3, 3] },
   { id: 'oracle', cost: 250, requires: ['arcana'], pos: [3, 4] },
   { id: 'chronology', cost: 400, requires: ['oracle', 'survey2'], pos: [2, 4] },
+  // --- Epoche 2: Dampf & Zahnrad ---
+  { id: 'steamPower', cost: 300, requires: [], buildings: ['coalMine'], pos: [0, 5], epoch: 2 },
+  { id: 'trade', cost: 400, requires: ['steamPower'], buildings: ['market'], pos: [1, 5], epoch: 2 },
+  { id: 'gearCraft', cost: 500, requires: ['steamPower'], buildings: ['gearWorks'], pos: [0, 6], epoch: 2 },
+  {
+    id: 'steamFoundry',
+    cost: 900,
+    requires: ['gearCraft'],
+    buildings: ['steamFoundry'],
+    pos: [1, 6],
+    epoch: 2,
+  },
 ];
 
 export const RESEARCH_BY_ID = Object.fromEntries(RESEARCH.map((r) => [r.id, r])) as Record<

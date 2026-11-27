@@ -23,6 +23,9 @@ export const RESOURCE_IDS = [
   'ink',
   'scrolls',
   'chips',
+  // Epoche 2: Dampf & Zahnrad
+  'coal',
+  'gears',
 ] as const;
 export type ResourceId = (typeof RESOURCE_IDS)[number];
 
@@ -50,6 +53,8 @@ export const RESOURCES: Record<ResourceId, ResourceDef> = {
   ink: { baseCap: 40, capGrowth: 1.8, color: '#b07ae0' },
   scrolls: { baseCap: 25, capGrowth: 1.7, color: '#f0e0b0' },
   chips: { baseCap: 25, capGrowth: 1.7, color: '#5fe0a0' },
+  coal: { baseCap: 200, capGrowth: 1.8, color: '#6a6a72' },
+  gears: { baseCap: 40, capGrowth: 1.8, color: '#d9a15a' },
 };
 
 /** Kosten-/Ertragsangabe: welche Ressource wie viel. */

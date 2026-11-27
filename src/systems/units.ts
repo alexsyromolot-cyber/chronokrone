@@ -8,6 +8,7 @@ import type { MessageKey } from '../i18n/de';
 import { canAfford, exceedsCap, pay, scaledCost, type Cost } from './resources';
 import { achievementMultiplier } from './achievements';
 import { chronicleBonus } from './chronicle';
+import { companionBonus, companionSetMultiplier } from './trade';
 import { isRested, RECAP } from './recap';
 import { armorEndurance, talismanXp, weaponMultiplier } from './gear';
 import { skillBonus } from './skills';
@@ -52,7 +53,8 @@ export function trainingLevel(state: GameState, classId: ClassId): number {
 export function damageBonus(state: GameState, unit: Unit): number {
   return (
     skillBonus(state, unit.classId, 'damageMult') +
-    BARRACKS.damageBonusPerLevel * trainingLevel(state, unit.classId)
+    BARRACKS.damageBonusPerLevel * trainingLevel(state, unit.classId) +
+    companionBonus(state, unit.classId, 'damage')
   );
 }
 
@@ -71,7 +73,8 @@ export function unitDamage(state: GameState, unit: Unit): number {
     (1 + damageBonus(state, unit)) *
     weaponMultiplier(state, unit.classId, 'troop') *
     (1 + chronicleBonus(state, 'damage')) *
-    achievementMultiplier(state)
+    achievementMultiplier(state) *
+    companionSetMultiplier(state)
   );
 }
 

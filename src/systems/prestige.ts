@@ -78,6 +78,7 @@ export function resetForEpoch(state: GameState): void {
   state.oracle = false;
   state.timeMachineAt = null;
   state.scrapPity = 0;
+  state.market = { prices: {}, history: {}, timer: 0 };
 
   // Chronik: Veteranen starten auf höherem Level, der Bergfried größer, Vorräte im Lager.
   const startLevel = 1 + chronicleBonus(state, 'startLevel');

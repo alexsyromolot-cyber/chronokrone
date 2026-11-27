@@ -18,7 +18,16 @@ import type { BuildingId } from './buildings';
 import type { ResourceAmounts } from './resources';
 
 export type ClassId =
-  'peasant' | 'knight' | 'archer' | 'warlock' | 'woodcutter' | 'miner' | 'herbalist' | 'monk';
+  | 'peasant'
+  | 'knight'
+  | 'archer'
+  | 'warlock'
+  | 'woodcutter'
+  | 'miner'
+  | 'herbalist'
+  | 'monk'
+  | 'stoker'
+  | 'steamKnight';
 export type AttributeId = 'str' | 'dex' | 'mag' | 'end';
 export type Attributes = Record<AttributeId, number>;
 
@@ -169,10 +178,44 @@ export const CLASSES: Record<ClassId, ClassDef> = {
     splash: 0,
     color: '#d9c27a',
   },
+  // --- Epoche 2: Dampf & Zahnrad ---
+  stoker: {
+    id: 'stoker',
+    role: 'gatherer',
+    requires: 'coalMine',
+    baseCost: { gold: 300, coal: 20 },
+    costGrowth: 1.35,
+    baseAttributes: { str: 5, dex: 1, mag: 0, end: 6 },
+    attrPerLevel: { str: 0.8, dex: 0.2, mag: 0, end: 1.2 },
+    // Heizer schaufeln mit Ausdauer, nicht mit Stärke.
+    mainAttr: 'end',
+    baseDamage: 2,
+    attackInterval: 1.2,
+    range: MELEE,
+    splash: 0,
+    color: '#8a6a4a',
+  },
+  steamKnight: {
+    id: 'steamKnight',
+    role: 'troop',
+    requires: 'steamFoundry',
+    baseCost: { gold: 2000, gears: 10, steel: 20 },
+    costGrowth: 1.4,
+    baseAttributes: { str: 9, dex: 2, mag: 0, end: 8 },
+    attrPerLevel: { str: 1.5, dex: 0.3, mag: 0, end: 1.2 },
+    mainAttr: 'str',
+    baseDamage: 12,
+    attackInterval: 1.5,
+    // Dampfdruck-Lanze: trifft auch Aliens ein Stück vor der Mauer.
+    range: 60,
+    splash: 16,
+    color: '#c08a50',
+  },
 };
 
 /** Reihenfolge in Listen und Panels. */
 export const CLASS_ORDER: ClassId[] = [
+  'steamKnight',
   'peasant',
   'knight',
   'archer',
@@ -181,10 +224,11 @@ export const CLASS_ORDER: ClassId[] = [
   'miner',
   'herbalist',
   'monk',
+  'stoker',
 ];
 
 /** Gebäude, deren Level Truppenplätze und Truppenschaden geben. */
-export const TROOP_BUILDINGS: BuildingId[] = ['barracks', 'archeryRange', 'mageTower'];
+export const TROOP_BUILDINGS: BuildingId[] = ['barracks', 'archeryRange', 'mageTower', 'steamFoundry'];
 
 export const UNIT_FORMULAS = {
   damagePerAttr: 0.1,

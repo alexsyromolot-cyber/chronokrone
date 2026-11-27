@@ -811,4 +811,11 @@ export const en: Messages = {
   'keys.settings': 'Settings',
   'keys.close': 'Close window, clear selection',
   'keys.debug': 'Debug panel',
+
+  // --- Meilenstein 6b ---
+  'fx.crit': 'CRIT!',
+  'fx.levelUp': 'LEVEL UP',
+
+  // --- Tastennamen ---
+  'keys.debugCombo': 'Ctrl + Shift + D',
 };

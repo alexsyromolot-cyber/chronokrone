@@ -820,6 +820,13 @@ export const de = {
   'keys.settings': 'Einstellungen',
   'keys.close': 'Fenster schließen, Auswahl aufheben',
   'keys.debug': 'Debug-Panel',
+
+  // --- Meilenstein 6b ---
+  'fx.crit': 'KRIT!',
+  'fx.levelUp': 'LEVEL UP',
+
+  // --- Tastennamen ---
+  'keys.debugCombo': 'Strg + Umschalt + D',
 } as const;
 
 export type MessageKey = keyof typeof de;

@@ -6,6 +6,7 @@
  */
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import { BATTLE, ENEMIES } from '../data/enemies';
+import { t } from '../i18n';
 import { epochDef, type EpochPalette } from '../data/epochs';
 import { DRONE } from '../data/events';
 import type { FxEvent, GameState } from '../systems/state';
@@ -34,7 +35,7 @@ export class BattleScene {
   private readonly defenders = new Map<number, Sprite>();
   private readonly enemies = new Map<
     number,
-    { sprite: Sprite; hpBar: Graphics; lastHp: number; flash: number }
+    { sprite: Sprite; hpBar: Graphics; glow: Graphics; lastHp: number; flash: number; base: number }
   >();
   private readonly defenderLayer = new Container();
   private readonly enemyLayer = new Container();
@@ -51,6 +52,8 @@ export class BattleScene {
   private wall = new Container();
   private palette: EpochPalette = epochDef(1).palette;
   private paletteEpoch = 1;
+  /** Wolken ziehen langsam über den Himmel (Parallaxe). */
+  private clouds = new Container();
 
   private constructor(
     private readonly app: Application,
@@ -124,7 +127,42 @@ export class BattleScene {
     const ground = new Graphics().rect(0, 122, VIEW_W, VIEW_H - 122).fill(p.ground);
     ground.rect(0, GROUND_Y, VIEW_W, VIEW_H - GROUND_Y).fill(p.groundDark);
     for (let x = 0; x < VIEW_W; x += 13) ground.rect(x, GROUND_Y + ((x * 3) % 20), 2, 1).fill('#2a3d2c');
-    bg.addChild(sky, ground);
+    // Mondschein als weicher Hof.
+    const moon = new Graphics()
+      .circle(275, 23, 16)
+      .fill({ color: '#e8e2c8', alpha: 0.08 })
+      .circle(275, 23, 9)
+      .fill({ color: '#e8e2c8', alpha: 0.1 });
+    // Warmer Lichtschein der Fackeln auf dem Boden vor der Mauer.
+    const lightPool = new Graphics()
+      .ellipse(BATTLE.wallX - 10, GROUND_Y + 2, 46, 8)
+      .fill({ color: '#f2b33d', alpha: 0.07 })
+      .ellipse(BATTLE.wallX - 10, GROUND_Y + 2, 24, 4)
+      .fill({ color: '#f2b33d', alpha: 0.08 });
+    this.clouds = new Container();
+    for (let i = 0; i < 4; i++) {
+      const c = new Graphics();
+      const w = 30 + ((i * 17) % 25);
+      c.rect(0, 2, w, 4)
+        .fill({ color: p.stars, alpha: 0.18 })
+        .rect(6, 0, w - 14, 3)
+        .fill({ color: p.stars, alpha: 0.14 });
+      c.position.set((i * 97) % VIEW_W, 14 + i * 13);
+      this.clouds.addChild(c);
+    }
+    // Dunkle Ränder (Vignette) – lenkt den Blick zur Mitte und macht die Nacht kälter.
+    const vignette = new Graphics();
+    for (let i = 0; i < 6; i++) {
+      const a = 0.05;
+      vignette
+        .rect(0, 0, VIEW_W, 3 + i * 3)
+        .fill({ color: '#000000', alpha: a })
+        .rect(0, VIEW_H - 3 - i * 3, VIEW_W, 3 + i * 3)
+        .fill({ color: '#000000', alpha: a })
+        .rect(VIEW_W - 4 - i * 4, 0, 4 + i * 4, VIEW_H)
+        .fill({ color: '#000000', alpha: a });
+    }
+    bg.addChild(sky, moon, this.clouds, ground, lightPool, vignette);
     return bg;
   }
 
@@ -188,8 +226,9 @@ export class BattleScene {
     let best: { id: number; d: number } | null = null;
     for (const [id, view] of this.enemies) {
       const s = view.sprite;
-      const cx = s.x + s.width / 2;
-      const cy = s.y + s.height / 2;
+      // Aliens sind unten mittig verankert: x ist die Mitte, y der Fußpunkt.
+      const cx = s.x;
+      const cy = s.y - s.height / 2;
       const d = Math.hypot(cx - fx, cy - fy);
       if (d <= BATTLE.clickRadius && (!best || d < best.d)) best = { id, d };
     }
@@ -220,7 +259,10 @@ export class BattleScene {
       // Kurzer Ausfallschritt direkt nach einem Schlag.
       const cd = state.battle?.cooldowns[unit.id] ?? 0;
       const lunge = !this.options.reducedMotion() && cd > attackInterval(state, unit) * 0.8 ? 2 : 0;
-      sprite.position.set(pos.x + lunge, pos.y);
+      const breathe = this.options.reducedMotion()
+        ? 0
+        : Math.round(Math.sin(this.time * 2.5 + unit.id) * 0.6);
+      sprite.position.set(pos.x + lunge, pos.y + breathe);
     });
   }
 
@@ -257,6 +299,7 @@ export class BattleScene {
       if (!alive.has(id)) {
         view.sprite.destroy();
         view.hpBar.destroy();
+        view.glow.destroy();
         this.enemies.delete(id);
       }
     }
@@ -264,24 +307,46 @@ export class BattleScene {
       let view = this.enemies.get(e.id);
       if (!view) {
         const sprite = new Sprite(spriteTexture(ENEMY_SPRITES[e.type]));
-        if (ENEMIES[e.type].elite) sprite.scale.set(2);
+        const elite = !!ENEMIES[e.type].elite;
+        // Anker unten mittig: Stauchen und Wippen passieren dann „auf dem Boden“.
+        sprite.anchor.set(0.5, 1);
+        if (elite) sprite.scale.set(2);
         const hpBar = new Graphics();
-        this.enemyLayer.addChild(sprite, hpBar);
-        view = { sprite, hpBar, lastHp: e.hp, flash: 0 };
+        const glow = new Graphics();
+        if (elite) glow.circle(0, 0, 18).fill({ color: ENEMIES[e.type].color, alpha: 0.25 });
+        this.enemyLayer.addChild(glow, sprite, hpBar);
+        view = { sprite, hpBar, glow, lastHp: e.hp, flash: 0, base: elite ? 2 : 1 };
         this.enemies.set(e.id, view);
       }
       if (e.hp < view.lastHp) view.flash = 0.12;
       view.lastHp = e.hp;
       view.flash = Math.max(0, view.flash - 1 / 60);
 
-      const x = e.prevX + (e.x - e.prevX) * alpha;
-      const hover =
-        e.type === 'brummdrohne' && !this.options.reducedMotion()
+      const reduced = this.options.reducedMotion();
+      const moving = e.x > BATTLE.wallX;
+      const flying = e.type === 'brummdrohne' || e.type === 'brummkoenigin';
+      const h = view.sprite.height;
+      // Gehen: kleines Wippen im Schritt; Fliegen: sanftes Schweben; an der Mauer: Hämmern.
+      const bob = reduced
+        ? 0
+        : flying
           ? Math.round(Math.sin(this.time * 6 + e.id) * 2) - 8
-          : 0;
-      const y = this.enemyY(e.lane, view.sprite.height) + hover;
-      view.sprite.position.set(Math.round(x), Math.round(y));
-      view.sprite.alpha = view.flash > 0 ? 0.6 : 1;
+          : moving
+            ? -Math.round(Math.abs(Math.sin(this.time * 8 + e.id)) * 1.5)
+            : -Math.round(Math.max(0, Math.sin(this.time * 14 + e.id)) * 2);
+      const x = e.prevX + (e.x - e.prevX) * alpha;
+      const w = view.sprite.width;
+      const footY = this.enemyY(e.lane, h) + h + bob;
+      view.sprite.position.set(Math.round(x + w / 2), Math.round(footY));
+      // Treffer: kurz gestaucht und durchscheinend.
+      const squash = view.flash > 0 && !reduced ? 0.85 : 1;
+      view.sprite.scale.set(view.base * (2 - squash), view.base * squash);
+      view.sprite.alpha = view.flash > 0 ? 0.65 : 1;
+      if (view.base > 1) {
+        view.glow.position.set(Math.round(x + w / 2), Math.round(footY - h / 2));
+        view.glow.alpha = reduced ? 0.6 : 0.6 + 0.4 * Math.sin(this.time * 4);
+      }
+      const y = footY - h;
 
       view.hpBar.clear();
       if (e.hp < e.maxHp) {
@@ -331,7 +396,7 @@ export class BattleScene {
           break;
         case 'levelUp': {
           const sprite = this.defenders.get(fx.unitId);
-          if (sprite) this.effects.text(sprite.x + 6, sprite.y - 4, 'LEVEL UP', 'level');
+          if (sprite) this.effects.text(sprite.x + 6, sprite.y - 4, t('fx.levelUp'), 'level');
           break;
         }
         case 'battleEnd':
@@ -349,7 +414,7 @@ export class BattleScene {
           );
           break;
         case 'crit':
-          this.effects.text(fx.x + 6, this.enemyY(fx.lane, 10) - 14, 'KRIT!', 'click');
+          this.effects.text(fx.x + 6, this.enemyY(fx.lane, 10) - 14, t('fx.crit'), 'click');
           break;
         case 'spell':
           if (fx.spell === 'stoneRain') {
@@ -380,6 +445,12 @@ export class BattleScene {
 
     const reduced = this.options.reducedMotion();
     this.torches.forEach((t, i) => (t.alpha = reduced ? 1 : 0.8 + 0.2 * Math.sin(this.time * 9 + i * 2)));
+    if (!reduced) {
+      this.clouds.children.forEach((c, i) => {
+        c.x -= dtSeconds * (2 + i * 0.8);
+        if (c.x < -60) c.x = VIEW_W + 10;
+      });
+    }
     if (this.shake > 0 && !reduced) {
       this.app.stage.position.set(
         Math.round((Math.random() - 0.5) * this.shake),

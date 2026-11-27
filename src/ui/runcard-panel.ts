@@ -74,25 +74,29 @@ export function drawRunCard(canvas: HTMLCanvasElement, card: RunCard, accent: st
     g.fillStyle = '#9aa6c8';
     g.fillText(label, 28, 128 + i * 26);
     g.fillStyle = '#ffffff';
+    // Lange Werte (z. B. Fortschritt) passend verkleinern statt über den Rand laufen lassen.
+    const maxWidth = W - 250 - 28;
+    let size = 16;
+    g.font = `${size}px monospace`;
+    while (g.measureText(value).width > maxWidth && size > 10) g.font = `${--size}px monospace`;
     g.fillText(value, 250, 128 + i * 26);
+    g.font = '16px monospace';
   });
 
   const challenges = Object.entries(card.challenges)
     .sort((a, b) => a[1] - b[1])
-    .slice(0, 4);
+    .slice(0, 3);
   g.fillStyle = accent;
   g.font = 'bold 16px monospace';
   g.fillText(t('runcard.challenges'), 28, 270);
   g.font = '14px monospace';
   g.fillStyle = '#ffffff';
   if (challenges.length === 0) g.fillText(t('runcard.noChallenges'), 28, 292);
+  // Eine Zeile je Bestzeit; zu lange Fluch-Kombinationen werden mit „…“ gekürzt.
   challenges.forEach(([key, sec], i) => {
-    const text = `${hms(sec)}  ${curseNames(key)}`;
-    g.fillText(
-      text.length > 70 ? `${text.slice(0, 69)}…` : text,
-      28 + (i % 2) * 300,
-      292 + Math.floor(i / 2) * 20,
-    );
+    let text = `${hms(sec)}  ${curseNames(key)}`;
+    while (g.measureText(text).width > W - 56 && text.length > 12) text = `${text.slice(0, -2)}…`;
+    g.fillText(text, 28, 292 + i * 20);
   });
 }
 

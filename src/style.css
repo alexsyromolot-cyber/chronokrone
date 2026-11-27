@@ -1531,3 +1531,30 @@ body {
   margin: 0.3em 0;
   padding-left: 1.2em;
 }
+
+/* --- Run-Karte --- */
+.modal.runcard {
+  max-width: min(700px, 96vw);
+}
+.runcard canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0.5em 0;
+  border-radius: 4px;
+}
+.runcard textarea,
+.runcard input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  background: var(--panel-2, #232c45);
+  color: inherit;
+  border: 1px solid var(--line, #2f3a5a);
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+.runcard label input {
+  width: auto;
+  min-width: 14em;
+}

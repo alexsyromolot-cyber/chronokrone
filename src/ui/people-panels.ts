@@ -2,11 +2,10 @@
  * Leute (Einheiten + Anwerben), Skilltrees und Bestiarium.
  */
 import { ENEMIES, type EnemyId } from '../data/enemies';
-import { SKILLS } from '../data/skills';
+import { GEAR, GEAR_EFFECTS, GEAR_SLOTS } from '../data/gear';
 import { CLASS_ORDER, CLASSES, type ClassId } from '../data/units';
-import { t } from '../i18n';
-import type { MessageKey } from '../i18n/de';
-import { skillBlocker, skillRank } from '../systems/skills';
+import { t, tk } from '../i18n';
+import { gearBlocker, gearCost, gearTier } from '../systems/gear';
 import type { GameState, Unit } from '../systems/state';
 import {
   attackInterval,
@@ -35,7 +34,10 @@ function unitRow(state: GameState, unit: Unit, index: number): string {
   let role: string;
   let roleTip: string;
   if (def.role === 'troop') {
-    role = t('units.damage', { dmg: num(unitDamage(state, unit), 1), sec: num(attackInterval(unit), 2) });
+    role = t('units.damage', {
+      dmg: num(unitDamage(state, unit), 1),
+      sec: num(attackInterval(state, unit), 2),
+    });
     roleTip = t('units.damageTip', {
       base: def.baseDamage,
       attr: t(`attr.${def.mainAttr}`),
@@ -86,35 +88,42 @@ export function unitsHtml(state: GameState): string {
 
   return `<p class="tag">${esc(t('units.troops', { n: troops(state).length, max: troopCapacity(state) }))}</p>
     ${state.unlocked.recruit ? `<div class="recruit">${recruit}</div>` : ''}
-    <ul class="unit-list">${rows}</ul>`;
+    <ul class="unit-list">${rows}</ul>
+    ${gearHtml(state)}`;
 }
 
-export function skillsHtml(state: GameState): string {
-  return CLASS_ORDER.filter((c) => state.units.some((u) => u.classId === c))
+/** Ausrüstung je Klasse: drei Slots, eine Stufe gilt für alle Einheiten der Klasse. */
+export function gearHtml(state: GameState): string {
+  if (!state.tiles.some((tile) => tile.building === 'smithy' || tile.building === 'scriptorium')) return '';
+  const rows = CLASS_ORDER.filter((c) => state.units.some((u) => u.classId === c))
     .map((c) => {
-      const nodes = SKILLS.filter((s) => s.classId === c)
-        .map((s) => {
-          const rank = skillRank(state, s.id);
-          const blocker = skillBlocker(state, s.id);
-          const req = s.requires
-            ? `\n${t('skills.requires', { name: t(`skill.${s.requires}` as MessageKey) })}`
-            : '';
-          const tipText = `${t(`skill.${s.id}` as MessageKey)}\n${t(`skill.${s.id}.desc` as MessageKey)}${req}${blocker ? `\n${reasonText(blocker)}` : ''}`;
-          return `<button class="skill ${rank >= s.maxRank ? 'maxed' : ''} ${rank > 0 ? 'learned' : ''}" ${
-            blocker ? 'disabled' : ''
-          } ${action({ type: 'buySkill', skillId: s.id })} ${tip(tipText)} style="grid-column:${s.pos[0] + 1};grid-row:${s.pos[1] + 1}">
-            <span class="name">${esc(t(`skill.${s.id}` as MessageKey))}</span>
-            <span class="rank">${esc(t('skills.rank', { rank, max: s.maxRank }))}</span>
-          </button>`;
-        })
-        .join('');
-      return `<div class="tree">
-        <h4><img src="${spriteUrl(UNIT_SPRITES[c])}" alt=""> ${esc(t(`class.${c}`))}
-          <span class="points ${state.skillPoints[c] > 0 ? 'has' : ''}">${esc(t('skills.points', { n: state.skillPoints[c] }))}</span></h4>
-        <div class="nodes">${nodes}</div>
-      </div>`;
+      const role = CLASSES[c].role;
+      const slots = GEAR_SLOTS.map((slot) => {
+        const tier = gearTier(state, c, slot);
+        const def = GEAR[slot];
+        const blocker = gearBlocker(state, c, slot);
+        const fx =
+          slot === 'weapon'
+            ? t(role === 'troop' ? 'gear.weaponTroop' : 'gear.weaponGatherer', {
+                v: pct(role === 'troop' ? GEAR_EFFECTS.weaponDamage : GEAR_EFFECTS.weaponProduction),
+              })
+            : slot === 'armor'
+              ? t('gear.armorFx', { v: GEAR_EFFECTS.armorEndurance })
+              : t('gear.talismanFx', { v: pct(GEAR_EFFECTS.talismanXp) });
+        const tipText = `${tk(`gear.${slot}`)}: ${fx}\n${t('gear.costTip')}${blocker && tier < def.maxTier ? `\n${reasonText(blocker)}` : ''}`;
+        return `<button class="gear-slot ${tier > 0 ? 'owned' : ''}" ${blocker ? 'disabled' : ''} ${action({
+          type: 'craftGear',
+          classId: c,
+          slot,
+        })} ${tip(tipText)}>
+          <span class="name">${esc(tk(`gear.${slot}`))} ${esc(t('gear.tier', { tier, max: def.maxTier }))}</span>
+          ${tier < def.maxTier ? costHtml(state, gearCost(state, c, slot)) : ''}
+        </button>`;
+      }).join('');
+      return `<div class="gear-row"><img src="${spriteUrl(UNIT_SPRITES[c])}" alt=""><strong>${esc(t(`class.${c}`))}</strong>${slots}</div>`;
     })
     .join('');
+  return `<h3 class="sub">${esc(t('gear.title'))}</h3>${rows}`;
 }
 
 export function bestiaryHtml(state: GameState): string {

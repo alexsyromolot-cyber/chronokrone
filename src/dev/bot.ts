@@ -5,7 +5,9 @@
  */
 import { BUILDINGS, type BuildingId } from '../data/buildings';
 import { BATTLE } from '../data/enemies';
+import { GEAR_SLOTS } from '../data/gear';
 import { RESEARCH } from '../data/research';
+import { SPELL_IDS } from '../data/spells';
 import { SKILLS } from '../data/skills';
 import type { ClassId } from '../data/units';
 import { dispatch, type Action } from '../systems/actions';
@@ -84,6 +86,10 @@ function wishes(state: GameState): Action[] {
     }
   }
   for (const c of RECRUIT_ORDER) list.push({ type: 'recruit', classId: c });
+  for (const spell of SPELL_IDS) list.push({ type: 'upgradeSpell', spell });
+  for (const c of RECRUIT_ORDER) {
+    for (const slot of GEAR_SLOTS) list.push({ type: 'craftGear', classId: c, slot });
+  }
 
   // Günstigstes Upgrade zuerst: Gebäude nach Level sortiert.
   const built = state.tiles.filter((t) => t.building).sort((a, b) => a.level - b.level);
@@ -116,6 +122,11 @@ export class Bot {
         const target = b.enemies.reduce((a, e) => (e.x < a.x ? e : a));
         if (target.x < BATTLE.spawnX - 10) dispatch(state, { type: 'clickEnemy', enemyId: target.id });
       }
+      // Zauber: Steinregen und Miliz sofort, Segen erst bei angeschlagener Mauer.
+      if (b.enemies.length >= 3) dispatch(state, { type: 'castSpell', spell: 'stoneRain' });
+      if (b.enemies.length >= 2) dispatch(state, { type: 'castSpell', spell: 'militia' });
+      if (state.battle && b.wallHp < b.wallMaxHp * 0.6)
+        dispatch(state, { type: 'castSpell', spell: 'blessing' });
     } else {
       this.idleTimer += dt;
       if (this.idleTimer >= this.options.pauseBetweenBattles && troops(state).length > 0) {

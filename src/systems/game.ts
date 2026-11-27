@@ -6,6 +6,7 @@
 import { startBattle, tickBattle } from './battle';
 import { tickCastle } from './castle';
 import { checkUnlocks } from './progression';
+import { tickSpells } from './spells';
 import { addLog, createInitialState, type GameState } from './state';
 
 const MAX_FX = 200;
@@ -14,6 +15,7 @@ export function tick(state: GameState, dt: number): void {
   state.time += dt;
   tickCastle(state, dt);
   tickBattle(state, dt);
+  tickSpells(state, dt);
   checkUnlocks(state);
   // Effekte holt der Renderer jeden Frame ab. Beim Vorspulen (ohne Frames) würden sie
   // sich sonst unbegrenzt stapeln – also nur die neuesten behalten.

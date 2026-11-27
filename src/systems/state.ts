@@ -11,7 +11,10 @@ import type { BuildingId } from '../data/buildings';
 import type { EnemyId } from '../data/enemies';
 import { EPOCH1_MAP, TERRAIN_CODES, type TerrainId } from '../data/map';
 import { LOG_LIMIT, type UnlockId } from '../data/progression';
+import type { GearSlot } from '../data/gear';
 import type { ResearchId } from '../data/research';
+import type { SpecPath } from '../data/skills';
+import type { SpellId } from '../data/spells';
 import { RESOURCE_IDS, type ResourceId } from '../data/resources';
 import { CLASSES, START_UNITS, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
@@ -65,6 +68,11 @@ export interface BattleState {
   goldEarned: number;
   /** Abklingzeit je Truppe (unit.id → Sekunden bis zum nächsten Schlag). */
   cooldowns: Record<number, number>;
+  /** Abklingzeit je Zauber in Sekunden. */
+  spellCooldowns: Partial<Record<SpellId, number>>;
+  /** Restdauer der Bauernmiliz und Zeit bis zu ihrem nächsten Schlag. */
+  militiaLeft: number;
+  militiaTimer: number;
 }
 
 export interface BattleSummary {
@@ -90,7 +98,9 @@ export type FxEvent =
   | { kind: 'wallHit' }
   | { kind: 'levelUp'; unitId: number }
   | { kind: 'milestone' }
-  | { kind: 'battleEnd'; result: 'won' | 'lost' };
+  | { kind: 'battleEnd'; result: 'won' | 'lost' }
+  | { kind: 'spell'; spell: SpellId }
+  | { kind: 'crit'; x: number; lane: number };
 
 export interface Stats {
   battles: number;
@@ -119,6 +129,12 @@ export interface GameState {
   nextUnitId: number;
   skillPoints: Record<ClassId, number>;
   skills: Record<string, number>;
+  /** Gewählte Spezialisierung je Klasse. */
+  specs: Partial<Record<ClassId, SpecPath>>;
+  /** Ausrüstungsstufe je Klasse und Slot. */
+  gear: Partial<Record<ClassId, Partial<Record<GearSlot, number>>>>;
+  /** Zauberstufen (0 bzw. fehlend = nicht gelernt). */
+  spells: Partial<Record<SpellId, number>>;
   /** Abgeschlossene Forschung. */
   research: Partial<Record<ResearchId, boolean>>;
   wallUpgrades: number;
@@ -175,6 +191,9 @@ export function createInitialState(seed = Date.now()): GameState {
     skillPoints,
     skills: {},
     research: {},
+    specs: {},
+    gear: {},
+    spells: {},
     wallUpgrades: 0,
     siegeLevel: 0,
     battle: null,

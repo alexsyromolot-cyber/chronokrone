@@ -19,7 +19,11 @@ import { addLog, type GameState } from './systems/state';
 import { castleHtml, type CastleUi } from './ui/castle-panel';
 import { el, setHtml } from './ui/dom';
 import { battleHudHtml, logHtml, resourcesHtml } from './ui/panels-top';
-import { bestiaryHtml, skillsHtml, unitsHtml } from './ui/people-panels';
+import { bestiaryHtml, unitsHtml } from './ui/people-panels';
+import { skillsHtml } from './ui/skills-panel';
+import { spellbookHtml, spellButtonsHtml } from './ui/spells-panel';
+import { SPELL_IDS, SPELLS } from './data/spells';
+import { spellLevel } from './systems/spells';
 import { researchHtml } from './ui/research-panel';
 import { installTooltips } from './ui/tooltip';
 
@@ -61,6 +65,7 @@ const panels = {
   units: el('#units'),
   skills: el('#skills'),
   research: el('#research'),
+  spells: el('#spells'),
   bestiary: el('#bestiary'),
 };
 
@@ -84,13 +89,16 @@ function renderPanels(): void {
   // Während die Maus gedrückt ist, nichts neu schreiben – sonst geht der Klick verloren.
   if (performance.now() < holdRenderUntil) return;
   setHtml(el('#resources'), resourcesHtml(state));
-  setHtml(el('#battle-hud'), battleHudHtml(state));
+  setHtml(el('#battle-hud'), battleHudHtml(state) + spellButtonsHtml(state));
   setHtml(el('#log-body'), logHtml(state));
 
   reveal(panels.castle, !!state.unlocked.castle);
   reveal(panels.units, !!state.unlocked.castle);
   reveal(panels.skills, !!state.unlocked.skills);
   reveal(panels.research, !!state.unlocked.research);
+  const anySpell = SPELL_IDS.some((id) => spellLevel(state, id) > 0);
+  reveal(panels.spells, anySpell);
+  if (anySpell) setHtml(el('#spells-body'), spellbookHtml(state));
   reveal(panels.bestiary, !!state.unlocked.bestiary);
   if (state.unlocked.castle) setHtml(el('#castle-body'), castleHtml(state, castleUi));
   if (state.unlocked.castle) setHtml(el('#units-body'), unitsHtml(state));
@@ -168,6 +176,11 @@ function installInput(debug: { toggle(): void }): void {
       return;
     }
     if ((e.target as HTMLElement).closest('input, select, textarea')) return;
+    const spell = SPELL_IDS.find((id) => SPELLS[id].key === e.key);
+    if (spell && state.battle) {
+      run({ type: 'castSpell', spell });
+      return;
+    }
     if (e.code === 'Space') {
       e.preventDefault();
       if (!state.battle) run({ type: 'startBattle' });

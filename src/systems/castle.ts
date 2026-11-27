@@ -16,7 +16,8 @@ import { CLASSES, UNIT_FORMULAS, type ClassId } from '../data/units';
 import type { MessageKey } from '../i18n/de';
 import { hasResearch, surveyBounds } from './research';
 import { canAfford, exceedsCap, gain, pay, resourceCap, scaledCost, type Cost } from './resources';
-import { skillBonus } from './skills';
+import { weaponBonus } from './gear';
+import { globalBonus, skillBonus } from './skills';
 import { addLog, type GameState, type Tile, type Unit } from './state';
 import { addXp, workPower } from './units';
 
@@ -93,7 +94,8 @@ export interface ProductionBreakdown {
   workers: number;
   skills: number;
   tavern: number;
-  /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern) */
+  gear: number;
+  /** = perLevel × level × milestone × terrain × (1 + neighbor + workers + skills + tavern + gear) */
   total: number;
 }
 
@@ -111,10 +113,15 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
   const workers = workersAt(state, tile).reduce((sum, u) => sum + workPower(u), 0);
   const skills = cls ? skillBonus(state, cls, 'productionMult') : 0;
   const tavern = cls ? tavernBonus(state, tile) : 0;
+  const gear = cls ? weaponBonus(state, cls, 'gatherer') : 0;
   const milestone = milestoneMultiplier(tile.level);
 
   const total =
-    def.produces.perLevel * tile.level * milestone * terrain * (1 + neighbor + workers + skills + tavern);
+    def.produces.perLevel *
+    tile.level *
+    milestone *
+    terrain *
+    (1 + neighbor + workers + skills + tavern + gear);
   return {
     resource: def.produces.resource,
     perLevel: def.produces.perLevel,
@@ -125,6 +132,7 @@ export function tileProduction(state: GameState, tile: Tile): ProductionBreakdow
     workers,
     skills,
     tavern,
+    gear,
     total,
   };
 }
@@ -135,7 +143,10 @@ export function recipeRate(state: GameState, tile: Tile): number {
   const recipe = BUILDINGS[tile.building].recipe;
   if (!recipe) return 0;
   return (
-    recipe.cyclesPerLevel * tile.level * milestoneMultiplier(tile.level) * (1 + neighborBonus(state, tile))
+    recipe.cyclesPerLevel *
+    tile.level *
+    milestoneMultiplier(tile.level) *
+    (1 + neighborBonus(state, tile) + globalBonus(state, 'recipeMult', tile.building!))
   );
 }
 
@@ -162,7 +173,21 @@ export function flows(state: GameState): Flows {
         produced[id] += n * rate;
     }
   }
+  produced.gold += skillGold(state);
   return { produced, consumed };
+}
+
+/**
+ * Gold aus Skills wie „Goldnuggets“: perRank × Rang × Anzahl der Einheiten dieser Klasse.
+ * (Die Edelsteinsucher finden mehr, je mehr von ihnen graben.)
+ */
+export function skillGold(state: GameState): number {
+  let gold = 0;
+  for (const cls of Object.keys(CLASSES) as ClassId[]) {
+    const per = skillBonus(state, cls, 'goldPerSecond');
+    if (per > 0) gold += per * state.units.filter((u) => u.classId === cls).length;
+  }
+  return gold;
 }
 
 /** Netto-Fluss pro Sekunde (Produktion minus Rezeptverbrauch, ideal gerechnet). */
@@ -309,6 +334,8 @@ function runRecipe(state: GameState, tile: Tile, dt: number): void {
 
 /** Ein Logik-Tick der Burg: Erzeuger produzieren, Rezepte wandeln um, Sammler lernen. */
 export function tickCastle(state: GameState, dt: number): void {
+  const bonusGold = skillGold(state);
+  if (bonusGold > 0) gain(state, 'gold', bonusGold * dt);
   for (const tile of state.tiles) {
     if (!tile.building || tile.level < 1) continue;
     const p = tileProduction(state, tile);

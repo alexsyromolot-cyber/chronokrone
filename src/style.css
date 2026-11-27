@@ -839,3 +839,116 @@ kbd {
 .node:disabled {
   cursor: default;
 }
+
+/* ---------- Skilltrees (M3b) ---------- */
+.nodes {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: auto auto auto auto auto;
+}
+
+.nodes .path-label {
+  grid-row: 3;
+  font-size: 0.75em;
+  color: var(--ink-dim);
+  align-self: end;
+}
+
+.nodes .path-label.a {
+  grid-column: 1 / span 2;
+}
+
+.nodes .path-label.b {
+  grid-column: 3 / span 2;
+}
+
+.skill.spec-a {
+  border-style: dashed;
+}
+
+.skill.spec-b {
+  border-style: dotted;
+}
+
+.skill.closed {
+  opacity: 0.25;
+}
+
+.spec-line {
+  margin: 0 0 4px;
+  font-size: 0.85em;
+}
+
+.spec-line.ready {
+  color: var(--torch);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+/* ---------- Ausrüstung ---------- */
+h3.sub {
+  margin: 12px 0 6px;
+  font-size: 0.9em;
+  color: var(--torch);
+}
+
+.gear-row {
+  display: grid;
+  grid-template-columns: 20px 110px repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+  padding: 4px 0;
+  border-top: 1px solid var(--line);
+}
+
+.gear-row img {
+  width: 18px;
+}
+
+.gear-slot {
+  font: inherit;
+  font-size: 0.8em;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  padding: 4px;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+}
+
+.gear-slot.owned {
+  border-color: var(--torch-dark);
+}
+
+.gear-slot:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ---------- Zauber ---------- */
+.btn.spell {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--spell);
+}
+
+/* Abklingzeit als füllender Balken am unteren Rand. */
+.btn.spell::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: var(--fill);
+  background: var(--spell);
+}
+
+.btn.spell.ready {
+  box-shadow: 0 0 6px var(--spell);
+}
+
+.spell-dot {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+}

@@ -183,7 +183,7 @@ export class BattleScene {
       const pos = this.defenderPos(i, sprite.height);
       // Kurzer Ausfallschritt direkt nach einem Schlag.
       const cd = state.battle?.cooldowns[unit.id] ?? 0;
-      const lunge = !this.options.reducedMotion() && cd > attackInterval(unit) * 0.8 ? 2 : 0;
+      const lunge = !this.options.reducedMotion() && cd > attackInterval(state, unit) * 0.8 ? 2 : 0;
       sprite.position.set(pos.x + lunge, pos.y);
     });
   }
@@ -278,6 +278,21 @@ export class BattleScene {
           break;
         }
         case 'battleEnd':
+          break;
+        case 'crit':
+          this.effects.text(fx.x + 6, this.enemyY(fx.lane, 10) - 14, 'KRIT!', 'click');
+          break;
+        case 'spell':
+          if (fx.spell === 'stoneRain') {
+            for (const view of this.enemies.values()) {
+              this.effects.burst(view.sprite.x + 6, view.sprite.y, '#b8bccb', reduced ? 3 : 10);
+            }
+            this.shake = Math.max(this.shake, 4);
+          } else if (fx.spell === 'blessing') {
+            this.effects.burst(56, 110, '#7ed37e', reduced ? 6 : 24);
+          } else {
+            this.effects.text(40, 120, '⚑ ⚑ ⚑', 'gold');
+          }
           break;
       }
     }

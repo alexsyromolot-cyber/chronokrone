@@ -136,6 +136,28 @@ test('Ereignis beantworten und Drohne anklicken', async ({ page }) => {
   expect(caught).toBe(true);
 });
 
+test('Rückblick nach langer Pause mit Ausgeruht-Bonus', async ({ page }) => {
+  await game(page, 'g.loop.fastForward(120)');
+  // Speichern und so tun, als sei das zwei Stunden her.
+  await game(page, 'g.save()');
+  await page.evaluate(() => {
+    const raw = JSON.parse(localStorage.getItem('chronokrone.save')!);
+    raw.state.session.lastSeenAt -= 2 * 3600 * 1000;
+    localStorage.setItem('chronokrone.save', JSON.stringify(raw));
+    // Beim Neuladen nicht erneut speichern, sonst wäre die Pause weg.
+    const restore = () => localStorage.setItem('chronokrone.save', JSON.stringify(raw));
+    window.addEventListener('pagehide', restore);
+    document.addEventListener('visibilitychange', restore);
+  });
+  await page.reload();
+  await expect(page.locator('.modal-backdrop.recap')).toBeVisible();
+  await expect(page.locator('.recap-table')).toContainText('Aliens besiegt');
+  await page.waitForTimeout(1700);
+  await page.screenshot({ path: 'test-results/08-rueckblick.png' });
+  await page.getByRole('button', { name: 'Weiter' }).click();
+  await expect(page.locator('.rested')).toContainText('Ausgeruht');
+});
+
 test('Sprache lässt sich umschalten', async ({ page }) => {
   await page.getByRole('button', { name: 'English' }).click();
   await expect(page.locator('h1')).toHaveText('Chronocrown');

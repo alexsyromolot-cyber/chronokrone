@@ -8,6 +8,7 @@ import { t, tk } from '../i18n';
 import { wallUpgradeBlocker, wallUpgradeCost, type Action } from '../systems/actions';
 import { clickDamage, eliteForSiege, enrageFactor, wallMaxHp } from '../systems/battle';
 import { productionRates } from '../systems/castle';
+import { isRested } from '../systems/recap';
 import { keepLevel, resourceCap } from '../systems/resources';
 import { skillBonus } from '../systems/skills';
 import type { GameState } from '../systems/state';
@@ -58,6 +59,11 @@ export function battleHudHtml(state: GameState): string {
   const b = state.battle;
   const parts: string[] = [];
   if (state.events.drone) parts.push(`<div class="hint drone-hint">${esc(t('drone.hint'))}</div>`);
+  if (isRested(state)) {
+    const left = Math.ceil(state.session.restedUntil - state.time);
+    const time = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+    parts.push(`<div class="hint rested" ${tip(t('hud.restedTip'))}>${esc(t('hud.rested', { time }))}</div>`);
+  }
 
   if (b) {
     const wallPct = Math.max(0, b.wallHp / b.wallMaxHp);

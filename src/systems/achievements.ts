@@ -70,7 +70,9 @@ export function checkAchievements(state: GameState): void {
     if (metric(state, a.metric) >= a.threshold) {
       state.achievements[a.id] = state.time;
       state.fx.push({ kind: 'achievement', id: a.id });
-      addLog(state, 'narrator.achievement', { name: `@achm.${a.metric}`, tier: achievementTier(a.id) });
+      // Stufe mit führendem Leerzeichen – geheime Erfolge haben keine, dann bleibt nichts übrig.
+      const tier = achievementTier(a.id);
+      addLog(state, 'narrator.achievement', { name: `@achm.${a.metric}`, tier: tier ? ` ${tier}` : '' });
     }
   }
 }

@@ -655,7 +655,7 @@ export const en: Messages = {
   'dice.lost': 'lost',
 
   // --- Meilenstein 5c ---
-  'narrator.achievement': 'Achievement unlocked: {name} {tier}. +1 % to everything. I wrote it down.',
+  'narrator.achievement': 'Achievement unlocked: {name}{tier}. +1 % to everything. I wrote it down.',
   'ach.title': 'Achievements',
   'ach.count': '{n}/{total} unlocked · ×{mult} on production and damage',
   'ach.secret': '??? (secret)',
@@ -769,4 +769,23 @@ export const en: Messages = {
   'stat.diceJackpots': 'Dice jackpots',
   'achm.fastEpoch': 'Time racer',
   'achd.fastEpoch': 'Finish an epoch in under 45 minutes.',
+
+  // --- Meilenstein 5d ---
+  'recap.title': 'While you were away …',
+  'recap.away':
+    '… nothing happened. Nothing at all. You were gone for {time}, and the aliens waited politely.',
+  'recap.last': 'Your last session ({time}) in fast forward:',
+  'recap.rested': 'Rested bonus: {min} minutes of double experience for everyone.',
+  'recap.continue': 'Continue',
+  'recap.kills': 'Aliens defeated',
+  'recap.wins': 'Battles won',
+  'recap.buildings': 'Buildings built',
+  'recap.gold': 'Gold earned',
+  'recap.skills': 'Skill ranks learned',
+  'recap.research': 'Research completed',
+  'recap.achievements': 'Achievements',
+  'recap.jumps': 'Time jumps',
+  'hud.rested': 'Rested: ×2 experience · {time} left',
+  'hud.restedTip':
+    'Take a break of at least 5 minutes and get 5 minutes of double experience per hour away (at least 2, at most 15 minutes).',
 };

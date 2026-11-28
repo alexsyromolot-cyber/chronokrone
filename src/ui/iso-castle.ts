@@ -28,6 +28,7 @@ import {
   workersAt,
 } from '../systems/castle';
 import { powerBonus } from '../systems/power';
+import { surveyBounds } from '../systems/research';
 import { isConnected, rosetteBonus } from '../systems/starship';
 import type { GameState, Tile } from '../systems/state';
 import { esc, num, pct, tip } from './dom';
@@ -69,6 +70,11 @@ function buildingSprite(id: BuildingId, level: number): string {
     : bg(isoBuildingsUrl, BLD, `generic_${stage}`);
 }
 
+/** CSS-Hintergrund des Iso-Bilds eines Gebäudes (für die Karte in der Seitenleiste). */
+export function isoBuildingStyle(id: BuildingId, level: number): string {
+  return buildingSprite(id, level);
+}
+
 /** Was ein Gebäude pro Sekunde liefert – als kleine Zahl über dem Dach. */
 function prodLabel(state: GameState, tile: Tile): string {
   const p = tileProduction(state, tile);
@@ -86,7 +92,7 @@ function prodLabel(state: GameState, tile: Tile): string {
 }
 
 /** Nachbarn, die dem gewählten Gebäude einen Bonus geben – als Linien mit Wert. */
-function bonusLines(state: GameState, tile: Tile, rows: number): string {
+function bonusLines(state: GameState, tile: Tile, rows: number, lo: number): string {
   if (!tile.building) return '';
   const def = BUILDINGS[tile.building];
   const links: { n: Tile; text: string }[] = [];
@@ -96,8 +102,8 @@ function bonusLines(state: GameState, tile: Tile, rows: number): string {
     else if (n.building === 'tavern' && workerClassFor(tile.building))
       links.push({ n, text: t('iso.tavern') });
   }
-  const cx = (x: number, y: number) => sx(x, y, rows) + 32;
-  const cy = (x: number, y: number) => sy(x, y) + 16;
+  const cx = (x: number, y: number) => sx(x - lo, y - lo, rows) + 32;
+  const cy = (x: number, y: number) => sy(x - lo, y - lo) + 16;
   const lines = links
     .map(
       ({ n }) =>
@@ -128,23 +134,33 @@ function workersHtml(state: GameState, tile: Tile, x: number, y: number): string
 
 export interface IsoUi {
   selected: { x: number; y: number } | null;
+  /** Produktionszahlen an allen Gebäuden zeigen (sonst nur am gewählten). */
+  numbers: boolean;
   /** Bau-Modus: gewähltes Gebäude aus dem Katalog. */
   build: BuildingId | null;
 }
 
 export function isoGridHtml(state: GameState, ui: IsoUi): string {
-  const rows = Math.max(...state.tiles.map((t) => t.y)) + 1;
-  const cols = Math.max(...state.tiles.map((t) => t.x)) + 1;
+  // Nur der erschlossene Bereich plus ein Ring Nebel – der Rest der Karte ist (noch) unwichtig
+  // und würde das Bild nur kleiner machen.
+  const b = surveyBounds(state);
+  const lo = Math.max(0, b.min - 1);
+  const hi = b.max + 1;
+  const shown = state.tiles.filter((t) => t.x >= lo && t.x <= hi && t.y >= lo && t.y <= hi);
+  const rows = Math.max(...shown.map((t) => t.y)) - lo + 1;
+  const cols = Math.max(...shown.map((t) => t.x)) - lo + 1;
   const width = (cols + rows) * 32;
   const height = (cols + rows) * 16 + 64 + 8;
   const parts: string[] = [];
-  const sorted = [...state.tiles].sort((a, b) => a.x + a.y - (b.x + b.y) || a.x - b.x);
+  const sorted = [...shown].sort((a, b) => a.x + a.y - (b.x + b.y) || a.x - b.x);
   for (const tile of sorted) {
-    const x = sx(tile.x, tile.y, rows);
-    const y = sy(tile.x, tile.y);
+    const x = sx(tile.x - lo, tile.y - lo, rows);
+    const y = sy(tile.x - lo, tile.y - lo);
     const z = (tile.x + tile.y) * 10;
     const fog = !tile.unlocked && !inBounds(state, tile);
-    const terrain = `${tile.terrain}${tile.unlocked ? '' : fog ? '_fog' : '_locked'}`;
+    // Freie Felder in drei Varianten (fest je Feld), damit Flächen nicht gekachelt wirken.
+    const variant = ['', '_v1', '_v2'][(tile.x * 7 + tile.y * 3) % 3];
+    const terrain = `${tile.terrain}${tile.unlocked ? variant : fog ? '_fog' : '_locked'}`;
     const selected = ui.selected?.x === tile.x && ui.selected.y === tile.y;
     const label = tile.building
       ? tk(`building.${tile.building}`)
@@ -187,7 +203,7 @@ export function isoGridHtml(state: GameState, ui: IsoUi): string {
         : `<img class="iso-sign" src="${spriteUrl(BUILDING_SPRITES[tile.building])}" alt="">`;
       parts.push(
         `<span class="${bcls.join(' ')}" style="left:${x}px;top:${y - 64}px;z-index:${z + 2};${buildingSprite(tile.building, tile.level)}">${sign}
-          <span class="iso-lvl">${tile.level}</span>${prodLabel(state, tile)}${bad ? `<span class="iso-alert" ${tip(t('iso.bottleneck'))}>!</span>` : ''}</span>`,
+          <span class="iso-lvl">${tile.level}</span>${ui.numbers || selected ? prodLabel(state, tile) : ''}${bad ? `<span class="iso-alert" ${tip(t('iso.bottleneck'))}>!</span>` : ''}</span>`,
       );
       parts.push(workersHtml(state, tile, x, y));
     }
@@ -195,7 +211,7 @@ export function isoGridHtml(state: GameState, ui: IsoUi): string {
   const sel = ui.selected
     ? state.tiles.find((t) => t.x === ui.selected!.x && t.y === ui.selected!.y)
     : undefined;
-  const lines = sel ? bonusLines(state, sel, rows) : '';
+  const lines = sel && sel.x >= lo && sel.y >= lo ? bonusLines(state, sel, rows, lo) : '';
   return `<div class="iso-grid ${ui.build ? 'building' : ''}" style="width:${width}px;height:${height}px">${parts.join('')}${lines}</div>`;
 }
 
@@ -210,5 +226,6 @@ export function catalogHtml(state: GameState, ui: IsoUi): string {
         <span class="iso-cat-img" style="${bg(isoBuildingsUrl, BLD, f)}"></span></button>`;
     })
     .join('');
-  return `<div class="iso-catalog"><span class="iso-cat-title">${esc(t(ui.build ? 'iso.buildMode' : 'iso.catalog'))}</span>${items}</div>`;
+  const numbers = `<button class="sign iso-numbers ${ui.numbers ? 'on' : ''}" data-iso-numbers ${tip(t('iso.numbersTip'))}>${esc(t('iso.numbers'))}</button>`;
+  return `<div class="iso-catalog"><span class="iso-cat-title">${esc(t(ui.build ? 'iso.buildMode' : 'iso.catalog'))}</span>${items}${numbers}</div>`;
 }

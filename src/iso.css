@@ -25,7 +25,7 @@
 
 .iso-grid {
   position: relative;
-  zoom: 2;
+  zoom: var(--iso-zoom, 2);
   image-rendering: pixelated;
   flex: none;
 }
@@ -348,4 +348,218 @@
   .iso-alert {
     animation: none;
   }
+}
+
+/* ---------- Schliff: Bauplatz ohne Glas-Kasten, Karte als Holztafel ---------- */
+#castle {
+  background: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+#castle > h2 {
+  display: none;
+}
+
+/* Gebäude werfen einen weichen Schatten nach rechts unten (Licht von oben links). */
+.iso-bld,
+.iso-deco {
+  filter: drop-shadow(3px 2px 0 rgba(0, 0, 0, 0.28));
+}
+
+.castle-layout.iso .detail {
+  border: 16px solid transparent;
+  border-image: url('./assets/ui/frame.png') 8 fill / 16px / 0 round;
+  image-rendering: pixelated;
+  padding: 2px 6px 4px;
+  color: #f3ead7;
+  text-shadow: 0 1px 0 #1a0f08;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+  position: sticky;
+  top: 0;
+}
+
+.bcard {
+  display: grid;
+  gap: 12px;
+}
+
+.bcard-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: help;
+}
+
+/* Iso-Bild des Gebäudes, doppelt groß, ohne leeren Himmel darüber. */
+.bcard-img {
+  width: 96px;
+  height: 96px;
+  flex: none;
+  overflow: hidden;
+  position: relative;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 2px #2a1a0e;
+}
+
+/* zoom 2: Positionsangaben zählen in Bildpixeln (Bodenmitte des Gebäudes landet unten in der Box). */
+.bcard-img > span {
+  position: absolute;
+  left: -8px;
+  top: -40px;
+  width: 64px;
+  height: 96px;
+  zoom: 2;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.bcard-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bcard-title h3 {
+  font-size: 1.25em;
+  color: #ffe6a0;
+}
+
+.plaque {
+  min-width: 30px;
+  padding: 2px 6px;
+  background: linear-gradient(180deg, #e8c070, #c8963a);
+  color: #2a1a0e;
+  text-shadow: none;
+  font-weight: 800;
+  text-align: center;
+  box-shadow:
+    0 0 0 2px #3a2410,
+    inset 0 1px 0 #fff0c0;
+}
+
+.bcard-prod {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.5em;
+  cursor: help;
+}
+
+.bcard-prod img {
+  width: 36px;
+  height: 36px;
+  image-rendering: pixelated;
+}
+
+.bcard-prod b {
+  color: #7ed37e;
+}
+
+.bcard-prod small {
+  font-size: 0.6em;
+  opacity: 0.7;
+}
+
+.bchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 4px;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(232, 192, 112, 0.35);
+  font-weight: 700;
+  cursor: help;
+}
+
+.bchip img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+}
+
+.mini-bar {
+  width: 34px;
+  height: 5px;
+  background: #1a1410;
+  box-shadow: 0 0 0 1px #6a4a20;
+}
+
+.mini-bar span {
+  display: block;
+  height: 100%;
+  background: #e8c070;
+}
+
+.bcard-buy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sign.big {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.1em;
+  padding: 8px 16px;
+}
+
+.sign.big img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+}
+
+.sign:disabled {
+  filter: grayscale(0.7) brightness(0.7);
+  cursor: not-allowed;
+}
+
+/* Kosten überall: Icon und Zahl. */
+.cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-right: 8px;
+  font-weight: 700;
+  color: #ffe6a0;
+}
+
+.cost.missing {
+  color: var(--bad);
+}
+
+.cost-icon {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+}
+
+/* Katalog größer, mit Zahlen-Schalter. */
+.iso-cat {
+  width: 64px;
+  height: 64px;
+}
+
+.iso-cat-img {
+  left: 0;
+  top: -28px;
+}
+
+.iso-numbers {
+  margin-left: auto;
+}
+
+.iso-numbers.on {
+  background: linear-gradient(180deg, #c8963a, #8a5a2a);
 }

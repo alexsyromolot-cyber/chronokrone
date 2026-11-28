@@ -1328,6 +1328,13 @@ export const de = {
   'iso.catalog': 'Bauen:',
   'iso.buildMode': 'Feld wählen – grün = Bonus (Esc beendet)',
   'reason.buildModeTile': 'Hier lässt sich nichts bauen: Feld ist belegt oder noch nicht gerodet.',
+
+  // --- Bauplatz-Schalter ---
+  'iso.numbers': 'Zahlen',
+  'iso.numbersTip': 'Produktion an allen Gebäuden zeigen (sonst nur am gewählten).',
+
+  // --- Bauplatz-Karte ---
+  'castle.bonus.power': 'Strom',
 } as const;
 
 export type MessageKey = keyof typeof de;

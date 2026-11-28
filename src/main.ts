@@ -79,7 +79,7 @@ let state = loadOrCreate();
 setLocale(state.settings.locale);
 
 const loop = new FixedStepLoop((dt) => tick(state, dt));
-const castleUi: CastleUi = { selected: { x: 2, y: 3 }, build: null };
+const castleUi: CastleUi = { selected: { x: 2, y: 3 }, build: null, numbers: false };
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const reducedMotion = () => state.settings.reducedMotion || prefersReducedMotion.matches;
 
@@ -154,6 +154,20 @@ function renderVillage(room: RoomId | null): void {
   el('#room-title').textContent = room ? tk(`room.${room}`) : '';
   showRoom(room, reducedMotion());
   renderRoom(state, room, castleUi, reveal);
+  if (room === 'bau') fitIsoZoom();
+}
+
+/**
+ * Bauplatz so groß wie möglich, aber ganzzahlig vergrößert (scharfe Pixel): 2× bis 4×,
+ * je nachdem, wie viel Platz neben der Seitenleiste ist.
+ */
+function fitIsoZoom(): void {
+  const wrap = document.querySelector<HTMLElement>('.iso-wrap');
+  const grid = document.querySelector<HTMLElement>('.iso-grid');
+  if (!wrap || !grid) return;
+  const natural = parseFloat(grid.style.width) || 1;
+  const zoom = Math.max(2, Math.min(4, Math.floor(wrap.clientWidth / natural)));
+  el('#castle-body').style.setProperty('--iso-zoom', String(zoom));
 }
 
 /** Ereignis (pausiert das Spiel) hat Vorrang vor dem Ergebnisfenster der Schlacht. */
@@ -440,6 +454,11 @@ function installInput(debug: { toggle(): void }): void {
     }
     if (target.closest('[data-narrator]')) {
       narratorOpen = !narratorOpen;
+      renderPanels();
+      return;
+    }
+    if (target.closest('[data-iso-numbers]')) {
+      castleUi.numbers = !castleUi.numbers;
       renderPanels();
       return;
     }

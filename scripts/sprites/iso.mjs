@@ -100,8 +100,20 @@ function hipRoof(p, cx, cy, a, b, h, rh, roof, o = 3) {
   p.poly([K, R, apex], roof[0]);
   p.poly([L, F, apex], roof[3]);
   p.poly([F, R, apex], roof[1]);
+  const lerp = (P, Q, t) => [P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t];
+  const rows = Math.max(2, Math.round(rh / 3));
+  for (let k = 1; k < rows; k++) {
+    const t = k / rows;
+    const [a1, b1] = [lerp(L, apex, t), lerp(F, apex, t)];
+    const [a2, b2] = [lerp(F, apex, t), lerp(R, apex, t)];
+    p.line(a1[0], a1[1], b1[0], b1[1], roof[2]);
+    p.line(a2[0], a2[1], b2[0], b2[1], roof[0]);
+  }
   p.line(apex[0], apex[1], F[0], F[1], roof[4]);
   p.line(L[0], L[1], F[0], F[1], roof[2]);
+  // Traufe als dunkle Kante – Dächer heben sich klar von den Wänden ab.
+  p.line(F[0], F[1] + 1, R[0], R[1] + 1, roof[0]);
+  p.line(L[0], L[1] + 1, F[0], F[1] + 1, roof[1]);
   return apex;
 }
 
@@ -182,6 +194,11 @@ const ROOFS = {
 function house(p, { a = 18, b = 9, h = 14, wall = PLASTER, roof = ROOFS.red, rh = 14, wood = false } = {}) {
   const { x, y } = GROUND;
   block(p, x, y, a, b, h, wall);
+  // Steinsockel: Häuser stehen auf einem Fundament statt direkt auf der Wiese.
+  for (let v = 0; v < 3; v++) {
+    p.line(x - a, y - v, x, y + b - v, STONE[v === 2 ? 3 : 2]);
+    p.line(x, y + b - v, x + a, y - v, STONE[v === 2 ? 1 : 0]);
+  }
   // Putz bleibt glatt; Fugen nur bei Holz und Stein.
   if (wall !== PLASTER) courses(p, x, y, a, b, h, wall, wood);
   if (!wood) {
@@ -435,7 +452,7 @@ const TERRAIN = {
   stream: { top: ramp('#3a6aa8'), side: ramp('#5a3a22') },
 };
 
-function terrainTile(kind, variant = '') {
+function terrainTile(kind, variant = '', seed = 0) {
   const p = new Pix(64, 40);
   const t = TERRAIN[kind];
   const cx = 32;
@@ -468,7 +485,7 @@ function terrainTile(kind, variant = '') {
     ],
     t.top[2],
   );
-  const r = rng(kind.length * 31 + variant.length);
+  const r = rng(kind.length * 31 + variant.length * 7 + seed * 101);
   const inside = (x, y) => Math.abs(x - cx) / A + Math.abs(y - cy) / B < 0.92;
   for (let i = 0; i < 90; i++) {
     const x = Math.floor(r() * 64);
@@ -492,6 +509,26 @@ function terrainTile(kind, variant = '') {
       p.ball(cx + dx, cy + dy, 3, 2, ramp('#8a8a94'));
   // Oberkante im Licht (links oben).
   p.line(cx - A, cy, cx, cy - B, t.top[3]);
+  if (kind === 'grass' || kind === 'forest') {
+    // Grasbüschel (kleine helle Spitzen) und bei Wiese ein paar Blumen.
+    for (let i = 0; i < 14; i++) {
+      const x = Math.floor(r() * 64);
+      const y = Math.floor(r() * 32);
+      if (!inside(x, y)) continue;
+      p.set(x, y, t.top[4]);
+      p.set(x - 1, y + 1, t.top[3]);
+      p.set(x + 1, y + 1, t.top[3]);
+    }
+    if (kind === 'grass' && seed > 0)
+      for (let i = 0; i < 5 + seed * 2; i++) {
+        const x = Math.floor(r() * 64);
+        const y = Math.floor(r() * 32);
+        if (inside(x, y)) p.set(x, y, ['#f2e070', '#f0a0c0', '#e8f0ff', '#c0a0f0'][Math.floor(r() * 4)]);
+      }
+  }
+  // Vorderkanten dunkler: Felder setzen sich voneinander ab, ohne harte Gitterlinien.
+  p.line(cx - A, cy, cx, cy + B, t.top[1]);
+  p.line(cx, cy + B, cx + A, cy, t.top[0]);
   if (variant === 'locked') p.c = p.c.map((c) => (c ? mix(c, '#0b0f1a', 0.55) : c));
   if (variant === 'fog') p.c = p.c.map((c) => (c ? mix(c, '#05070c', 0.82) : c));
   return p;
@@ -566,6 +603,9 @@ export function drawIso() {
   const terrain = {};
   for (const kind of Object.keys(TERRAIN)) {
     terrain[kind] = terrainTile(kind);
+    // Zwei Varianten je Gelände, damit große Flächen nicht wie gekachelt aussehen.
+    terrain[`${kind}_v1`] = terrainTile(kind, '', 1);
+    terrain[`${kind}_v2`] = terrainTile(kind, '', 2);
     terrain[`${kind}_locked`] = terrainTile(kind, 'locked');
     terrain[`${kind}_fog`] = terrainTile(kind, 'fog');
   }

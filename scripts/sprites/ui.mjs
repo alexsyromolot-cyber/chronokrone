@@ -414,8 +414,113 @@ const BUTTON_ICONS = {
   },
 };
 
+/** Info-Icons für die Gebäudekarte im Bauplatz (Boni statt langer Texte). */
+const INFO_ICONS = {
+  // Gelände: Tanne auf einem Fels.
+  terrain: (p) => {
+    p.ball(7, 9, 4, 2.5, ramp('#8a8a94'));
+    const g = ramp('#3f7a3a');
+    p.poly(
+      [
+        [4, 1],
+        [8, 8],
+        [0, 8],
+      ],
+      g[2],
+    );
+    p.line(4, 1, 0, 8, g[3]);
+    p.rect(3, 8, 2, 2, '#5a3a22');
+  },
+  // Nachbarn: zwei Häuschen nebeneinander.
+  neighbor: (p) => {
+    for (const x of [0, 6]) {
+      p.rect(x + 1, 6, 5, 5, PARCH[2]);
+      p.poly(
+        [
+          [x, 6],
+          [x + 3.5, 2],
+          [x + 7, 6],
+        ],
+        ramp('#a3423a')[2],
+      );
+      p.rect(x + 3, 8, 1, 3, '#5a3a22');
+    }
+  },
+  // Arbeiter: kleine Figur mit Hacke.
+  worker: (p) => {
+    p.ball(5, 3, 2.2, 2.2, ramp('#e8b48a'));
+    p.cyl(3, 5, 4, 4, ramp('#4f7d45'));
+    p.rect(3, 9, 1, 2, '#3a2a1a');
+    p.rect(6, 9, 1, 2, '#3a2a1a');
+    p.line(8, 2, 8, 9, '#9a6a3a');
+    p.rect(7, 2, 3, 1, '#c8c8d0');
+  },
+  // Skills: aufgeschlagenes Buch mit Stern.
+  skills: (p) => {
+    p.rect(1, 4, 10, 6, ramp('#3a5a9a')[2]);
+    p.rect(2, 3, 4, 6, PARCH[3]);
+    p.rect(6, 3, 4, 6, PARCH[2]);
+    p.set(6, 0, '#ffe66d');
+    p.rect(5, 1, 3, 1, '#ffe66d');
+    p.set(6, 2, '#ffe66d');
+  },
+  tavern: (p) => {
+    p.cyl(2, 3, 6, 8, ramp('#c89050'));
+    p.rect(2, 2, 6, 2, '#f8f0e0');
+    p.rect(8, 5, 2, 4, ramp('#c89050')[1]);
+  },
+  // Meilenstein: goldener Stern.
+  milestone: (p) => {
+    p.poly(
+      [
+        [6, 0],
+        [8, 4],
+        [12, 4],
+        [9, 7],
+        [10, 11],
+        [6, 9],
+        [2, 11],
+        [3, 7],
+        [0, 4],
+        [4, 4],
+      ],
+      BRASS[3],
+    );
+    p.set(5, 4, BRASS[4]);
+  },
+  // Ausbauen: Pfeil nach oben.
+  upgrade: (p) => {
+    p.poly(
+      [
+        [6, 1],
+        [11, 6],
+        [8, 6],
+        [8, 11],
+        [4, 11],
+        [4, 6],
+        [1, 6],
+      ],
+      '#7ed37e',
+    );
+    p.line(6, 1, 1, 6, '#c8f0c0');
+  },
+  power: (p) =>
+    p.poly(
+      [
+        [7, 0],
+        [2, 7],
+        [6, 7],
+        [4, 12],
+        [10, 4],
+        [6, 4],
+      ],
+      '#ffd36a',
+    ),
+};
+
 export function drawUi() {
   return {
+    ...Object.fromEntries(Object.entries(INFO_ICONS).map(([id, draw]) => [`ic-${id}`, icon(draw)])),
     strip: strip(),
     note: note(),
     seal: seal(),
